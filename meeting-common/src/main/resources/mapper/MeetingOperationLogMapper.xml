@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiens.rep.mapper.MeetingOperationLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.tiens.rep.po.MeetingOperationLogPO">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="event" column="event" jdbcType="VARCHAR"/>
+            <result property="trace_id" column="trace_id" jdbcType="VARCHAR"/>
+            <result property="operator_user_id" column="operator_user_id" jdbcType="VARCHAR"/>
+            <result property="meeting_id" column="meeting_id" jdbcType="VARCHAR"/>
+            <result property="operate_time" column="operate_time" jdbcType="TIMESTAMP"/>
+            <result property="create_time" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,event,trace_id,
+        operator_user_id,meeting_id,operate_time,
+        create_time
+    </sql>
+</mapper>
