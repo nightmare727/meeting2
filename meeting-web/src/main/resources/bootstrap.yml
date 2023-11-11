@@ -1,0 +1,136 @@
+spring:
+  application:
+    name: meeting-web
+  profiles:
+    active: dev2-server
+
+server:
+  port: 8081
+
+# 日志配置
+logging:
+  config: classpath:log4j2.xml
+  level:
+    root: debug
+    web: info
+    com:
+      alibaba:
+        nacos:
+          client:
+            naming: error
+---
+spring:
+  profiles: dev2-server
+  cloud:
+    nacos:
+      config:
+        server-addr: ${nacos.host}:${nacos.port}
+        namespace: vmoment-meeting
+        file-extension: yaml
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+      discovery:
+        enable: true
+        register-enabled: true
+        server-addr: ${spring.cloud.nacos.config.server-addr}
+        namespace: ${spring.profiles.active}
+        group: ${spring.profiles.active}
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+
+nacos:
+  host: 172.22.45.121
+  port: 8848
+dubbo:
+  registry:
+    address: nacos://${nacos.host}:${nacos.port}?username=${nacos.username:nacos}&password=${nacos.password:nacos}&namespace=${spring.profiles.active}
+  protocol:
+    name: dubbo
+  scan:
+    base-packages:
+  provider:
+    timeout: 10000
+  consumer:
+    check: false
+    timeout: 5000
+    retries: 0
+    version: 1.0
+
+
+---
+spring:
+  profiles: local
+  cloud:
+    nacos:
+      config:
+        server-addr: 172.22.45.121:8848
+        namespace: vmoment-meeting
+        file-extension: yaml
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+      discovery:
+        enable: true
+        register-enabled: true
+        server-addr: ${spring.cloud.nacos.config.server-addr}
+        namespace: ${spring.profiles.active}
+        group: ${spring.profiles.active}
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+
+nacos:
+  host: 127.0.0.1
+  port: 8848
+dubbo:
+  registry:
+    address: nacos://${nacos.host}:${nacos.port}?username=${nacos.username:nacos}&password=${nacos.password:nacos}&namespace=${spring.profiles.active}
+  protocol:
+    name: dubbo
+  scan:
+    base-packages:
+  provider:
+    timeout: 10000
+  consumer:
+    check: false
+    timeout: 5000
+    retries: 0
+    version: 1.0
+
+---
+spring:
+  profiles: prod
+  cloud:
+    nacos:
+      config:
+        server-addr: ${nacos.host}:${nacos.port}
+        namespace: vmoment-meeting
+        file-extension: yaml
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+      discovery:
+        enable: true
+        register-enabled: true
+        server-addr: ${spring.cloud.nacos.config.server-addr}
+        namespace: ${spring.profiles.active}
+        group: ${spring.profiles.active}
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+
+nacos:
+  host:
+  port: 8848
+dubbo:
+  registry:
+    address: nacos://${nacos.host}:${nacos.port}?username=${nacos.username:nacos}&password=${nacos.password:nacos}&namespace=${spring.profiles.active}
+  protocol:
+    name: dubbo
+  scan:
+    base-packages:
+  provider:
+    timeout: 10000
+  consumer:
+    check: false
+    timeout: 5000
+    retries: 0
+    version: 1.0
+
+
