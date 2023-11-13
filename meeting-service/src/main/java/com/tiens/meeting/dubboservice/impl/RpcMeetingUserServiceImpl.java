@@ -119,8 +119,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         AddUserRequest request = new AddUserRequest();
         AddUserDTO body = new AddUserDTO();
         String mobile = vmUserVO.getMobile();
-        if(ObjectUtil.isNotEmpty(mobile)){
-            body.withPhone(!ObjectUtil.equals(vmUserVO.getSource(), 3) ? "+86" + mobile : "+" + mobile);
+        if (ObjectUtil.isNotEmpty(mobile)) {
+            body.withPhone(ObjectUtil.equals(vmUserVO.getSource(), 3) ? ("+" + mobile) : ("+86" + mobile));
         }
         body.withName(vmUserVO.getNickName());
         body.setEmail(vmUserVO.getEmail());
