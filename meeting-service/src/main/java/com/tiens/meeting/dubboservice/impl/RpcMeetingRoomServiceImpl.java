@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Service(version = "1.0")
 @RequiredArgsConstructor
 @Slf4j
-public class MeetingRoomServiceImpl implements RpcMeetingRoomService {
+public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     @Autowired
     MeetingConfig meetingConfig;
@@ -36,7 +36,7 @@ public class MeetingRoomServiceImpl implements RpcMeetingRoomService {
         Long expireTime = System.currentTimeMillis() / 1000 + meetingConfig.getExpireSeconds();
         String nonce = RandomUtil.randomString(40);
         String data = meetingConfig.getAppId() + ":" + userId + ":" + expireTime + ":" + nonce;
-        String authorization = "HMAC-SHA256 signature=" + HmacSHA256.encode(data, meetingConfig.getAppKey());
+        String authorization = HmacSHA256.encode(data, meetingConfig.getAppKey());
         VMMeetingCredentialVO vmMeetingCredentialVO = new VMMeetingCredentialVO();
         vmMeetingCredentialVO.setSignature(authorization);
         vmMeetingCredentialVO.setExpireTime(expireTime);

@@ -17,5 +17,5 @@ public class MeetingHostPageDTO implements Serializable {
 
     private String phone;
 
-    private String userId;
+    private String joyoCode;
 }

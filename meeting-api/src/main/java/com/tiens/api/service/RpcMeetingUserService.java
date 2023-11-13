@@ -47,7 +47,7 @@ public interface RpcMeetingUserService {
      * @param accId
      * @return
      */
-    CommonResult queryMeetingHostUser(String accId) throws ServiceException;
+    CommonResult<MeetingHostUserVO> queryMeetingHostUser(String accId) throws ServiceException;
 
     /**
      * 分页查询主持人列表

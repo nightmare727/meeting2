@@ -2,7 +2,7 @@ spring:
   profiles:
     active: dev2-server
   application:
-    name: meeting-dubboservice
+    name: meeting-service
 
 # 日志配置
 logging:
@@ -138,35 +138,6 @@ dubbo:
 #      host: redis-c0cd2b89-8b8a-4eb3-b947-ec1127288d28.cn-north-4.dcs.myhuaweicloud.com
 #      port: 6379
 
-#rocketmq配置信息
-rocketmq:
-  #nameservice服务器地址（多个以英文逗号隔开）
-  name-server: 172.22.45.121:9876
-  #消费者配置
-  consumer:
-    #组名
-    im_update_userinfo_group: im_update_userinfo_edu_consumer_group
-    #监听主题
-    im_update_userinfo_topic: im_update_userinfo
-
-    clean_cache_group: im_edu_clean_cache_group
-
-  producer:
-    clean_cache_topic: im_edu_clean_cache
-    # 发送同一类消息的设置为同一个group，保证唯一
-    group: vm_edu_producer_group
-    # 发送消息超时时间，默认3000
-    sendMessageTimeout: 10000
-    # 发送消息失败重试次数，默认2
-    retryTimesWhenSendFailed: 2
-    # 异步消息重试此处，默认2
-    retryTimesWhenSendAsyncFailed: 2
-    # 消息最大长度，默认1024 * 1024 * 4(默认4M)
-    maxMessageSize: 4096
-    # 压缩消息阈值，默认4k(1024 * 4)
-    compressMessageBodyThreshold: 4096
-    # 是否在内部发送失败时重试另一个broker，默认false
-    retryNextServer: false
 
 
 ---

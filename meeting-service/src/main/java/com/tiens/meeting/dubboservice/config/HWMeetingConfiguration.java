@@ -4,6 +4,7 @@ import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.MeetingCredentials;
 import com.huaweicloud.sdk.meeting.v1.model.AuthTypeEnum;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
 public class HWMeetingConfiguration {
 
     @Bean
-    @ConditionalOnBean(MeetingClient.class)
+    @ConditionalOnMissingBean(MeetingClient.class)
     public MeetingClient meetingClient(MeetingConfig meetingConfig) {
         MeetingCredentials auth =
             new MeetingCredentials().withAuthType(AuthTypeEnum.APP_ID).withAppId(meetingConfig.getAppId())

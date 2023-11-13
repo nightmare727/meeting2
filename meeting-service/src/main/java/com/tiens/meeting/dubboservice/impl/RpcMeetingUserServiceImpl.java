@@ -22,7 +22,7 @@ import com.tiens.china.circle.api.common.result.Result;
 import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
-import com.tiens.meeting.repository.service.MeetingHostUserService;
+import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
@@ -34,6 +34,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,8 +48,9 @@ import java.util.Optional;
 @Service(version = "1.0")
 @RequiredArgsConstructor
 @Slf4j
-public class MeetingUserServiceImpl implements RpcMeetingUserService {
+public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
+    //    @Reference(version = "1.0", mock = "com.tiens.meeting.dubboservice.mock.DubboCommonUserServiceMock")
     @Reference(version = "1.0")
     DubboCommonUserService dubboCommonUserService;
     /**
@@ -56,7 +58,7 @@ public class MeetingUserServiceImpl implements RpcMeetingUserService {
      */
     private final MeetingClient meetingClient;
 
-    private final MeetingHostUserService meetingHostUserService;
+    private final MeetingHostUserDaoService meetingHostUserDaoService;
 
     /**
      * 通过卓越卡号查询用户
@@ -74,6 +76,7 @@ public class MeetingUserServiceImpl implements RpcMeetingUserService {
         }
         HomepageUserDTO data = dtoResult.getData();
         VMUserVO vmUserVO = BeanUtil.copyProperties(data, VMUserVO.class);
+        vmUserVO.setJoyoCode(data.getJoyo_code());
         return CommonResult.success(vmUserVO);
     }
 
@@ -84,6 +87,7 @@ public class MeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
+    @Transactional
     public CommonResult addMeetingHostUser(String joyoCode) throws ServiceException {
         //1、查询主持人信息是否存在
         CommonResult<VMUserVO> vmUserVOCommonResult = queryVMUser(joyoCode);
@@ -95,7 +99,7 @@ public class MeetingUserServiceImpl implements RpcMeetingUserService {
 
         MeetingHostUserPO meetingHostUserPO = wrapperMeetingHostUserPO(vmUserVO);
         try {
-            meetingHostUserService.save(meetingHostUserPO);
+            meetingHostUserDaoService.save(meetingHostUserPO);
         } catch (DuplicateKeyException e) {
             log.error("accId 重复异常");
             return CommonResult.error(GlobalErrorCodeConstants.EXIST_HOST_INFO);
@@ -129,6 +133,11 @@ public class MeetingUserServiceImpl implements RpcMeetingUserService {
 //            System.out.println(e.getRequestId());
 //            System.out.println(e.getErrorCode());
 //            System.out.println(e.getErrorMsg());
+            if (e.getErrorCode().equals("USG.201040001")) {
+                //账号已经存在
+                log.info("账号已存在，无需添加");
+                return true;
+            }
             log.error("华为云添加用户业务异常", e);
             throw new ServiceException("1000", e.getErrorMsg());
         }
@@ -141,6 +150,7 @@ public class MeetingUserServiceImpl implements RpcMeetingUserService {
         meetingHostUserPO.setPhone(data.getMobile());
         meetingHostUserPO.setEmail(data.getMobile());
         meetingHostUserPO.setName(data.getNickName());
+        meetingHostUserPO.setJoyoCode(data.getJoyoCode());
         return meetingHostUserPO;
     }
 
@@ -153,7 +163,7 @@ public class MeetingUserServiceImpl implements RpcMeetingUserService {
     @Override
     public CommonResult removeMeetingHostUser(Long hostUserId) {
         //1、删除主持人数据库数据
-        boolean b = meetingHostUserService.removeById(hostUserId);
+        boolean b = meetingHostUserDaoService.removeById(hostUserId);
         //2、删除华为云用户数据
         return CommonResult.success(b);
     }
@@ -165,10 +175,10 @@ public class MeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult queryMeetingHostUser(String accId) {
+    public CommonResult<MeetingHostUserVO> queryMeetingHostUser(String accId) {
 
         Optional<MeetingHostUserPO> meetingHostUserPOOptional =
-            meetingHostUserService.lambdaQuery().eq(MeetingHostUserPO::getAccId, accId).oneOpt();
+            meetingHostUserDaoService.lambdaQuery().eq(MeetingHostUserPO::getAccId, accId).oneOpt();
 
         if (meetingHostUserPOOptional.isPresent()) {
             MeetingHostUserVO meetingHostUserVO =
@@ -192,9 +202,9 @@ public class MeetingUserServiceImpl implements RpcMeetingUserService {
 
         LambdaQueryWrapper<MeetingHostUserPO> queryWrapper = Wrappers.lambdaQuery(MeetingHostUserPO.class)
             .like(ObjectUtil.isNotEmpty(condition.getName()), MeetingHostUserPO::getName, condition.getName())
-            .eq(ObjectUtil.isNotEmpty(condition.getUserId()), MeetingHostUserPO::getAccId, condition.getUserId())
+            .eq(ObjectUtil.isNotEmpty(condition.getJoyoCode()), MeetingHostUserPO::getJoyoCode, condition.getJoyoCode())
             .like(ObjectUtil.isNotEmpty(condition.getPhone()), MeetingHostUserPO::getPhone, condition.getPhone());
-        Page<MeetingHostUserPO> pagePoResult = meetingHostUserService.page(page, queryWrapper);
+        Page<MeetingHostUserPO> pagePoResult = meetingHostUserDaoService.page(page, queryWrapper);
         List<MeetingHostUserPO> records = pagePoResult.getRecords();
         List<MeetingHostUserVO> meetingHostUserVOS = BeanUtil.copyToList(records, MeetingHostUserVO.class);
         PageResult<MeetingHostUserVO> pageResult = new PageResult<>();

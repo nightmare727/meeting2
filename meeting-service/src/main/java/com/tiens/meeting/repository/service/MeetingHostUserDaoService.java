@@ -8,6 +8,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @description 针对表【meeting_host_user】的数据库操作Service
 * @createDate 2023-11-11 15:22:58
 */
-public interface MeetingHostUserService extends IService<MeetingHostUserPO> {
+public interface MeetingHostUserDaoService extends IService<MeetingHostUserPO> {
 
 }

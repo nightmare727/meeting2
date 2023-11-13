@@ -2,7 +2,7 @@ package com.tiens.meeting.repository.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tiens.meeting.repository.po.MeetingOperationLogPO;
-import com.tiens.meeting.repository.service.MeetingOperationLogService;
+import com.tiens.meeting.repository.service.MeetingOperationLogDaoService;
 import com.tiens.meeting.repository.mapper.MeetingOperationLogMapper;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 * @createDate 2023-11-11 15:22:58
 */
 @Service
-public class MeetingOperationLogServiceImpl extends ServiceImpl<MeetingOperationLogMapper, MeetingOperationLogPO>
-    implements MeetingOperationLogService{
+public class MeetingOperationLogDaoServiceImpl extends ServiceImpl<MeetingOperationLogMapper, MeetingOperationLogPO>
+    implements MeetingOperationLogDaoService {
 
 }
 

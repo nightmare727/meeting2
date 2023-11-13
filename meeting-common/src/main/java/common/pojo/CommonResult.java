@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import common.exception.ErrorCode;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.util.Assert;
 
@@ -21,16 +22,19 @@ public class CommonResult<T> implements Serializable {
      *
      * @see ErrorCode#getCode()
      */
+    @Schema(description = "0是成功，非0都是失败", required = true)
     private String code;
     /**
      * 返回数据
      */
+    @Schema(description = "数据", required = true)
     private T data;
     /**
      * 错误提示，用户可阅读
      *
      * @see ErrorCode#getMsg() ()
      */
+    @Schema(description = "异常描述", required = true)
     private String msg;
 
     /**

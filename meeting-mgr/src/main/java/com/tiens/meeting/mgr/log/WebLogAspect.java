@@ -27,7 +27,7 @@ public class WebLogAspect {
     /**
      * 以自定义 @WebLog 注解为切点
      */
-    @Pointcut("@annotation(log.com.tiens.meeting.mgr.WebLog)")
+    @Pointcut("@annotation(com.tiens.meeting.mgr.log.WebLog)")
     public void webLog() {
     }
 

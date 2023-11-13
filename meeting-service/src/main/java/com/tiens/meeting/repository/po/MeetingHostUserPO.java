@@ -23,6 +23,13 @@ public class MeetingHostUserPO implements Serializable {
     @TableId(value = "id",type = IdType.ASSIGN_ID)
     private Long id;
 
+
+    /**
+     * 经销商编号
+     */
+    @TableField(value = "joyo_code")
+    private String joyoCode;
+
     /**
      * 云信userId
      */
