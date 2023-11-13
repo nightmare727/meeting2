@@ -154,7 +154,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         MeetingHostUserPO meetingHostUserPO = new MeetingHostUserPO();
         meetingHostUserPO.setAccId(data.getAccid());
         meetingHostUserPO.setPhone(data.getMobile());
-        meetingHostUserPO.setEmail(data.getMobile());
+        meetingHostUserPO.setEmail(data.getEmail());
         meetingHostUserPO.setName(data.getNickName());
         meetingHostUserPO.setJoyoCode(data.getJoyoCode());
         return meetingHostUserPO;
