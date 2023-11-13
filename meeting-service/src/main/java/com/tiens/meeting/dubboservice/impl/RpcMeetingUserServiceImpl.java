@@ -72,11 +72,11 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         homepageBo.setJoyoCode(joyoCode);
         Result<HomepageUserDTO> dtoResult = null;
         try {
-              dubboCommonUserService.queryUserInfoAccId(null, homepageBo);
+            dtoResult = dubboCommonUserService.queryUserInfoAccId(null, homepageBo);
             if (ObjectUtils.isEmpty(dtoResult.getData())) {
                 return CommonResult.success(null);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("调用VM 查询用户异常");
             return CommonResult.success(null);
         }
