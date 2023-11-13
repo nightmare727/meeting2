@@ -118,10 +118,10 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     private boolean syncAddHWMeetinguser(VMUserVO vmUserVO) throws ServiceException {
         AddUserRequest request = new AddUserRequest();
         AddUserDTO body = new AddUserDTO();
-        String mobile = vmUserVO.getMobile();
-        if (ObjectUtil.isNotEmpty(mobile)) {
-            body.withPhone(mobile);
-        }
+//        String mobile = vmUserVO.getMobile();
+//        if (ObjectUtil.isNotEmpty(mobile)) {
+//            body.withPhone(mobile);
+//        }
         body.withName(vmUserVO.getNickName());
         body.setEmail(vmUserVO.getEmail());
         //userId
