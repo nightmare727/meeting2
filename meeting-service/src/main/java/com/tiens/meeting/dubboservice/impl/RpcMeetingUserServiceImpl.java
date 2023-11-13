@@ -120,7 +120,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         AddUserDTO body = new AddUserDTO();
         String mobile = vmUserVO.getMobile();
         if (ObjectUtil.isNotEmpty(mobile)) {
-            body.withPhone(ObjectUtil.equals(vmUserVO.getSource(), "3") ? ("+" + mobile) : ("+86" + mobile));
+            body.withPhone(mobile);
         }
         body.withName(vmUserVO.getNickName());
         body.setEmail(vmUserVO.getEmail());
@@ -212,7 +212,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             .like(ObjectUtil.isNotEmpty(condition.getName()), MeetingHostUserPO::getName, condition.getName())
             .eq(ObjectUtil.isNotEmpty(condition.getJoyoCode()), MeetingHostUserPO::getJoyoCode, condition.getJoyoCode())
             .like(ObjectUtil.isNotEmpty(condition.getPhone()), MeetingHostUserPO::getPhone, condition.getPhone())
-            .like(ObjectUtil.isNotEmpty(condition.getEmail()), MeetingHostUserPO::getEmail, condition.getEmail());
+            .like(ObjectUtil.isNotEmpty(condition.getEmail()), MeetingHostUserPO::getEmail, condition.getEmail())
+            .orderByDesc(MeetingHostUserPO::getCreateTime);
         Page<MeetingHostUserPO> pagePoResult = meetingHostUserDaoService.page(page, queryWrapper);
         List<MeetingHostUserPO> records = pagePoResult.getRecords();
         List<MeetingHostUserVO> meetingHostUserVOS = BeanUtil.copyToList(records, MeetingHostUserVO.class);
