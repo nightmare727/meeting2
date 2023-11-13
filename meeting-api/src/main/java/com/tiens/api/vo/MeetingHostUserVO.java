@@ -42,5 +42,7 @@ public class MeetingHostUserVO implements Serializable {
     @Schema(description = "姓名")
     private String name;
 
+    @Schema(description = "经销商编号")
+    private String joyoCode;
 
 }

@@ -18,4 +18,6 @@ public class MeetingHostPageDTO implements Serializable {
     private String phone;
 
     private String joyoCode;
+
+    private  String email;
 }

@@ -70,8 +70,14 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     public CommonResult<VMUserVO> queryVMUser(String joyoCode) {
         HomepageBo homepageBo = new HomepageBo();
         homepageBo.setJoyoCode(joyoCode);
-        Result<HomepageUserDTO> dtoResult = dubboCommonUserService.queryUserInfoAccId(null, homepageBo);
-        if (ObjectUtils.isEmpty(dtoResult.getData())) {
+        Result<HomepageUserDTO> dtoResult = null;
+        try {
+              dubboCommonUserService.queryUserInfoAccId(null, homepageBo);
+            if (ObjectUtils.isEmpty(dtoResult.getData())) {
+                return CommonResult.success(null);
+            }
+        }catch (Exception e){
+            log.error("调用VM 查询用户异常");
             return CommonResult.success(null);
         }
         HomepageUserDTO data = dtoResult.getData();
@@ -203,7 +209,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         LambdaQueryWrapper<MeetingHostUserPO> queryWrapper = Wrappers.lambdaQuery(MeetingHostUserPO.class)
             .like(ObjectUtil.isNotEmpty(condition.getName()), MeetingHostUserPO::getName, condition.getName())
             .eq(ObjectUtil.isNotEmpty(condition.getJoyoCode()), MeetingHostUserPO::getJoyoCode, condition.getJoyoCode())
-            .like(ObjectUtil.isNotEmpty(condition.getPhone()), MeetingHostUserPO::getPhone, condition.getPhone());
+            .like(ObjectUtil.isNotEmpty(condition.getPhone()), MeetingHostUserPO::getPhone, condition.getPhone())
+            .like(ObjectUtil.isNotEmpty(condition.getEmail()), MeetingHostUserPO::getEmail, condition.getEmail());
         Page<MeetingHostUserPO> pagePoResult = meetingHostUserDaoService.page(page, queryWrapper);
         List<MeetingHostUserPO> records = pagePoResult.getRecords();
         List<MeetingHostUserVO> meetingHostUserVOS = BeanUtil.copyToList(records, MeetingHostUserVO.class);
