@@ -41,7 +41,7 @@ public class MeetingUserController {
     @ResponseBody
     @GetMapping("/queryVMUser/{joyoCode}")
     public CommonResult<VMUserVO> queryMeetingHostUser(@PathVariable("joyoCode") String joyoCode) throws Exception {
-        CommonResult<VMUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryVMUser(joyoCode);
+        CommonResult<VMUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryVMUser(joyoCode,"");
         return vmUserVOCommonResult;
     }
 

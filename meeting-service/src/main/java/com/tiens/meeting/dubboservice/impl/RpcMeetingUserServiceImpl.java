@@ -67,9 +67,10 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult<VMUserVO> queryVMUser(String joyoCode) {
+    public CommonResult<VMUserVO> queryVMUser(String joyoCode, String accid) {
         HomepageBo homepageBo = new HomepageBo();
         homepageBo.setJoyoCode(joyoCode);
+        homepageBo.setAccId(accid);
         Result<HomepageUserDTO> dtoResult = null;
         try {
             dtoResult = dubboCommonUserService.queryUserInfoAccId(null, homepageBo);
@@ -96,7 +97,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     @Transactional
     public CommonResult addMeetingHostUser(String joyoCode) throws ServiceException {
         //1、查询主持人信息是否存在
-        CommonResult<VMUserVO> vmUserVOCommonResult = queryVMUser(joyoCode);
+        CommonResult<VMUserVO> vmUserVOCommonResult = queryVMUser(joyoCode, "");
         VMUserVO vmUserVO = vmUserVOCommonResult.getData();
         if (ObjectUtil.isEmpty(vmUserVOCommonResult.getData())) {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_HOST_INFO);
@@ -112,6 +113,30 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         }
         //3、添加主持人信息到华为云用户列表中
         boolean result = syncAddHWMeetinguser(vmUserVO);
+        return CommonResult.success(result);
+    }
+
+    /**
+     * 通过accid添加会议用户
+     *
+     * @param accid
+     * @return
+     */
+    @Override
+    public CommonResult addMeetingCommonUser(String accid) throws ServiceException {
+        //通过accid查询用户
+        CommonResult<VMUserVO> vmUserVOCommonResult = queryVMUser("", accid);
+        VMUserVO vmUserVO = vmUserVOCommonResult.getData();
+        if (ObjectUtil.isEmpty(vmUserVOCommonResult.getData())) {
+            return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_HOST_INFO);
+        }
+        //3、添加主持人信息到华为云用户列表中
+        boolean result = false;
+        try {
+            result = syncAddHWMeetinguser(vmUserVO);
+        } catch (Exception e) {
+           log.error("添加普通用户发生异常！",e);
+        }
         return CommonResult.success(result);
     }
 

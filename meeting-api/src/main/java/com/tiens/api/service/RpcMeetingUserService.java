@@ -22,7 +22,7 @@ public interface RpcMeetingUserService {
      * @param joyoCode
      * @return
      */
-    CommonResult<VMUserVO> queryVMUser(String joyoCode) throws ServiceException ;
+    CommonResult<VMUserVO> queryVMUser(String joyoCode,String accid) throws ServiceException ;
 
 
     /**
@@ -32,6 +32,16 @@ public interface RpcMeetingUserService {
      * @return
      */
     CommonResult addMeetingHostUser(String joyoCode) throws ServiceException;
+
+
+    /**
+     * 通过accid添加会议用户
+     *
+     * @param accid
+     * @return
+     */
+    CommonResult addMeetingCommonUser(String accid) throws ServiceException;
+
 
     /**
      * 移除主持人
