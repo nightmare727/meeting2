@@ -37,7 +37,7 @@ public enum VmUserSourceEnum {
 
     public static String getNameByCode(String code) {
         for (VmUserSourceEnum value : VmUserSourceEnum.values()) {
-            if (value.equals(code)) {
+            if (value.getCode().equals(code)) {
                 return value.name();
             }
         }
