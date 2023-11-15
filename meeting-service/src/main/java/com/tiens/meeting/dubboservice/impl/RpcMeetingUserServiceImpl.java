@@ -2,6 +2,8 @@ package com.tiens.meeting.dubboservice.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -23,6 +25,7 @@ import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
+import common.enums.VmUserSourceEnum;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
@@ -135,7 +138,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         try {
             result = syncAddHWMeetinguser(vmUserVO);
         } catch (Exception e) {
-           log.error("添加普通用户发生异常！",e);
+            log.error("添加普通用户发生异常！", e);
         }
         return CommonResult.success(result);
     }
@@ -147,11 +150,14 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 //        if (ObjectUtil.isNotEmpty(mobile)) {
 //            body.withPhone(mobile);
 //        }
-        body.withName(vmUserVO.getNickName());
+        //1-买买 2-云购 3 Vshare 4 瑞狮 5意涵永
+        body.withName(StrUtil.brief(vmUserVO.getNickName(), 64));
         body.setEmail(vmUserVO.getEmail());
         //userId
         body.withThirdAccount(vmUserVO.getAccid());
-        body.withAccount(vmUserVO.getJoyoCode());
+        //华为账号为卓越卡号拼接
+        body.withAccount(buildHWAccount(vmUserVO));
+
         request.withBody(body);
         //userId
         try {
@@ -176,6 +182,12 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             throw new ServiceException("1000", e.getErrorMsg());
         }
         return true;
+    }
+
+    private String buildHWAccount(VMUserVO vmUserVO) {
+        String source = VmUserSourceEnum.getNameByCode(vmUserVO.getSource());
+        String joyoCode = ObjectUtil.defaultIfBlank(vmUserVO.getJoyoCode(), "DEFAULT" + RandomUtil.randomNumbers(20));
+        return source + "-" + joyoCode;
     }
 
     private MeetingHostUserPO wrapperMeetingHostUserPO(VMUserVO data) {

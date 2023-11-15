@@ -39,7 +39,7 @@ class RpcMeetingUserServiceImplTest {
 
     @Test
     void queryVMUser() {
-        CommonResult<VMUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryVMUser("123456","");
+        CommonResult<VMUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryVMUser("","7ed71cdb710f4414b6f494c64b473906");
         System.out.println(vmUserVOCommonResult);
 
     }
