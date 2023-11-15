@@ -126,6 +126,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         body.setEmail(vmUserVO.getEmail());
         //userId
         body.withThirdAccount(vmUserVO.getAccid());
+        body.withAccount(vmUserVO.getJoyoCode());
         request.withBody(body);
         //userId
         try {

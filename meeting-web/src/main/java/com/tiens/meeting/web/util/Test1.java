@@ -23,7 +23,7 @@ public class Test1 {
 
     public static void main(String[] args) throws IOException {
 
-        String userId = "213131313131313w";
+        String userId = "我的天呢";
         Long expireTime = 0L;
         String data = appId + ":" + userId + ":" + expireTime + ":" + nonce;
         System.out.println("SHA256加密明文：" + data);
