@@ -1,18 +1,17 @@
 package com.tiens.meeting.repository.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
 import lombok.Data;
 
+import java.io.Serializable;
+import java.util.Date;
+
 /**
- * 
  * @TableName meeting_client_version
  */
-@TableName(value ="meeting_client_version")
+@TableName(value = "meeting_client_version")
 @Data
 public class MeetingClientVersionPO implements Serializable {
     /**
@@ -32,6 +31,9 @@ public class MeetingClientVersionPO implements Serializable {
      */
     @TableField(value = "version")
     private String version;
+
+    @TableField(value = "download_url")
+    private String downloadUrl;
 
     /**
      * 创建时间
@@ -59,12 +61,13 @@ public class MeetingClientVersionPO implements Serializable {
         if (getClass() != that.getClass()) {
             return false;
         }
-        MeetingClientVersionPO other = (MeetingClientVersionPO) that;
-        return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-            && (this.getType() == null ? other.getType() == null : this.getType().equals(other.getType()))
-            && (this.getVersion() == null ? other.getVersion() == null : this.getVersion().equals(other.getVersion()))
-            && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
-            && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
+        MeetingClientVersionPO other = (MeetingClientVersionPO)that;
+        return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId())) && (
+            this.getType() == null ? other.getType() == null : this.getType().equals(other.getType())) && (
+            this.getVersion() == null ? other.getVersion() == null : this.getVersion().equals(other.getVersion())) && (
+            this.getCreateTime() == null ? other.getCreateTime() == null
+                : this.getCreateTime().equals(other.getCreateTime())) && (this.getUpdateTime() == null
+            ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
     }
 
     @Override
