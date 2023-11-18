@@ -10,6 +10,10 @@
     <artifactId>meeting-common</artifactId>
     <dependencies>
         <dependency>
+            <groupId>com.jtmm.third.party</groupId>
+            <artifactId>wechat-company</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.huaweicloud.sdk</groupId>
             <artifactId>huaweicloud-sdk-meeting</artifactId>
             <version>3.1.65</version>

@@ -42,6 +42,7 @@
         <!-- Bpm 工作流相关 -->
         <flowable.version>6.8.0</flowable.version>
         <!-- 工具类相关 -->
+        <jtmm.third.tools.version>1.0-SNAPSHOT</jtmm.third.tools.version>
         <fast-md5.version>2.7.1</fast-md5.version>
         <rocketmq-spring-boot-starter.version>2.2.3</rocketmq-spring-boot-starter.version>
         <javacv.version>1.5.8</javacv.version>
@@ -320,6 +321,11 @@
             <!-- 工作流相关结束 -->
 
             <!-- 工具类相关 -->
+            <dependency>
+                <groupId>com.jtmm.third.party</groupId>
+                <artifactId>wechat-company</artifactId>
+                <version>${jtmm.third.tools.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.alicp.jetcache</groupId>
                 <artifactId>jetcache-starter-redis</artifactId>

@@ -15,7 +15,7 @@ import java.util.concurrent.CountDownLatch;
  */
 @SpringBootApplication
 @EnableDubbo
-@ComponentScan(value = "com.tiens")
+@ComponentScan(value = {"com.tiens","com.jtmm"})
 @MapperScan("com.tiens.meeting.repository.mapper")
 @Import(SpringUtil.class)
 public class ServiceApplication {

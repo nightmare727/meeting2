@@ -10,7 +10,10 @@
     <packaging>jar</packaging>
 
     <dependencies>
-
+        <dependency>
+            <groupId>com.jtmm.third.party</groupId>
+            <artifactId>wechat-company</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.tiens.meeting</groupId>
             <artifactId>meeting-api</artifactId>

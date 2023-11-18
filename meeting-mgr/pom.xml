@@ -16,6 +16,10 @@
         <!--            <version>11.10</version>-->
         <!--        </dependency>-->
         <dependency>
+            <groupId>com.jtmm.third.party</groupId>
+            <artifactId>wechat-company</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.huaweicloud.sdk</groupId>
             <artifactId>huaweicloud-sdk-iam</artifactId>
         </dependency>
@@ -148,10 +152,10 @@
             <scope>compile</scope>
         </dependency>
         <!--        <dependency>-->
-<!--            <groupId>io.github.openfeign</groupId>-->
-<!--            <artifactId>feign-slf4j</artifactId>-->
-<!--            <version>11.10</version>-->
-<!--        </dependency>-->
+        <!--            <groupId>io.github.openfeign</groupId>-->
+        <!--            <artifactId>feign-slf4j</artifactId>-->
+        <!--            <version>11.10</version>-->
+        <!--        </dependency>-->
         <!-- redis end -->
 
     </dependencies>

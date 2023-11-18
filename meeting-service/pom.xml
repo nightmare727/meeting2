@@ -11,10 +11,14 @@
 
     <dependencies>
         <!--多级缓存-->
- <!--       <dependency>
-            <groupId>com.alicp.jetcache</groupId>
-            <artifactId>jetcache-starter-redis</artifactId>
-        </dependency>-->
+        <!--       <dependency>
+                   <groupId>com.alicp.jetcache</groupId>
+                   <artifactId>jetcache-starter-redis</artifactId>
+               </dependency>-->
+        <dependency>
+            <groupId>com.jtmm.third.party</groupId>
+            <artifactId>wechat-company</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
