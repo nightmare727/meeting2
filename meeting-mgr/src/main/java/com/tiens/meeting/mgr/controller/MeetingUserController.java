@@ -25,8 +25,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/mtuser")
 public class MeetingUserController {
 
-    @Reference
-    RpcMeetingRoomService rpcMeetingRoomService;
 
     @Reference
     RpcMeetingUserService rpcMeetingUserService;
