@@ -1,5 +1,7 @@
 package com.tiens.meeting.dubboservice.impl;
 
+import cn.hutool.extra.spring.SpringUtil;
+import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.tiens.api.dto.MeetingHostPageDTO;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingHostUserVO;
@@ -36,6 +38,16 @@ class RpcMeetingUserServiceImplTest {
 
     @Reference(version = "1.0",mock = "com.tiens.meeting.dubboservice.mock.DubboCommonUserServiceMock")
     DubboCommonUserService dubboCommonUserService;
+
+    @Test
+    void meetingClient(){
+        MeetingClient bean = SpringUtil.getBean(MeetingClient.class);
+        MeetingClient bean1 = SpringUtil.getBean(MeetingClient.class);
+        MeetingClient bean2 = SpringUtil.getBean(MeetingClient.class);
+        System.out.println(bean);
+        System.out.println(bean1);
+        System.out.println(bean2);
+    }
 
     @Test
     void queryVMUser() {
