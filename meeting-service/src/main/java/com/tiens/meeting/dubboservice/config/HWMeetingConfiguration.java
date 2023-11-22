@@ -3,10 +3,10 @@ package com.tiens.meeting.dubboservice.config;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.MeetingCredentials;
 import com.huaweicloud.sdk.meeting.v1.model.AuthTypeEnum;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 /**
  * @Author: 蔚文杰
@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class HWMeetingConfiguration {
 
-    @Bean
+    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     @ConditionalOnMissingBean(MeetingClient.class)
     public MeetingClient meetingClient(MeetingConfig meetingConfig) {
         MeetingCredentials auth =
@@ -27,4 +27,5 @@ public class HWMeetingConfiguration {
             MeetingClient.newBuilder().withCredential(auth).withEndpoints(meetingConfig.getEndpoints()).build();
         return client;
     }
+
 }

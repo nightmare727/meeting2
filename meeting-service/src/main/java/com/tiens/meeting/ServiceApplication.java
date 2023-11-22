@@ -1,5 +1,6 @@
 package com.tiens.meeting;
 
+import cn.hutool.extra.spring.EnableSpringUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.mybatis.spring.annotation.MapperScan;
@@ -17,7 +18,7 @@ import java.util.concurrent.CountDownLatch;
 @EnableDubbo
 @ComponentScan(value = {"com.tiens","com.jtmm"})
 @MapperScan("com.tiens.meeting.repository.mapper")
-@Import(SpringUtil.class)
+@EnableSpringUtil
 public class ServiceApplication {
     /**
      * 使用jar方式打包的启动方式

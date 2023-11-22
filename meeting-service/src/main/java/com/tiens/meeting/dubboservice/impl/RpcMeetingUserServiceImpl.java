@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -23,6 +24,7 @@ import com.tiens.china.circle.api.bo.HomepageBo;
 import com.tiens.china.circle.api.common.result.Result;
 import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
+import com.tiens.meeting.dubboservice.config.HWMeetingConfiguration;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
 import common.enums.VmUserSourceEnum;
@@ -36,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,10 +60,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     //    @Reference(version = "1.0", mock = "com.tiens.meeting.dubboservice.mock.DubboCommonUserServiceMock")
     @Reference(version = "1.0")
     DubboCommonUserService dubboCommonUserService;
-    /**
-     * 三方华为云客户端
-     */
-    private final MeetingClient meetingClient;
 
     private final MeetingHostUserDaoService meetingHostUserDaoService;
 
@@ -161,6 +161,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         request.withBody(body);
         //userId
         try {
+            MeetingClient meetingClient = SpringUtil.getBean(MeetingClient.class);
             AddUserResponse response = meetingClient.addUser(request);
             log.info("华为云添加用户结果：{}", JSON.toJSONString(response));
         } catch (ConnectionException e) {
