@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiens.meeting.repository.mapper.MeetingResouceMapper">
+
+    <!--更改会议资源状态,改为闲置-->
+    <update id="update">
+        update meeting_resouce
+        set status='2'
+        where vmr_id = #{vmrId}
+    </update>
+
+    <update id="updateResouceByJoyoCode">
+
+    </update>
+
+    <!--根据经销商id查询是否存在-->
+    <select id="select" resultMap="selectHostUserByJoyoCodeMap">
+        select id, acc_id, joyo_code, phone, email, name
+        from meeting_host_user
+        where joyo_code = #{joyoCode}
+    </select>
+    <select id="selectByOwnerUserId" resultType="com.tiens.api.vo.MeetingHostUserVO">
+
+    </select>
+
+    <resultMap id="selectHostUserByJoyoCodeMap"
+               type="com.tiens.api.vo.MeetingHostUserVO">
+        <id column="id" property="id"/>
+        <result column="acc_id" property="accId"/>
+        <result column="joyo_code" property="joyoCode"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="name" property="name"/>
+    </resultMap>
+</mapper>

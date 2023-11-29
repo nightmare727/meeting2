@@ -2,20 +2,16 @@ package com.tiens.meeting.dubboservice.impl;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import com.tiens.api.service.RPCMeetingResourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.TimeZone;
 
 /**
  * @Author: 蔚文杰
@@ -30,21 +26,69 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     public static void main(String[] args) {
         ZoneId zoneId1 = ZoneId.of("GMT+09:00");
         ZoneId zoneId2 = ZoneId.of("GMT+07:00");
-        ZoneId zoneId3 = ZoneId.of("GMT");
         Instant now = Instant.now();
-        Instant instant = Instant.ofEpochMilli(new Date().getTime());
         Date date = new Date();
 
-        DateTime dateTime = DateUtil.convertTimeZone(date, zoneId3);
-        LocalDateTime of = LocalDateTimeUtil.of(dateTime);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        System.out.println(dateTimeFormatter.format(of));
+
+        DateTime dateTime = DateUtil.convertTimeZone(date, zoneId1);
+
+        System.out.println(dateTime);
 //        ZonedDateTime zonedDateTime = now.atZone(zoneId1);
 //        System.out.println(zonedDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 
-
+        System.out.println(now);
 //        System.out.println(zonedDateTime);
     }
 
+    private final MeetingResouceDaoService meetingResouceDaoService;
 
+    @Override
+    public CommonResult<MeetingResouceVO> queryMeetingResouce(String vmrId) throws ServiceException {
+        return null;
+    }
+
+    @Override
+    public PageResult<MeetingResouceVO> queryMeetingResoucePage(PageParam<MeetingResoucePageDTO> pageDTOPageParam) throws ServiceException {
+        /*Page<MeetingResoucePO> page = new Page<>(pageDTOPageParam.getPageNum(), pageDTOPageParam.getPageSize());
+        MeetingResoucePageDTO condition = pageDTOPageParam.getCondition();
+
+        LambdaQueryWrapper<MeetingResoucePO> queryWrapper = Wrappers.lambdaQuery(MeetingResoucePO.class)
+                .like(ObjectUtil.isNotEmpty(condition.getName()), MeetingResoucePO::getName, condition.getName())
+                .eq(ObjectUtil.isNotEmpty(condition.getJoyoCode()), MeetingResoucePO::getJoyoCode, condition.getJoyoCode())
+                .like(ObjectUtil.isNotEmpty(condition.getPhone()), MeetingResoucePO::getPhone, condition.getPhone())
+                .like(ObjectUtil.isNotEmpty(condition.getEmail()), MeetingResoucePO::getEmail, condition.getEmail())
+                .orderByDesc(MeetingResoucePO::getCreateTime);
+        Page<MeetingResoucePO> pagePoResult = meetingResouceDaoService.page(page, queryWrapper);
+        List<MeetingResoucePO> records = pagePoResult.getRecords();
+        List<MeetingResouceVO> meetingHostUserVOS = BeanUtil.copyToList(records, MeetingResouceVO.class);
+        PageResult<MeetingResouceVO> pageResult = new PageResult<>();
+        pageResult.setList(meetingHostUserVOS);
+        pageResult.setTotal(pagePoResult.getTotal());
+        return pageResult;*/
+        return null;
+    }
+
+    @Override
+    public CommonResult updateMeetingStatus(String vmrId) throws ServiceException {
+        int a = meetingResouceDaoService.updateMeetingStatusById(vmrId);
+        return CommonResult.success(a);
+    }
+
+    @Override
+    public CommonResult assignMeetingResouce(MeetingResouceIdDTO meetingResouceIdDTO) throws ServiceException {
+        int b = meetingResouceDaoService.assignMeetingResouce(meetingResouceIdDTO);
+        return CommonResult.success(b);
+    }
+
+    /**
+     * 查询主持人
+     *
+     * @param joyoCode
+     * @return
+     */
+    @Override
+    public MeetingHostUserVO selectUserByJoyoCode(String joyoCode) {
+        MeetingHostUserVO meetingHostUserVO = meetingResouceDaoService.selectUserByJoyoCode(joyoCode);
+        return meetingHostUserVO;
+    }
 }
