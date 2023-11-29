@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiens.rep.mapper.MeetingRoomMapper">
+
+    <resultMap id="BaseResultMap" type="com.tiens.rep.po.MeetingRoomPO">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="meeting_id" column="meeting_id" jdbcType="VARCHAR"/>
+            <result property="meeting_code" column="meeting_code" jdbcType="VARCHAR"/>
+            <result property="subject" column="subject" jdbcType="VARCHAR"/>
+            <result property="meeting_type" column="meeting_type" jdbcType="TINYINT"/>
+            <result property="start_time" column="start_time" jdbcType="TIMESTAMP"/>
+            <result property="end_time" column="end_time" jdbcType="TIMESTAMP"/>
+            <result property="record_status" column="record_status" jdbcType="TINYINT"/>
+            <result property="meeting_status" column="meeting_status" jdbcType="TINYINT"/>
+            <result property="meeting_create_mode" column="meeting_create_mode" jdbcType="TINYINT"/>
+            <result property="meeting_create_from" column="meeting_create_from" jdbcType="TINYINT"/>
+            <result property="operate_time" column="operate_time" jdbcType="TIMESTAMP"/>
+            <result property="create_time" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="create_userid" column="create_userid" jdbcType="VARCHAR"/>
+            <result property="create_open_id" column="create_open_id" jdbcType="VARCHAR"/>
+            <result property="create_user_name" column="create_user_name" jdbcType="VARCHAR"/>
+            <result property="create_uuid" column="create_uuid" jdbcType="INTEGER"/>
+            <result property="create_ms_open_id" column="create_ms_open_id" jdbcType="INTEGER"/>
+            <result property="create_instance_id" column="create_instance_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,meeting_id,meeting_code,
+        subject,meeting_type,start_time,
+        end_time,record_status,meeting_status,
+        meeting_create_mode,meeting_create_from,operate_time,
+        create_time,create_userid,create_open_id,
+        create_user_name,create_uuid,create_ms_open_id,
+        create_instance_id
+    </sql>
+</mapper>

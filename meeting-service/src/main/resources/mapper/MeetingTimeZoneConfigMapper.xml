@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiens.meeting.repository.mapper.MeetingTimeZoneConfigMapper">
+
+    <resultMap id="BaseResultMap" type="com.tiens.meeting.repository.po.MeetingTimeZoneConfigPO">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="timeZoneId" column="time_zone_id" jdbcType="INTEGER"/>
+            <result property="timeZoneOffset" column="time_zone_offset" jdbcType="VARCHAR"/>
+            <result property="englishDesc" column="english_desc" jdbcType="VARCHAR"/>
+            <result property="chineseDesc" column="chinese_desc" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,time_zone_id,time_zone_offset,
+        english_desc,chinese_desc
+    </sql>
+</mapper>

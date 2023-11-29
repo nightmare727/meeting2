@@ -1,0 +1,182 @@
+spring:
+  profiles:
+    active: dev2-server
+  application:
+    name: meeting-service
+
+# 日志配置
+logging:
+  config: classpath:log4j2.xml
+  level:
+    root: debug
+    web: info
+    com:
+      alibaba:
+        nacos:
+          client:
+            naming: error
+    org.springframework.security:
+      - debug
+      - info
+    org.springframework.web: debug
+    org.hibernate.engine.QueryParameters: debug
+    org.hibernate.engine.query.HQLQueryPlan: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+    com.gdfs.spider.dao.repository: debug
+
+---
+spring:
+  profiles: dev2-server
+  cloud:
+    nacos:
+      config:
+        server-addr: ${nacos.host}:${nacos.port}
+        namespace: vmoment-meeting
+        file-extension: yaml
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+      discovery:
+        enable: true
+        register-enabled: true
+        server-addr: ${spring.cloud.nacos.config.server-addr}
+        namespace: ${spring.profiles.active}
+        group: ${spring.profiles.active}
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+
+nacos:
+  host: 172.22.45.121
+  port: 8848
+dubbo:
+  registry:
+    address: nacos://${nacos.host}:${nacos.port}?username=${nacos.username:nacos}&password=${nacos.password:nacos}&namespace=${spring.profiles.active}
+  protocol:
+    name: dubbo
+    port: 20889
+  scan:
+    base-packages:
+  provider:
+    timeout: 10000
+    retries: 1
+  consumer:
+    check: false
+    timeout: 5000
+    retries: 0
+  metadata-report:
+    address: ${dubbo.registry.address}
+
+
+
+---
+spring:
+  profiles: local
+  cloud:
+    nacos:
+      config:
+        server-addr: 172.22.45.121:8848
+        namespace: vmoment-meeting
+        file-extension: yaml
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+      discovery:
+        enable: true
+        register-enabled: true
+        server-addr: ${spring.cloud.nacos.config.server-addr}
+        namespace: ${spring.profiles.active}
+        group: ${spring.profiles.active}
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+
+nacos:
+  host: 127.0.0.1
+  port: 8848
+dubbo:
+  registry:
+    address: nacos://${nacos.host}:${nacos.port}?username=${nacos.username:nacos}&password=${nacos.password:nacos}&namespace=${spring.profiles.active}
+  protocol:
+    name: dubbo
+  scan:
+    base-packages:
+  provider:
+    timeout: 10000
+  consumer:
+    check: false
+    timeout: 5000
+    retries: 0
+    version: 1.0
+#jetcache:
+#  # 统计间隔，0表示不统计，开启后定期在控制台输出缓存信息
+#  statIntervalMinutes: 1
+#  # 是否把area cacheName作为远程缓存key前缀
+#  areaInCacheName: false
+#  # 本地缓存配置
+#  local:
+#    default: # default表示全部生效，也可以指定某个cacheName
+#      # 本地缓存类型，其他可选：caffeine/linkedhashmap
+#      type: linkedhashmap
+#      keyConvertor: fastjson
+#      #每个缓存实例的最大元素的全局配置，仅local类型的缓存需要指定。注意是每个缓存实例的限制，而不是全部，比如这里指定100，然后用@CreateCache创建了两个缓存实例（并且注解上没有设置localLimit属性），那么每个缓存实例的限制都是100
+#      limit: 100
+#      #以毫秒为单位指定超时时间的全局配置(以前为defaultExpireInMillis)
+#      expireAfterWriteInMillis: 100000
+#  # 远程缓存配置
+#  remote:
+#    default: # default表示全部生效，也可以指定某个cacheName
+#      type: redis
+#      # key转换器方式n
+#      keyConvertor: fastjson
+#      broadcastChannel: projectA
+#      # redis序列化方式
+#      valueEncoder: java
+#      valueDecoder: java
+#      # redis线程池
+#      poolConfig:
+#        minIdle: 5
+#        maxIdle: 20
+#        maxTotal: 50
+#      # redis地址与端口
+#      host: redis-c0cd2b89-8b8a-4eb3-b947-ec1127288d28.cn-north-4.dcs.myhuaweicloud.com
+#      port: 6379
+
+
+
+---
+spring:
+  profiles: prod
+  cloud:
+    nacos:
+      config:
+        server-addr: ${nacos.host}:${nacos.port}
+        namespace: vmoment-meeting
+        file-extension: yaml
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+      discovery:
+        enable: true
+        register-enabled: true
+        server-addr: ${spring.cloud.nacos.config.server-addr}
+        namespace: ${spring.profiles.active}
+        group: ${spring.profiles.active}
+        username: ${nacos.username:nacos}
+        password: ${nacos.password:nacos}
+
+nacos:
+  host: 172.22.45.121
+  port: 8848
+dubbo:
+  registry:
+    address: nacos://${nacos.host}:${nacos.port}?username=${nacos.username:nacos}&password=${nacos.password:nacos}&namespace=${spring.profiles.active}
+  protocol:
+    name: dubbo
+    port: 20889
+  scan:
+    base-packages:
+  provider:
+    timeout: 10000
+    retries: 1
+  consumer:
+    check: false
+    timeout: 5000
+    retries: 0
+  metadata-report:
+    address: ${dubbo.registry.address}
