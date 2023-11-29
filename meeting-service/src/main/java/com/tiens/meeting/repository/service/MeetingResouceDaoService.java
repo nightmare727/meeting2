@@ -29,10 +29,18 @@ public interface MeetingResouceDaoService extends IService<MeetingResoucePO> {
     int assignMeetingResouce(MeetingResouceIdDTO meetingResouceIdDTO);
 
     /**
-     * 查询是否存在
+     * 查询主持人是否存在
      * 根据经销商账号卓越卡号joyoCode进行查询
      * @param joyoCode
      * @return
      */
     MeetingHostUserVO selectUserByJoyoCode(String joyoCode);
+
+    /**
+     * 将华为会议资源:1云会议室封装的PO存入到数据库
+     *
+     * @param meetingResoucePO
+     * @return
+     */
+    void insertMeetingResoucePO(MeetingResoucePO meetingResoucePO);
 }
