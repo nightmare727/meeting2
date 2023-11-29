@@ -1,17 +1,33 @@
 package com.tiens.meeting.dubboservice.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tiens.api.dto.MeetingHostPageDTO;
+import com.tiens.api.dto.MeetingResouceIdDTO;
+import com.tiens.api.dto.MeetingResoucePageDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
+import com.tiens.api.vo.MeetingHostUserVO;
+import com.tiens.api.vo.MeetingResouceVO;
+import com.tiens.meeting.repository.po.MeetingHostUserPO;
+import com.tiens.meeting.repository.po.MeetingResoucePO;
+import com.tiens.meeting.repository.service.MeetingResouceDaoService;
+import common.exception.ServiceException;
+import common.pojo.CommonResult;
+import common.pojo.PageParam;
+import common.pojo.PageResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -38,5 +54,57 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
 //        System.out.println(now);
 //        System.out.println(zonedDateTime);
+    }
+
+    private final MeetingResouceDaoService meetingResouceDaoService;
+
+    @Override
+    public CommonResult<MeetingResouceVO> queryMeetingResouce(String vmrId) throws ServiceException {
+        return null;
+    }
+
+    @Override
+    public PageResult<MeetingResouceVO> queryMeetingResoucePage(PageParam<MeetingResoucePageDTO> pageDTOPageParam) throws ServiceException {
+        /*Page<MeetingResoucePO> page = new Page<>(pageDTOPageParam.getPageNum(), pageDTOPageParam.getPageSize());
+        MeetingResoucePageDTO condition = pageDTOPageParam.getCondition();
+
+        LambdaQueryWrapper<MeetingResoucePO> queryWrapper = Wrappers.lambdaQuery(MeetingResoucePO.class)
+                .like(ObjectUtil.isNotEmpty(condition.getName()), MeetingResoucePO::getName, condition.getName())
+                .eq(ObjectUtil.isNotEmpty(condition.getJoyoCode()), MeetingResoucePO::getJoyoCode, condition.getJoyoCode())
+                .like(ObjectUtil.isNotEmpty(condition.getPhone()), MeetingResoucePO::getPhone, condition.getPhone())
+                .like(ObjectUtil.isNotEmpty(condition.getEmail()), MeetingResoucePO::getEmail, condition.getEmail())
+                .orderByDesc(MeetingResoucePO::getCreateTime);
+        Page<MeetingResoucePO> pagePoResult = meetingResouceDaoService.page(page, queryWrapper);
+        List<MeetingResoucePO> records = pagePoResult.getRecords();
+        List<MeetingResouceVO> meetingHostUserVOS = BeanUtil.copyToList(records, MeetingResouceVO.class);
+        PageResult<MeetingResouceVO> pageResult = new PageResult<>();
+        pageResult.setList(meetingHostUserVOS);
+        pageResult.setTotal(pagePoResult.getTotal());
+        return pageResult;*/
+        return null;
+    }
+
+    @Override
+    public CommonResult updateMeetingStatus(String vmrId) throws ServiceException {
+        int a = meetingResouceDaoService.updateMeetingStatusById(vmrId);
+        return CommonResult.success(a);
+    }
+
+    @Override
+    public CommonResult assignMeetingResouce(MeetingResouceIdDTO meetingResouceIdDTO) throws ServiceException {
+        int b = meetingResouceDaoService.assignMeetingResouce(meetingResouceIdDTO);
+        return CommonResult.success(b);
+    }
+
+    /**
+     * 查询主持人
+     *
+     * @param joyoCode
+     * @return
+     */
+    @Override
+    public MeetingHostUserVO selectUserByJoyoCode(String joyoCode) {
+        MeetingHostUserVO meetingHostUserVO = meetingResouceDaoService.selectUserByJoyoCode(joyoCode);
+        return meetingHostUserVO;
     }
 }
