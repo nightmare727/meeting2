@@ -49,14 +49,16 @@ public class MeetingResourceController {
     }
 
     /**
-     * 获取会议资源列表
+     * 获取华为云会议资源并列表展示
      *
      * @return
      */
     @ResponseBody
     @PostMapping("/queryMeetingResoucePage")
-    public CommonResult<PageResult<MeetingResouceVO>> queryMeetingResoucePage(
+    public CommonResult queryMeetingResoucePage(
             @RequestBody PageParam<MeetingResoucePageDTO> pageDTOPageParam) throws Exception {
+        rpcMeetingResourceService.SearchCorpVmrSolution1();
+        rpcMeetingResourceService.SearchCorpVmrSolution2();
         PageResult<MeetingResouceVO> vmUserVOCommonResult = rpcMeetingResourceService.queryMeetingResoucePage(pageDTOPageParam);
         return CommonResult.success(vmUserVOCommonResult);
     }

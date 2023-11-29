@@ -21,14 +21,6 @@ import java.util.List;
 public interface RPCMeetingResourceService {
 
     /**
-     * 调取华为会议资源:1云会议室
-     *
-     * @param vmrId
-     * @return
-     */
-
-
-    /**
      * 查询会议资源信息
      *
      * @param vmrId
@@ -42,6 +34,19 @@ public interface RPCMeetingResourceService {
      * @return
      */
     PageResult<MeetingResouceVO> queryMeetingResoucePage(PageParam<MeetingResoucePageDTO> pageDTOPageParam) throws ServiceException;
+
+    /**
+     * 调取华为会议资源:1云会议室
+     * @param
+     * @return
+     */
+    void SearchCorpVmrSolution1()throws ServiceException;
+    /**
+     * 调取华为会议资源:2网络研讨会
+     * @param
+     * @return
+     */
+    void SearchCorpVmrSolution2()throws ServiceException;
 
     /**
      * 更改会议资源状态:置为空闲

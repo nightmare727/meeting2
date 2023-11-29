@@ -3,6 +3,14 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tiens.meeting.repository.mapper.MeetingResouceMapper">
+    <!--将华为会议资源:1云会议室封装的PO存入到数据库-->
+    <insert id="insertinto" parameterType="com.tiens.meeting.repository.po.MeetingResoucePO">
+        insert into meeting_resouce(id, vmr_id, vmr_conference_id, vmr_mode, vmr_name,
+                                    vmr_pkg_name, size, status, expire_date, owner_user_id,
+                                    create_time, update_time)
+        values (#{id}, #{vmrId}, #{vmrConferenceId}, #{vmrMode}, #{vmrName}, #{vmrPkgName}, #{size},
+                #{status}, #{expireDate}, #{ownerUserId}, #{createTime}, #{updateTime})
+    </insert>
 
     <!--更改会议资源状态,改为闲置-->
     <update id="update">
@@ -11,8 +19,12 @@
         where vmr_id = #{vmrId}
     </update>
 
-    <update id="updateResouceByJoyoCode">
-
+    <!--根据资源id进行更新资源状态及相应userid-->
+    <update id="updateStatusAndOwnerUserId">
+        update meeting_resouce
+        set status='0',
+            owner_user_id=#{ownerUserId}
+        where id = #{resouceId}
     </update>
 
     <!--根据经销商id查询是否存在-->
@@ -21,8 +33,12 @@
         from meeting_host_user
         where joyo_code = #{joyoCode}
     </select>
-    <select id="selectByOwnerUserId" resultType="com.tiens.api.vo.MeetingHostUserVO">
 
+    <!--根据userid查询是否存在-->
+    <select id="selectByOwnerUserId" resultType="com.tiens.api.vo.MeetingHostUserVO">
+        select id, acc_id, joyo_code, phone, email, name
+        from meeting_host_user
+        where id = #{ownerUserId}
     </select>
 
     <resultMap id="selectHostUserByJoyoCodeMap"
