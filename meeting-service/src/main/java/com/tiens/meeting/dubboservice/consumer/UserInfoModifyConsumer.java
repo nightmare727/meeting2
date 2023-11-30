@@ -91,8 +91,13 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
         request.withBody(body);
         request.withAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         request.withAccount(accid);
-        UpdateUserResponse updateUserResponse = meetingClient.updateUser(request);
-        log.info("修改华为云用户结果：{}", updateUserResponse);
+
+        try {
+            UpdateUserResponse updateUserResponse = meetingClient.updateUser(request);
+            log.info("修改华为云用户结果：{}", updateUserResponse);
+        } catch (Exception e) {
+            log.info("修改华为云用户异常", e);
+        }
 
     }
 }
