@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev2-server
+    active: local
   application:
     name: meeting-service
 
@@ -81,8 +81,8 @@ spring:
       discovery:
         enable: true
         register-enabled: true
-        server-addr: ${spring.cloud.nacos.config.server-addr}
-        namespace: ${spring.profiles.active}
+        server-addr: 127.0.0.1:8848
+        namespace: local
         group: ${spring.profiles.active}
         username: ${nacos.username:nacos}
         password: ${nacos.password:nacos}
@@ -180,3 +180,5 @@ dubbo:
     retries: 0
   metadata-report:
     address: ${dubbo.registry.address}
+
+userId: 123456789
