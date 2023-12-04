@@ -71,4 +71,15 @@ public class MeetingResouceDaoServiceImpl extends ServiceImpl<MeetingResouceMapp
         meetingResouceMapper.insertinto(meetingResoucePO);
     }
 
+    /**
+     * 通过vmrid查询accid
+     *
+     * @param vmrId
+     * @return
+     */
+    @Override
+    public String selectAccIdByVmrId(String vmrId) {
+        return meetingResouceMapper.selectAccIdByVmrId(vmrId);
+    }
+
 }

@@ -43,4 +43,12 @@ public interface MeetingResouceDaoService extends IService<MeetingResoucePO> {
      * @return
      */
     void insertMeetingResoucePO(MeetingResoucePO meetingResoucePO);
+
+    /**
+     * 通过vmrid查询accid
+     *
+     * @param vmrId
+     * @return
+     */
+    String selectAccIdByVmrId(String vmrId);
 }

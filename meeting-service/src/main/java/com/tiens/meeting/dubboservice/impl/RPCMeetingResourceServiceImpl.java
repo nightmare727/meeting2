@@ -4,23 +4,25 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.huaweicloud.sdk.core.auth.ICredential;
 import com.huaweicloud.sdk.core.exception.ConnectionException;
+import com.huaweicloud.sdk.core.exception.RequestTimeoutException;
 import com.huaweicloud.sdk.core.exception.ServiceResponseException;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.MeetingCredentials;
-import com.huaweicloud.sdk.meeting.v1.model.QueryOrgVmrResultDTO;
-import com.huaweicloud.sdk.meeting.v1.model.SearchCorpVmrRequest;
-import com.huaweicloud.sdk.meeting.v1.model.SearchCorpVmrResponse;
+import com.huaweicloud.sdk.meeting.v1.model.*;
 import com.tiens.api.dto.MeetingHostPageDTO;
 import com.tiens.api.dto.MeetingResouceIdDTO;
 import com.tiens.api.dto.MeetingResoucePageDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.vo.MeetingHostUserVO;
 import com.tiens.api.vo.MeetingResouceVO;
+import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.dubboservice.config.HWMeetingConfiguration;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
@@ -33,6 +35,7 @@ import common.pojo.PageResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
+import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
@@ -102,6 +105,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         pageResult.setTotal(pagePoResult.getTotal());
         return pageResult;
     }
+
     /**
      * 调取华为会议资源:1云会议室
      *
@@ -124,16 +128,17 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 .withEndpoint(endpoint)
                 .build();*/
 
-        HWMeetingConfiguration hwMeetingConfiguration = new HWMeetingConfiguration();
-        MeetingClient client = hwMeetingConfiguration.meetingClient(meetingConfig);
+        /*HWMeetingConfiguration hwMeetingConfiguration = new HWMeetingConfiguration();
+        MeetingClient client = hwMeetingConfiguration.meetingClient(meetingConfig);*/
+        MeetingClient client = SpringUtil.getBean(MeetingClient.class);
 
         SearchCorpVmrRequest request = new SearchCorpVmrRequest();
         request.withVmrMode(1);
         try {
             SearchCorpVmrResponse response = client.searchCorpVmr(request);
             List<QueryOrgVmrResultDTO> responseData = response.getData();
-            for (QueryOrgVmrResultDTO item : responseData){
-                MeetingResoucePO meetingResoucePO=new MeetingResoucePO();
+            for (QueryOrgVmrResultDTO item : responseData) {
+                MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
                 meetingResoucePO.setVmrId(item.getVmrId());
                 meetingResoucePO.setVmrMode(1);
                 meetingResoucePO.setVmrName(item.getVmrName());
@@ -161,6 +166,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
     /**
      * 调取华为会议资源:2网络研讨会
+     *
      * @param
      * @return
      */
@@ -179,16 +185,21 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 .withEndpoint(endpoint)
                 .build();*/
 
-        HWMeetingConfiguration hwMeetingConfiguration = new HWMeetingConfiguration();
-        MeetingClient client = hwMeetingConfiguration.meetingClient(meetingConfig);
+        /*HWMeetingConfiguration hwMeetingConfiguration = new HWMeetingConfiguration();
+        MeetingClient client = hwMeetingConfiguration.meetingClient(meetingConfig);*/
+
+
+
+
+        MeetingClient client = SpringUtil.getBean(MeetingClient.class);
 
         SearchCorpVmrRequest request = new SearchCorpVmrRequest();
         request.withVmrMode(2);
         try {
             SearchCorpVmrResponse response = client.searchCorpVmr(request);
             List<QueryOrgVmrResultDTO> responseData = response.getData();
-            for (QueryOrgVmrResultDTO item : responseData){
-                MeetingResoucePO meetingResoucePO=new MeetingResoucePO();
+            for (QueryOrgVmrResultDTO item : responseData) {
+                MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
                 meetingResoucePO.setVmrId(item.getVmrId());
                 meetingResoucePO.setVmrMode(2);
                 meetingResoucePO.setVmrName(item.getVmrName());
@@ -223,7 +234,45 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     @Override
     public CommonResult updateMeetingStatus(String vmrId) throws ServiceException {
         int a = meetingResouceDaoService.updateMeetingStatusById(vmrId);
-        return CommonResult.success(a);
+
+        //通过vmrid查询accid
+        String accId = meetingResouceDaoService.selectAccIdByVmrId(vmrId);
+
+        System.out.println("更新结果为:" + a);
+        boolean result = false;
+        try {
+            result = disassociateVmr(accId);
+        } catch (Exception e) {
+            log.error("添加普通用户发生异常！", e);
+        }
+        return CommonResult.success(result);
+    }
+
+    private boolean disassociateVmr(String accId) throws ServiceException {
+//        AssociateVmrRequest request = new AssociateVmrRequest();
+//        MeetingUserAccidDTO body = new MeetingUserAccidDTO();
+//        body.setAccId(accId);
+//        request.withBody(body);
+//
+//        /*MeetingClient client = SpringUtil.getBean(MeetingClient.class);
+//        AssociateVmrResponse associateVmrResponse = client.associateVmr(request);
+//        System.out.println("associateVmrResponse"+associateVmrResponse);*/
+//        try {
+//            MeetingClient meetingClient = SpringUtil.getBean(MeetingClient.class);
+//            AddUserResponse response = meetingClient.disassociateVmr(request);
+//            log.info("华为云添加用户结果：{}", JSON.toJSONString(response));
+//        } catch (ConnectionException e) {
+//            e.printStackTrace();
+//        } catch (RequestTimeoutException e) {
+//            e.printStackTrace();
+//        } catch (ServiceResponseException e) {
+//            e.printStackTrace();
+//            System.out.println(e.getHttpStatusCode());
+//            System.out.println(e.getRequestId());
+//            System.out.println(e.getErrorCode());
+//            System.out.println(e.getErrorMsg());
+//        }
+        return true;
     }
 
     /**

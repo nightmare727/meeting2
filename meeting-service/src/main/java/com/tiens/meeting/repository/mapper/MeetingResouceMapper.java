@@ -49,6 +49,14 @@ public interface MeetingResouceMapper extends BaseMapper<MeetingResoucePO> {
      * @return
      */
     void insertinto(MeetingResoucePO meetingResoucePO);
+
+    /**
+     * 通过vmrid查询accid
+     *
+     * @param vmrId
+     * @return accId
+     */
+    String selectAccIdByVmrId(String vmrId);
 }
 
 

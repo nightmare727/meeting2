@@ -41,6 +41,14 @@
         where id = #{ownerUserId}
     </select>
 
+    <!--通过vmrid查询accid-->
+    <select id="selectAccIdByVmrId" resultType="java.lang.String">
+        select a.acc_id
+        from meeting_host_user a
+                 join meeting_resouce b on a.id = b.owner_user_id
+        where B.vmr_id = #{vmr_id};
+    </select>
+
     <resultMap id="selectHostUserByJoyoCodeMap"
                type="com.tiens.api.vo.MeetingHostUserVO">
         <id column="id" property="id"/>
