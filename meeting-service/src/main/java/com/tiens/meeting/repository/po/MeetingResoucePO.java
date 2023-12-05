@@ -10,10 +10,6 @@ import lombok.EqualsAndHashCode;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- *
- * @TableName meeting_resource
- */
 @TableName(value ="meeting_resource")
 @Data
 @EqualsAndHashCode
