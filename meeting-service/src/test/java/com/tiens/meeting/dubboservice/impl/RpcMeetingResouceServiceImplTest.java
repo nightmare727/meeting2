@@ -1,0 +1,75 @@
+package com.tiens.meeting.dubboservice.impl;
+
+import cn.hutool.extra.spring.SpringUtil;
+import com.huaweicloud.sdk.core.exception.ConnectionException;
+import com.huaweicloud.sdk.core.exception.ServiceResponseException;
+import com.huaweicloud.sdk.meeting.v1.MeetingClient;
+import com.huaweicloud.sdk.meeting.v1.model.QueryOrgVmrResultDTO;
+import com.huaweicloud.sdk.meeting.v1.model.SearchCorpVmrRequest;
+import com.huaweicloud.sdk.meeting.v1.model.SearchCorpVmrResponse;
+import com.tiens.api.service.RpcMeetingRoomService;
+import com.tiens.api.vo.VMMeetingCredentialVO;
+import com.tiens.meeting.ServiceApplication;
+import com.tiens.meeting.repository.po.MeetingResoucePO;
+import com.tiens.meeting.repository.service.MeetingResouceDaoService;
+import common.pojo.CommonResult;
+import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.Date;
+import java.util.List;
+
+/**
+ * @Author: 蔚文杰
+ * @Date: 2023/11/13
+ * @Version 1.0
+ * @Company: tiens
+ */
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = ServiceApplication.class)
+@ActiveProfiles("dev2-server")
+class RpcMeetingResouceServiceImplTest {
+
+    @Autowired
+    MeetingResouceDaoService meetingResouceDaoService;
+
+    @Test
+    void getClient() {
+        MeetingClient client = SpringUtil.getBean(MeetingClient.class);
+        System.out.println("打印:" + client);
+        SearchCorpVmrRequest request = new SearchCorpVmrRequest();
+
+        request.withVmrMode(2);
+        try {
+            SearchCorpVmrResponse response = client.searchCorpVmr(request);
+            List<QueryOrgVmrResultDTO> responseData = response.getData();
+            for (QueryOrgVmrResultDTO item : responseData) {
+                MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
+                meetingResoucePO.setVmrId(item.getVmrId());
+                meetingResoucePO.setVmrMode(2);
+                meetingResoucePO.setVmrName(item.getVmrName());
+                meetingResoucePO.setVmrPkgName(item.getVmrPkgName());
+                meetingResoucePO.setSize(item.getVmrPkgParties());
+                meetingResoucePO.setStatus(item.getStatus());
+                Date date = new Date(item.getExpireDate());
+                meetingResoucePO.setExpireDate(date);
+                meetingResouceDaoService.save(meetingResoucePO);
+
+            }
+            System.out.println("打印response:" + response.toString());
+
+        } catch (ConnectionException e) {
+            e.printStackTrace();
+        } catch (ServiceResponseException e) {
+            e.printStackTrace();
+            //System.out.println(e.getHttpStatusCode());
+            //System.out.println(e.getRequestId());
+            //System.out.println(e.getErrorCode());
+            //System.out.println(e.getErrorMsg());
+        }
+    }
+}
