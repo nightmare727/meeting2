@@ -19,7 +19,7 @@ public enum MeetingResourceEnum {
     MEETING_RESOURCE_500(5,500,"大型会议(适用10人以下)"),
     MEETING_RESOURCE_1000(6,1000,"超大型会议(适用10人以下)"),
     MEETING_RESOURCE_3000(7,3000,"超大型会议(适用10人以下)");
-    private static Map<Integer, MeetingResourceEnum> CodesMap = new HashMap<>(8);
+    private static Map<Integer, MeetingResourceEnum> CodesMap = new HashMap<>(4);
 
     static {
         for (MeetingResourceEnum status : MeetingResourceEnum.values()) {
