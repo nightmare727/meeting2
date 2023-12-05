@@ -25,7 +25,6 @@ import com.tiens.api.vo.MeetingResouceVO;
 import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.dubboservice.config.HWMeetingConfiguration;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
-import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.po.MeetingResoucePO;
 import com.tiens.meeting.repository.service.MeetingResouceDaoService;
 import common.exception.ServiceException;

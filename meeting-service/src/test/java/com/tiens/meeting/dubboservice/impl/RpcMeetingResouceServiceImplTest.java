@@ -43,7 +43,7 @@ class RpcMeetingResouceServiceImplTest {
         System.out.println("打印:" + client);
         SearchCorpVmrRequest request = new SearchCorpVmrRequest();
 
-        request.withVmrMode(2);
+        request.withVmrMode(1);
         try {
             SearchCorpVmrResponse response = client.searchCorpVmr(request);
             List<QueryOrgVmrResultDTO> responseData = response.getData();
@@ -52,7 +52,7 @@ class RpcMeetingResouceServiceImplTest {
                 MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
                 meetingResoucePO.setVmrId(item.getId());
                 meetingResoucePO.setVmrConferenceId(item.getVmrId());
-                meetingResoucePO.setVmrMode(2);
+                meetingResoucePO.setVmrMode(1);
                 meetingResoucePO.setVmrName(item.getVmrName());
                 meetingResoucePO.setVmrPkgName(item.getVmrPkgName());
                 meetingResoucePO.setSize(item.getMaxAudienceParties());
