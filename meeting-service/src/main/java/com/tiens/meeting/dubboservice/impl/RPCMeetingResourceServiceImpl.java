@@ -53,6 +53,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService {
+
+
+
     public static void main(String[] args) {
         ZoneId zoneId1 = ZoneId.of("GMT+09:00");
         ZoneId zoneId2 = ZoneId.of("GMT+07:00");
@@ -70,9 +73,9 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 //        System.out.println(zonedDateTime);
     }
 
-    @Autowired
+
     private final MeetingResouceDaoService meetingResouceDaoService;
-    @Autowired
+
     private final MeetingConfig meetingConfig;
 
     @Override
@@ -114,22 +117,6 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      */
     @Override
     public void SearchCorpVmrSolution1() throws ServiceException {
-
-        /*String userName = "<YOUR USER NAME>";
-        String password = "<YOUR PASSWORD>";
-        String endpoint = "https://api.meeting.huaweicloud.com";
-
-        ICredential auth = new MeetingCredentials()
-                .withUserName(userName)
-                .withUserPassword(password);
-
-        MeetingClient client = MeetingClient.newBuilder()
-                .withCredential(auth)
-                .withEndpoint(endpoint)
-                .build();*/
-
-        /*HWMeetingConfiguration hwMeetingConfiguration = new HWMeetingConfiguration();
-        MeetingClient client = hwMeetingConfiguration.meetingClient(meetingConfig);*/
         MeetingClient client = SpringUtil.getBean(MeetingClient.class);
 
         SearchCorpVmrRequest request = new SearchCorpVmrRequest();
@@ -148,6 +135,8 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 Date date = new Date(item.getExpireDate());
                 meetingResoucePO.setExpireDate(date);
                 meetingResouceDaoService.insertMeetingResoucePO(meetingResoucePO);
+
+                //meetingResouceDaoService.save(meetingResoucePO);
 
             }
             System.out.println(response.toString());
@@ -172,25 +161,6 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      */
     @Override
     public void SearchCorpVmrSolution2() throws ServiceException {
-        /*String userName = "<YOUR USER NAME>";
-        String password = "<YOUR PASSWORD>";
-        String endpoint = "https://api.meeting.huaweicloud.com";
-
-        ICredential auth = new MeetingCredentials()
-                .withUserName(userName)
-                .withUserPassword(password);
-
-        MeetingClient client = MeetingClient.newBuilder()
-                .withCredential(auth)
-                .withEndpoint(endpoint)
-                .build();*/
-
-        /*HWMeetingConfiguration hwMeetingConfiguration = new HWMeetingConfiguration();
-        MeetingClient client = hwMeetingConfiguration.meetingClient(meetingConfig);*/
-
-
-
-
         MeetingClient client = SpringUtil.getBean(MeetingClient.class);
 
         SearchCorpVmrRequest request = new SearchCorpVmrRequest();

@@ -1,18 +1,23 @@
-package com.tiens.api.vo;
+package com.tiens.meeting.repository.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ *
+ * @TableName meeting_resource
+ */
+@TableName(value ="meeting_resource")
 @Data
-@TableName(value ="meeting_resouce")
-public class MeetingResourceSelectVO implements Serializable {
-
+@EqualsAndHashCode
+public class MeetingResoucePO implements Serializable {
     /**
      * 11111
      */
@@ -56,7 +61,7 @@ public class MeetingResourceSelectVO implements Serializable {
     private Integer size;
 
     /**
-     * 资源状态 1:公有空闲 2:公有预约 3:私有 4:公有预分配
+     * 资源状态 0：正常 1：停用  2：未分配
      */
     @TableField(value = "status")
     private Integer status;
