@@ -31,7 +31,7 @@ import java.util.List;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ServiceApplication.class)
-@ActiveProfiles("dev2-server")
+@ActiveProfiles("local")
 class RpcMeetingResouceServiceImplTest {
 
     @Autowired
@@ -48,13 +48,24 @@ class RpcMeetingResouceServiceImplTest {
             SearchCorpVmrResponse response = client.searchCorpVmr(request);
             List<QueryOrgVmrResultDTO> responseData = response.getData();
             for (QueryOrgVmrResultDTO item : responseData) {
+                System.out.println("打印打印打印打印打印打印打印item:"+item);
                 MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
-                meetingResoucePO.setVmrId(item.getVmrId());
+                meetingResoucePO.setVmrId(item.getId());
+                meetingResoucePO.setVmrConferenceId(item.getVmrId());
                 meetingResoucePO.setVmrMode(2);
                 meetingResoucePO.setVmrName(item.getVmrName());
                 meetingResoucePO.setVmrPkgName(item.getVmrPkgName());
-                meetingResoucePO.setSize(item.getVmrPkgParties());
-                meetingResoucePO.setStatus(item.getStatus());
+                meetingResoucePO.setSize(item.getMaxAudienceParties());
+
+                Integer status = item.getStatus();
+                if (status ==0){
+                    meetingResoucePO.setStatus("公有空闲");
+                }else if (status ==1){
+                    meetingResoucePO.setStatus("公有预约");
+                }else if (status ==2){
+                    meetingResoucePO.setStatus("私有");
+                }
+
                 Date date = new Date(item.getExpireDate());
                 meetingResoucePO.setExpireDate(date);
                 meetingResouceDaoService.save(meetingResoucePO);
