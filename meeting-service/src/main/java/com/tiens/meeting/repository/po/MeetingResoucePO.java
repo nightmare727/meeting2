@@ -12,9 +12,9 @@ import java.util.Date;
 
 /**
  *
- * @TableName meeting_resouce
+ * @TableName meeting_resource
  */
-@TableName(value ="meeting_resouce")
+@TableName(value ="meeting_resource")
 @Data
 @EqualsAndHashCode
 public class MeetingResoucePO implements Serializable {
@@ -77,6 +77,12 @@ public class MeetingResoucePO implements Serializable {
      */
     @TableField(value = "owner_user_id")
     private Long ownerUserId;
+
+    /**
+     * 资源类型
+     */
+    @TableField(value = "resource_type")
+    private Integer resourceType;
 
     /**
      * 创建时间
