@@ -131,7 +131,16 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 meetingResoucePO.setVmrName(item.getVmrName());
                 meetingResoucePO.setVmrPkgName(item.getVmrPkgName());
                 meetingResoucePO.setSize(item.getVmrPkgParties());
-                meetingResoucePO.setStatus(item.getStatus());
+
+                Integer status = item.getStatus();
+                if (status ==0){
+                    meetingResoucePO.setStatus("公有空闲");
+                }else if (status ==1){
+                    meetingResoucePO.setStatus("公有预约");
+                }else if (status ==2){
+                    meetingResoucePO.setStatus("私有");
+                }
+
                 Date date = new Date(item.getExpireDate());
                 meetingResoucePO.setExpireDate(date);
                 meetingResouceDaoService.insertMeetingResoucePO(meetingResoucePO);
@@ -175,7 +184,16 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 meetingResoucePO.setVmrName(item.getVmrName());
                 meetingResoucePO.setVmrPkgName(item.getVmrPkgName());
                 meetingResoucePO.setSize(item.getVmrPkgParties());
-                meetingResoucePO.setStatus(item.getStatus());
+
+                Integer status = item.getStatus();
+                if (status ==0){
+                    meetingResoucePO.setStatus("公有空闲");
+                }else if (status ==1){
+                    meetingResoucePO.setStatus("公有预约");
+                }else if (status ==2){
+                    meetingResoucePO.setStatus("私有");
+                }
+
                 Date date = new Date(item.getExpireDate());
                 meetingResoucePO.setExpireDate(date);
                 meetingResouceDaoService.insertMeetingResoucePO(meetingResoucePO);
