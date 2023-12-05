@@ -1,6 +1,6 @@
 package com.tiens.meeting.repository.service;
 
-import com.tiens.meeting.repository.po.MeetingResoucePO;
+import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -8,6 +8,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @description 针对表【meeting_resouce】的数据库操作Service
 * @createDate 2023-12-05 11:48:44
 */
-public interface MeetingResouceDaoService extends IService<MeetingResoucePO> {
+public interface MeetingResourceDaoService extends IService<MeetingResourcePO> {
 
 }

@@ -24,7 +24,6 @@ import com.tiens.china.circle.api.bo.HomepageBo;
 import com.tiens.china.circle.api.common.result.Result;
 import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
-import com.tiens.meeting.dubboservice.config.HWMeetingConfiguration;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
 import common.enums.VmUserSourceEnum;
@@ -38,8 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -151,7 +148,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 //            body.withPhone(mobile);
 //        }
         //1-买买 2-云购 3 Vshare 4 瑞狮 5意涵永
-        body.withName(StrUtil.brief(vmUserVO.getNickName(), 64));
+
+        body.withName(buildHWName(vmUserVO));
         body.setEmail(vmUserVO.getEmail());
         //userId
         body.withThirdAccount(vmUserVO.getAccid());
@@ -183,6 +181,17 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             throw new ServiceException("1000", e.getErrorMsg());
         }
         return true;
+    }
+
+    private String buildHWName(VMUserVO vmUserVO) {
+        String specificSymbol = "&<>/()' \"";
+        String brief = StrUtil.brief(vmUserVO.getNickName(), 64);
+
+        if (StrUtil.containsAny(brief, specificSymbol.toCharArray())) {
+            //包含特殊符号，重写昵称
+            brief = vmUserVO.getJoyoCode();
+        }
+        return brief;
     }
 
     private String buildHWAccount(VMUserVO vmUserVO) {

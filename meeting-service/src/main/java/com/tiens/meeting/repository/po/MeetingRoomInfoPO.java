@@ -78,8 +78,8 @@ public class MeetingRoomInfoPO implements Serializable {
     /**
      * 资源id
      */
-    @TableField(value = "resourse_id")
-    private Integer resourseId;
+    @TableField(value = "resource_id")
+    private Integer resourceId;
 
     /**
      * 主持人accid
