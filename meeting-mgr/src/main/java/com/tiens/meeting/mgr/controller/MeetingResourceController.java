@@ -63,8 +63,11 @@ public class MeetingResourceController {
         return CommonResult.success(vmUserVOCommonResult);
     }
 
+
+
+
     /**
-     * 更改会议资源状态:置为空闲
+     * 更改会议资源状态:取消分配,操作后，此资源变为公有。
      *
      * @param vmrId
      * @return
@@ -76,21 +79,26 @@ public class MeetingResourceController {
         return commonResult;
     };
 
+
+
+
     /**
-     * 分配会议资源
+     * 公有空闲状态 即 公有资源 无人预约时
+     *  可进行 分配操作,分配后
+     *  此资源变为私有状态
      *
-     * @param meetingResouceIdDTO
+     * @param joyoCode
      * @return
      */
     @ResponseBody
     @PostMapping("/assignMeetingResouce")
-    public CommonResult assignMeetingResouce(MeetingResouceIdDTO meetingResouceIdDTO) throws Exception{
-        CommonResult commonResult = rpcMeetingResourceService.assignMeetingResouce(meetingResouceIdDTO);
+    public CommonResult assignMeetingResouce(String joyoCode) throws Exception{
+        CommonResult commonResult = rpcMeetingResourceService.assignMeetingResouce(joyoCode);
         return commonResult;
     };
 
     /**
-     * 查询主持人
+     * 查询用户ID
      *
      * @param joyoCode
      * @return
@@ -106,4 +114,17 @@ public class MeetingResourceController {
         }
     }
 
+
+
+    /**
+     * 公有预约 即为公有资源 可设为公有空闲
+     * 功能待定!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * @param
+     * @return
+     */
+    public CommonResult updateMeetingResouce(String joyoCode) throws Exception{
+
+
+        return null;
+    }
 }

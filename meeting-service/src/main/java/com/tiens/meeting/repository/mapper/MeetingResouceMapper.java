@@ -39,17 +39,9 @@ public interface MeetingResouceMapper extends BaseMapper<MeetingResoucePO> {
      * 如果存在则根据resouceId,ownerUserId进行修改数据库
      * @return
      */
-    MeetingHostUserVO selectByOwnerUserId(Integer ownerUserId);
+   /* MeetingHostUserVO selectByOwnerUserId(Integer ownerUserId);
 
-    int updateStatusAndOwnerUserId(Integer resouceId,Integer ownerUserId);
-
-    /**
-     * 将华为会议资源:1云会议室封装的PO存入到数据库
-     *
-     * @param meetingResoucePO
-     * @return
-     */
-    void insertinto(MeetingResoucePO meetingResoucePO);
+    int updateStatusAndOwnerUserId(Integer resouceId,Integer ownerUserId);*/
 
     /**
      * 通过vmrid查询accid
@@ -58,6 +50,23 @@ public interface MeetingResouceMapper extends BaseMapper<MeetingResoucePO> {
      * @return accId
      */
     String selectAccIdByVmrId(String vmrId);
+
+
+    /**
+     * 通过JoyoCode查询accid
+     *
+     * @param joyoCode
+     * @return
+     */
+    String seleceAccIdByJoyoCode(String joyoCode);
+
+    /**
+     * 分配会议资源
+     * 根据accid==owner_im_user_id
+     * 在数据表meeting_resource表中更改status从公有空闲变为私有状态
+     * @return
+     */
+    int updateStatusByAccId(String accId);
 }
 
 

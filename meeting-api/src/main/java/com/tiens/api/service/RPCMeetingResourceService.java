@@ -49,7 +49,7 @@ public interface RPCMeetingResourceService {
     void SearchCorpVmrSolution2()throws ServiceException;
 
     /**
-     * 更改会议资源状态:置为空闲
+     * 更改会议资源状态:取消分配,操作后，此资源变为公有。
      *
      * @param vmrId
      * @return
@@ -57,12 +57,13 @@ public interface RPCMeetingResourceService {
     CommonResult<MeetingResouceVO> updateMeetingStatus(String vmrId) throws ServiceException;
 
     /**
-     * 分配会议资源
-     *
-     * @param meetingResouceIdDTO
+     * 公有空闲状态 即 公有资源 无人预约时
+     *  可进行 分配操作,分配后
+     *  此资源变为私有状态
+     * @param joyoCode
      * @return
      */
-    CommonResult<MeetingResouceVO> assignMeetingResouce(MeetingResouceIdDTO meetingResouceIdDTO) throws ServiceException;
+    CommonResult<MeetingResouceVO> assignMeetingResouce(String joyoCode) throws ServiceException;
 
     /**
      * 查询主持人

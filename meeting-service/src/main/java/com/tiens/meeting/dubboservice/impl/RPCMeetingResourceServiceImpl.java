@@ -253,69 +253,110 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
 
     /**
-     * 更改会议资源状态:置为空闲
+     * 更改会议资源状态:取消分配,操作后，此资源变为公有。
      *
      * @param vmrId
      * @return
      */
     @Override
     public CommonResult updateMeetingStatus(String vmrId) throws ServiceException {
+        //更改本地数据库状态
         int a = meetingResouceDaoService.updateMeetingStatusById(vmrId);
-
-        //通过vmrid查询accid
+        System.out.println("打印本地数据库资源状态更改结果:" + a);
+        //同步到华为云
+        //1:通过vmrid查询accid
+        //若此资源下 有原来的预约会议，则为公有预约。不取消其在私有状态下的会议。
+        //判断查询一下名下是否有会议根据conferenceID查询ShowMeetingDetail(查询会议详情)
         String accId = meetingResouceDaoService.selectAccIdByVmrId(vmrId);
-
-        System.out.println("更新结果为:" + a);
+        System.out.println("打印查询到的accid为:" + accId);
         boolean result = false;
         try {
             result = disassociateVmr(accId);
         } catch (Exception e) {
-            log.error("添加普通用户发生异常！", e);
+            log.error("取消分配操作发生异常！", e);
         }
         return CommonResult.success(result);
     }
 
+    //同步华为云回收云会议室
     private boolean disassociateVmr(String accId) throws ServiceException {
-//        AssociateVmrRequest request = new AssociateVmrRequest();
-//        MeetingUserAccidDTO body = new MeetingUserAccidDTO();
-//        body.setAccId(accId);
-//        request.withBody(body);
-//
-//        /*MeetingClient client = SpringUtil.getBean(MeetingClient.class);
-//        AssociateVmrResponse associateVmrResponse = client.associateVmr(request);
-//        System.out.println("associateVmrResponse"+associateVmrResponse);*/
-//        try {
-//            MeetingClient meetingClient = SpringUtil.getBean(MeetingClient.class);
-//            AddUserResponse response = meetingClient.disassociateVmr(request);
-//            log.info("华为云添加用户结果：{}", JSON.toJSONString(response));
-//        } catch (ConnectionException e) {
-//            e.printStackTrace();
-//        } catch (RequestTimeoutException e) {
-//            e.printStackTrace();
-//        } catch (ServiceResponseException e) {
-//            e.printStackTrace();
-//            System.out.println(e.getHttpStatusCode());
-//            System.out.println(e.getRequestId());
-//            System.out.println(e.getErrorCode());
-//            System.out.println(e.getErrorMsg());
-//        }
+        DisassociateVmrRequest request = new DisassociateVmrRequest();
+        request.withAccount(accId);
+        try {
+            MeetingClient client = SpringUtil.getBean(MeetingClient.class);
+            System.out.println("打印:" + client);
+            DisassociateVmrResponse response = client.disassociateVmr(request);
+            System.out.println(response.toString());
+        } catch (ConnectionException e) {
+            e.printStackTrace();
+        } catch (RequestTimeoutException e) {
+            e.printStackTrace();
+        } catch (ServiceResponseException e) {
+            e.printStackTrace();
+            System.out.println(e.getHttpStatusCode());
+            System.out.println(e.getRequestId());
+            System.out.println(e.getErrorCode());
+            System.out.println(e.getErrorMsg());
+        }
         return true;
     }
 
     /**
      * 分配会议资源
-     *
-     * @param meetingResouceIdDTO
+     * 公有空闲状态 即 公有资源 无人预约时
+     *  可进行 分配操作,分配后
+     *  此资源变为私有状态
+     * @param joyoCode
      * @return
      */
     @Override
-    public CommonResult assignMeetingResouce(MeetingResouceIdDTO meetingResouceIdDTO) throws ServiceException {
-        int b = meetingResouceDaoService.assignMeetingResouce(meetingResouceIdDTO);
-        return CommonResult.success(b);
+    public CommonResult assignMeetingResouce(String joyoCode) throws ServiceException {
+        //int b = meetingResouceDaoService.assignMeetingResouce(joyoCode);
+        //System.out.println("分配会议资源更改数据库结果:" + b);
+
+        //查询一下传入的joyocode号所对应的accid
+        String accId = meetingResouceDaoService.seleceAccIdByJoyoCode(joyoCode);
+        //更改本地数据库分配会议资源操作
+        int i = meetingResouceDaoService.assignMeetingResouce(accId);
+        System.out.println("打印分配会议资源更改数据库结果:" + i);
+
+        System.out.println("打印查询到的accid为:" + accId);
+
+        //判断华为云同步结果
+        boolean result = false;
+        try {
+            result = associateVmrSolution(accId);
+        } catch (Exception e) {
+            log.error("分配会议资源操作发生异常！", e);
+        }
+        return CommonResult.success(result);
     }
 
+    //同步华为云分配会议室
+    private boolean associateVmrSolution(String accId) throws ServiceException {
+        AssociateVmrRequest request = new AssociateVmrRequest();
+        request.withAccount(accId);
+        try {
+            MeetingClient client = SpringUtil.getBean(MeetingClient.class);
+            AssociateVmrResponse response = client.associateVmr(request);
+            System.out.println(response.toString());
+        } catch (ConnectionException e) {
+            e.printStackTrace();
+        } catch (RequestTimeoutException e) {
+            e.printStackTrace();
+        } catch (ServiceResponseException e) {
+            e.printStackTrace();
+            System.out.println(e.getHttpStatusCode());
+            System.out.println(e.getRequestId());
+            System.out.println(e.getErrorCode());
+            System.out.println(e.getErrorMsg());
+        }
+        return true;
+    }
+
+
     /**
-     * 查询主持人
+     * 查询joyocode
      *
      * @param joyoCode
      * @return

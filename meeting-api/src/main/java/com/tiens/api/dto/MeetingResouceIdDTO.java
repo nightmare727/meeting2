@@ -6,8 +6,9 @@ import java.io.Serializable;
 
 @Data
 public class MeetingResouceIdDTO implements Serializable {
-    private Integer id;
-
-    private Integer ownerUserId;
+    //account
+    private String accId;
+    //经销商号卓越卡号
+    private String joyoCode;
 
 }

@@ -22,11 +22,11 @@ public interface MeetingResouceDaoService extends IService<MeetingResoucePO> {
 
     /**
      * 分配会议资源
-     * 根据经销商账号卓越卡号joyoCode进行查询
-     * @param meetingResouceIdDTO
+     * 根据accid==owner_im_user_id,进行更改数据表操作
+     * @param accId
      * @return
      */
-    int assignMeetingResouce(MeetingResouceIdDTO meetingResouceIdDTO);
+    int assignMeetingResouce(String accId);
 
     /**
      * 查询主持人是否存在
@@ -36,13 +36,6 @@ public interface MeetingResouceDaoService extends IService<MeetingResoucePO> {
      */
     MeetingHostUserVO selectUserByJoyoCode(String joyoCode);
 
-    /**
-     * 将华为会议资源:1云会议室封装的PO存入到数据库
-     *
-     * @param meetingResoucePO
-     * @return
-     */
-    void insertMeetingResoucePO(MeetingResoucePO meetingResoucePO);
 
     /**
      * 通过vmrid查询accid
@@ -51,4 +44,13 @@ public interface MeetingResouceDaoService extends IService<MeetingResoucePO> {
      * @return
      */
     String selectAccIdByVmrId(String vmrId);
+
+
+    /**
+     * 通过JoyoCode查询accid
+     *
+     * @param joyoCode
+     * @return
+     */
+    String seleceAccIdByJoyoCode(String joyoCode);
 }
