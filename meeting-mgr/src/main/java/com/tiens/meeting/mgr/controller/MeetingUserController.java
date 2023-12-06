@@ -55,7 +55,7 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/addMeetingHostUser")
-    public CommonResult addMeetingHostUser(@RequestParam("joyoCode") String joyoCode,@RequestParam("resourceType") Integer resourceType) throws Exception {
+    public CommonResult addMeetingHostUser(@RequestParam("joyoCode") String joyoCode,@RequestParam("resource") Integer resourceType) throws Exception {
         CommonResult commonResult = rpcMeetingUserService.addMeetingHostUser(joyoCode,resourceType);
         return commonResult;
     }
