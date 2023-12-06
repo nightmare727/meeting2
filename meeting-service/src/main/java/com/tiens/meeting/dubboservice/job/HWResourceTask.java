@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class HWResourceTask {
 
-    @XxlJob("AppointMeetingJobHandler")
+    @XxlJob("HWResourceJobHandler")
     public void jobHandler() throws Exception {
         System.out.println("ddd");
     }
