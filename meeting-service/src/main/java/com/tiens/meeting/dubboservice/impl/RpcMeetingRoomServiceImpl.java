@@ -17,6 +17,7 @@ import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingRoomDetailDTO;
 import com.tiens.api.vo.VMMeetingCredentialVO;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
+import com.tiens.meeting.repository.po.MeetingLevelResourceConfigPO;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
@@ -36,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * @Author: 蔚文杰
@@ -154,17 +156,19 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     .le(MeetingRoomInfoPO::getLockEndTime, endTime))
                 .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, startTime)
                     .ge(MeetingRoomInfoPO::getLockEndTime, endTime));
-
-        List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
+        //该段时间正在锁定的会议
+        List<MeetingRoomInfoPO> lockedMeetingRoomList = meetingRoomInfoDaoService.lambdaQuery()
             .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
-
+        //该段时间正在锁定的资源
+        List<Integer> lockedResourceIdList =
+            lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
 
         //根据等级查询资源
-//        Set<Integer> resourceTypeSet = meetingLevelResourceConfigDaoService.lambdaQuery()
-//            .eq(MeetingLevelResourceConfigPO::getVmUserLevel, freeResourceListDTO.getLevelCode())
-//            .list().stream().map(MeetingLevelResourceConfigPO::getResourseType).filter(t -> !t.equals(0))
-//            .collect(Collectors.toSet());
-
+        MeetingLevelResourceConfigPO one = meetingLevelResourceConfigDaoService.lambdaQuery()
+            .select(MeetingLevelResourceConfigPO::getResourceType)
+            .eq(MeetingLevelResourceConfigPO::getVmUserLevel, freeResourceListDTO.getLevelCode())
+            .one();
+        Integer maxResourceType = one.getResourceType();
         return null;
     }
 

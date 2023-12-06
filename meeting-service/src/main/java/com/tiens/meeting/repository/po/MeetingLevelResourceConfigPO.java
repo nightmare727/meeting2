@@ -29,14 +29,14 @@ public class MeetingLevelResourceConfigPO implements Serializable {
     /**
      * 资源类型 1：10方 2：50方 3：100方  4：200方 5：500方 6：1000方 7：3000方
      */
-    @TableField(value = "resourse_type")
-    private Integer resourseType;
+    @TableField(value = "resource_type")
+    private Integer resourceType;
 
     /**
      * 资源数
      */
-    @TableField(value = "resourse_num")
-    private Integer resourseNum;
+    @TableField(value = "resource_num")
+    private Integer resourceNum;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
