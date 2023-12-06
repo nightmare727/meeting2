@@ -1,6 +1,8 @@
 package com.tiens.meeting.dubboservice.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -11,6 +13,8 @@ import java.io.Serializable;
  * @Company: tiens
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserLevelModEntity implements Serializable {
 
     private String accId;

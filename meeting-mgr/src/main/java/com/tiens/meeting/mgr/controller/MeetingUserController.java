@@ -4,6 +4,7 @@ import com.tiens.api.dto.MeetingHostPageDTO;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingHostUserVO;
+import com.tiens.api.vo.MeetingResourceTypeVO;
 import com.tiens.api.vo.VMUserVO;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
@@ -12,6 +13,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -52,8 +55,8 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/addMeetingHostUser")
-    public CommonResult addMeetingHostUser(@RequestParam("joyoCode") String joyoCode) throws Exception {
-        CommonResult commonResult = rpcMeetingUserService.addMeetingHostUser(joyoCode);
+    public CommonResult addMeetingHostUser(@RequestParam("joyoCode") String joyoCode,@RequestParam("resourceType") Integer resourceType) throws Exception {
+        CommonResult commonResult = rpcMeetingUserService.addMeetingHostUser(joyoCode,resourceType);
         return commonResult;
     }
 
@@ -77,6 +80,19 @@ public class MeetingUserController {
         @RequestBody PageParam<MeetingHostPageDTO> pageDTOPageParam) throws Exception {
         PageResult<MeetingHostUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryPage(pageDTOPageParam);
         return CommonResult.success(vmUserVOCommonResult);
+    }
+
+    /**
+     * 查询会议资源配置列表
+     *
+     * @return
+     * @throws Exception
+     */
+    @ResponseBody
+    @GetMapping("/queryResourceTypes")
+    public CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes(){
+        CommonResult<List<MeetingResourceTypeVO>> listCommonResult = rpcMeetingUserService.queryResourceTypes();
+        return listCommonResult;
     }
 
 }
