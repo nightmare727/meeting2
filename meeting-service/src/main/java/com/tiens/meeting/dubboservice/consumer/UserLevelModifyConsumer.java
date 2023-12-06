@@ -84,7 +84,7 @@ public class UserLevelModifyConsumer implements RocketMQListener<MessageExt> {
         }else{
             //1-8级逻辑处理
             MeetingLevelResourceConfigPO configPO = meetingLevelResourceConfigDaoService.lambdaQuery().eq(MeetingLevelResourceConfigPO::getVmUserLevel, userLevelModEntity.getLevel()).oneOpt().get();
-            if (hostUserPO.getResourceType()<=configPO.getResourseType()){
+            if (hostUserPO.getResourceType()<=configPO.getResourceType()){
                 //移除不符合规则的主持人
                 meetingHostUserDaoService.removeById(hostUserPO.getId());
             }
