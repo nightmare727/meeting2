@@ -17,19 +17,19 @@ public class MeetingResourceTypeVO implements Serializable {
      * 会议资源配置类型
      */
     @Schema(description = "会议资源配置类型")
-    private Integer resourseType;
+    private Integer resourceType;
 
     /**
      * 会议资源配置类型
      */
     @Schema(description = "会议资源配置上限")
-    private Integer resourseNum;
+    private Integer resourceNum;
 
     /**
      * 会议资源配置类型名称
      */
     @Schema(description = "会议资源配置类型")
-    private String resourseTypeName;
+    private String resourceTypeName;
 
 
 

@@ -135,7 +135,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         }else{
             //1-8级逻辑处理
             MeetingLevelResourceConfigPO configPO = meetingLevelResourceConfigDaoService.lambdaQuery().eq(MeetingLevelResourceConfigPO::getVmUserLevel, vmUserVO.getLevelCode()).oneOpt().get();
-            if (resourceType<=configPO.getResourseType()){
+            if (resourceType<=configPO.getResourceType()){
                 //不符合规则
                 return false;
             }
@@ -324,7 +324,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
     @Override
     public CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes() {
-        List<MeetingLevelResourceConfigPO> list = meetingLevelResourceConfigDaoService.lambdaQuery().ne(MeetingLevelResourceConfigPO::getResourseType,0).list();
+        List<MeetingLevelResourceConfigPO> list = meetingLevelResourceConfigDaoService.lambdaQuery().ne(MeetingLevelResourceConfigPO::getResourceType,0).list();
         if (!ObjectUtil.isNotEmpty(list)){
             return CommonResult.success(null);
         }
@@ -332,8 +332,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         list.forEach(meetingLevelResourceConfigPO -> {
             MeetingResourceTypeVO typeVO = new MeetingResourceTypeVO();
             BeanUtil.copyProperties(meetingLevelResourceConfigPO,typeVO);
-            MeetingResourceEnum byCode = MeetingResourceEnum.getByCode(typeVO.getResourseType());
-            typeVO.setResourseTypeName(byCode.getDesc());
+            MeetingResourceEnum byCode = MeetingResourceEnum.getByCode(typeVO.getResourceType());
+            typeVO.setResourceTypeName(byCode.getDesc());
             typeVOS.add(typeVO);
         });
         return CommonResult.success(typeVOS);
