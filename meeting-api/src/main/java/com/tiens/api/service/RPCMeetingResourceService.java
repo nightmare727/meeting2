@@ -1,8 +1,9 @@
 package com.tiens.api.service;
 
-import com.tiens.api.dto.MeetingResourcePageDTO;
+import com.tiens.api.dto.MeetingResouceIdDTO;
+import com.tiens.api.dto.MeetingResoucePageDTO;
 import com.tiens.api.vo.MeetingHostUserVO;
-import com.tiens.api.vo.MeetingResourceVO;
+import com.tiens.api.vo.MeetingResouceVO;
 import com.tiens.api.vo.MeetingTimeZoneConfigVO;
 import common.exception.ServiceException;
 import common.pojo.CommonResult;
@@ -25,14 +26,14 @@ public interface RPCMeetingResourceService {
      * @param vmrId
      * @return
      */
-    CommonResult<MeetingResourceVO> queryMeetingResource(String vmrId) throws ServiceException;
+    CommonResult<MeetingResouceVO> queryMeetingResouce(String vmrId) throws ServiceException;
 
     /**
      * 分页查询会议资源列表
      * @param pageDTOPageParam
      * @return
      */
-    PageResult<MeetingResourceVO> queryMeetingResourcePage(PageParam<MeetingResourcePageDTO> pageDTOPageParam) throws ServiceException;
+    PageResult<MeetingResouceVO> queryMeetingResoucePage(PageParam<MeetingResoucePageDTO> pageDTOPageParam) throws ServiceException;
 
     /**
      * 调取华为会议资源:1云会议室
@@ -53,7 +54,7 @@ public interface RPCMeetingResourceService {
      * @param vmrId
      * @return
      */
-    CommonResult updateMeetingStatus(String vmrId) throws ServiceException;
+    CommonResult<MeetingResouceVO> updateMeetingStatus(String vmrId) throws ServiceException;
 
     /**
      * 公有空闲状态 即 公有资源 无人预约时
@@ -62,7 +63,7 @@ public interface RPCMeetingResourceService {
      * @param joyoCode
      * @return
      */
-    CommonResult assignMeetingResource(String joyoCode) throws ServiceException;
+    CommonResult<MeetingResouceVO> assignMeetingResouce(String joyoCode) throws ServiceException;
 
     /**
      * 查询主持人
@@ -70,24 +71,5 @@ public interface RPCMeetingResourceService {
      * @param joyoCode
      * @return
      */
-    CommonResult<MeetingHostUserVO> selectUserByJoyoCode(String joyoCode) throws ServiceException;
-
-
-    /**
-     * 2公有预约 即为公有资源 有人预约时,可进行预分配操作
-     * 操作后,此资源在此刻后，不可再被预约。当所有预约会议都结束后，此资源置为私有。
-     * @param vmrId
-     * @return
-     */
-    CommonResult updateMeetingResourceStatusPrivate(String vmrId) throws ServiceException;
-
-
-    /**
-     * 4设为公有空闲:在预分配状态资源下,可操作设为公有空闲
-     * 操作后,此资源变为公有空闲,可被预约操作。
-     *
-     * @param vmrId
-     * @return
-     */
-    CommonResult updateMeetingResourceStatusPublicFree(String vmrId) throws ServiceException;
+    MeetingHostUserVO selectUserByJoyoCode(String joyoCode);
 }

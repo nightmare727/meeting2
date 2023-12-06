@@ -33,19 +33,14 @@ public class MeetingResouceDaoServiceImpl extends ServiceImpl<MeetingResouceMapp
 
     /**
      * 分配会议资源
-     * 根据经销商账号卓越卡号ownerUserId进行查询主持人是否存在
-     * 如果存在则根据resouceId,ownerUserId进行修改数据库
+     * 根据accid==owner_im_user_id
+     * 在数据表meeting_resource表中更改status
      * @return
      */
     @Override
-    public int assignMeetingResouce(MeetingResouceIdDTO meetingResouceIdDTO) {
-        Integer ownerUserId = meetingResouceIdDTO.getOwnerUserId();
-        MeetingHostUserVO meetingHostUserVO = meetingResouceMapper.selectByOwnerUserId(ownerUserId);
-        if (meetingHostUserVO != null){
-            Integer resouceId = meetingResouceIdDTO.getId();
-            return meetingResouceMapper.updateStatusAndOwnerUserId(resouceId,ownerUserId);
-        }
-        return 1;
+    public int assignMeetingResouce(String accId ) {
+        log.debug("开始执行【更新资源状态】的数据访问，参数：{}"+ accId);
+        return meetingResouceMapper.updateStatusByAccId(accId);
     }
 
     /**
@@ -60,16 +55,7 @@ public class MeetingResouceDaoServiceImpl extends ServiceImpl<MeetingResouceMapp
         return meetingResouceMapper.select(joyoCode);
     }
 
-    /**
-     * 将华为会议资源:1云会议室封装的PO存入到数据库
-     *
-     * @param meetingResoucePO
-     * @return
-     */
-    @Override
-    public void insertMeetingResoucePO(MeetingResoucePO meetingResoucePO) {
-        meetingResouceMapper.insertinto(meetingResoucePO);
-    }
+
 
     /**
      * 通过vmrid查询accid
@@ -80,6 +66,18 @@ public class MeetingResouceDaoServiceImpl extends ServiceImpl<MeetingResouceMapp
     @Override
     public String selectAccIdByVmrId(String vmrId) {
         return meetingResouceMapper.selectAccIdByVmrId(vmrId);
+    }
+
+
+    /**
+     * 通过JoyoCode查询accid
+     *
+     * @param joyoCode
+     * @return
+     */
+    @Override
+    public String seleceAccIdByJoyoCode(String joyoCode) {
+        return meetingResouceMapper.seleceAccIdByJoyoCode(joyoCode);
     }
 
 }
