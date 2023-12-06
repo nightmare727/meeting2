@@ -1,9 +1,6 @@
 package com.tiens.api.service;
 
-import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
-import com.tiens.api.dto.EnterMeetingRoomCheckDTO;
-import com.tiens.api.dto.MeetingRoomCreateDTO;
-import com.tiens.api.dto.MeetingRoomUpdateDTO;
+import com.tiens.api.dto.*;
 import com.tiens.api.vo.AvailableResourcePeriodVO;
 import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingRoomDetailDTO;
@@ -38,10 +35,10 @@ public interface RpcMeetingRoomService {
     /**
      * 获取空闲资源列表
      *
-     * @param imUserId
+     * @param freeResourceListDTO
      * @return
      */
-    CommonResult<List<MeetingResourceVO>> getFreeResourceList(String imUserId);
+    CommonResult<List<MeetingResourceVO>> getFreeResourceList(FreeResourceListDTO freeResourceListDTO);
 
     /**
      * 创建会议

@@ -1,18 +1,17 @@
 package com.tiens.meeting.repository.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
 import lombok.Data;
 
+import java.io.Serializable;
+import java.util.Date;
+
 /**
- * 
  * @TableName meeting_room_info
  */
-@TableName(value ="meeting_room_info")
+@TableName(value = "meeting_room_info")
 @Data
 public class MeetingRoomInfoPO implements Serializable {
     /**
@@ -24,8 +23,8 @@ public class MeetingRoomInfoPO implements Serializable {
     /**
      * 华为云会议id
      */
-    @TableField(value = "conference_id")
-    private String conferenceId;
+    @TableField(value = "hw_meeting_id")
+    private String hwMeetingId;
 
     /**
      * 华为会议code
@@ -58,6 +57,18 @@ public class MeetingRoomInfoPO implements Serializable {
     private Date lockEndTime;
 
     /**
+     * 会议真实开始时间
+     */
+    @TableField(value = "rel_start_time")
+    private Date relStartTime;
+
+    /**
+     * 会议真实结束时间
+     */
+    @TableField(value = "rel_end_time")
+    private Date relEndTime;
+
+    /**
      * 会议通知中会议时间的时区信息
      */
     @TableField(value = "time_zone_id")
@@ -86,6 +97,11 @@ public class MeetingRoomInfoPO implements Serializable {
      */
     @TableField(value = "owner_im_user_id")
     private String ownerImUserId;
+    /**
+     * 会议状态。 ● “Schedule”：预定状 态 ● “Creating”：正在创 建状态 ● “Created”：会议已 经被创建，并正在召开 ● “Destroyed”：会议 已经关闭
+     */
+    @TableField(value = "state")
+    private String state;
 
     /**
      * 创建时间

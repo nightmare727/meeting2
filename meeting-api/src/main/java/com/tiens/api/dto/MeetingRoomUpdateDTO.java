@@ -3,6 +3,7 @@ package com.tiens.api.dto;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @Author: 蔚文杰
@@ -20,15 +21,15 @@ public class MeetingRoomUpdateDTO implements Serializable {
     /**
      * 会议开始时间（UTC时间）。格 式：yyyy-MM-dd HH:mm。 说明 ● 创建预约会议时，如果没有指定 开始时间或填空串，则表示会议 马上开始 ● 时间是UTC时间，即0时区的时 间
      */
-    private String startTime;
-    /**
-     * 会议持续时长，单位分钟。默认 30分钟。 最大1440分钟（24小时），最 小15分钟。
-     */
-    private Integer length;
+    private Date startTime;
     /**
      * 会议主题。最多128个字符。
      */
     private String subject;
+    /**
+     * 会议持续时长，单位分钟。默认 30分钟。 最大1440分钟（24小时），最 小15分钟。
+     */
+    private Integer length;
     /**
      * 会议的媒体类型。 ● Voice：语音会议 ● HDVideo：视频会议
      */

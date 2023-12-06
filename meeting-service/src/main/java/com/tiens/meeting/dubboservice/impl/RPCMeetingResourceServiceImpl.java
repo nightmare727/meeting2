@@ -36,7 +36,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 //        ZonedDateTime zonedDateTime = now.atZone(zoneId1);
 //        System.out.println(zonedDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 
-//        System.out.println(now);
+        System.out.println(now);
 //        System.out.println(zonedDateTime);
     }
 }

@@ -39,6 +39,7 @@ public interface GlobalErrorCodeConstants {
 
     ErrorCode NOT_FOUND_HOST_INFO = new ErrorCode("2000001", "主持人信息不存在！");
     ErrorCode EXIST_HOST_INFO = new ErrorCode("2000002", "主持人信息已存在！");
+    ErrorCode NOT_EXIST_ROOM_INFO = new ErrorCode("2000003", "会议号不存在或已结束！");
 
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段
