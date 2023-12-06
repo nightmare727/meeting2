@@ -51,10 +51,10 @@ public interface RpcMeetingRoomService {
     /**
      * 编辑会议
      *
-     * @param meetingRoomUpdateDTO
+     * @param meetingRoomCreateDTO
      * @return
      */
-    CommonResult updateMeetingRoom(MeetingRoomUpdateDTO meetingRoomUpdateDTO);
+    CommonResult updateMeetingRoom(MeetingRoomCreateDTO meetingRoomCreateDTO);
 
     /**
      * 查询会议详情

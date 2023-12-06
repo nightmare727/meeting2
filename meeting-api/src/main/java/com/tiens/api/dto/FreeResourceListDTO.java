@@ -24,4 +24,6 @@ public class FreeResourceListDTO implements Serializable {
      * 会议持续时长，单位分钟。默认 30分钟。 最大1440分钟（24小时），最 小15分钟。
      */
     private Integer length;
+
+    private Integer resourceType;
 }

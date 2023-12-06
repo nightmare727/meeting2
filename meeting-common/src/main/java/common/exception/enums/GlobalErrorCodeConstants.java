@@ -42,6 +42,11 @@ public interface GlobalErrorCodeConstants {
     ErrorCode NOT_EXIST_ROOM_INFO = new ErrorCode("2000003", "会议号不存在或已结束！");
 
     ErrorCode EXIST_HOST_RESOURCE_CONFIGURATION = new ErrorCode("2000004", "主持人会议资源配置不合法");
+    ErrorCode LEVEL_NOT_ENOUGH = new ErrorCode("2000005", "您的Vmo星球等级至少Lv3才可以使用此功能");
+    ErrorCode NOT_EXIST_RESOURCE = new ErrorCode("2000006", "资源不存在，请刷新重试");
+    ErrorCode RESOURCE_USED = new ErrorCode("2000007", "资源已被占用，请刷新重试");
+    ErrorCode RESOURCE_MORE_THAN = new ErrorCode("2000008", "资源使用超出限制");
+
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段
      *
