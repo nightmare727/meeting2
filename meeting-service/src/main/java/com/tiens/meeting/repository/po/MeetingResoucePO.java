@@ -57,10 +57,10 @@ public class MeetingResoucePO implements Serializable {
     private Integer size;
 
     /**
-     * 资源状态 0：正常 1：停用  2：未分配
+     * 资源状态 1:公有空闲 2:公有预约 3:私有 4:公有预分配
      */
     @TableField(value = "status")
-    private String status;
+    private Integer status;
 
     /**
      * 到期时间的时间戳，单位毫秒
