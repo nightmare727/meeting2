@@ -28,6 +28,7 @@ import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.repository.po.MeetingResoucePO;
 import com.tiens.meeting.repository.service.MeetingResouceDaoService;
 import common.enums.MeetingResourceEnum;
+import common.enums.MeetingResourceStatusEnum;
 import common.exception.ServiceException;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
@@ -135,13 +136,16 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 meetingResoucePO.setSize(item.getMaxAudienceParties());
 
                 Integer status = item.getStatus();
-                if (status == 0) {
-                    meetingResoucePO.setStatus("公有空闲");
-                } else if (status == 1) {
-                    meetingResoucePO.setStatus("公有预约");
+                if (status == 1) {
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_FREE.getCode());
                 } else if (status == 2) {
-                    meetingResoucePO.setStatus("私有");
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_RESERVED.getCode());
+                } else if (status == 3) {
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PRIVATE.getCode());
+                } else if (status == 4) {
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_PRE_ALLOCATED.getCode());
                 }
+                //meetingResoucePO.setStatus(item.getStatus());
 
                 Integer vmrPkgParties = item.getMaxAudienceParties();
                 if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_10.getValue()) {
@@ -207,13 +211,16 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 meetingResoucePO.setSize(item.getMaxAudienceParties());
 
                 Integer status = item.getStatus();
-                if (status == 0) {
-                    meetingResoucePO.setStatus("公有空闲");
-                } else if (status == 1) {
-                    meetingResoucePO.setStatus("公有预约");
+                if (status == 1) {
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_FREE.getCode());
                 } else if (status == 2) {
-                    meetingResoucePO.setStatus("私有");
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_RESERVED.getCode());
+                } else if (status == 3) {
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PRIVATE.getCode());
+                } else if (status == 4) {
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_PRE_ALLOCATED.getCode());
                 }
+                //meetingResoucePO.setStatus(item.getStatus());
 
                 Integer vmrPkgParties = item.getMaxAudienceParties();
                 if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_10.getValue()) {
@@ -260,15 +267,22 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      */
     @Override
     public CommonResult updateMeetingStatus(String vmrId) throws ServiceException {
+
+        //1:通过vmrid查询accid
+        String accId = meetingResouceDaoService.selectAccIdByVmrId(vmrId);
+        System.out.println("打印查询到的accid为:" + accId);
+        //2:若此资源下 有原来的预约会议，则为公有预约。不取消其在私有状态下的会议。
+        //判断查询一下名下是否有会议根据conferenceID查询ShowMeetingDetail(查询会议详情)
+        //2.1如果没有会议改为公有空闲
         //更改本地数据库状态
         int a = meetingResouceDaoService.updateMeetingStatusById(vmrId);
         System.out.println("打印本地数据库资源状态更改结果:" + a);
-        //同步到华为云
-        //1:通过vmrid查询accid
-        //若此资源下 有原来的预约会议，则为公有预约。不取消其在私有状态下的会议。
-        //判断查询一下名下是否有会议根据conferenceID查询ShowMeetingDetail(查询会议详情)
-        String accId = meetingResouceDaoService.selectAccIdByVmrId(vmrId);
-        System.out.println("打印查询到的accid为:" + accId);
+        //2.2如果有会议改为公有预约
+        //更改本地数据库状态
+        int b = meetingResouceDaoService.updateMeetingStatusById1(vmrId);
+        System.out.println("打印本地数据库资源状态更改结果:" + b);
+
+
         boolean result = false;
         try {
             result = disassociateVmr(accId);
@@ -304,8 +318,9 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     /**
      * 分配会议资源
      * 公有空闲状态 即 公有资源 无人预约时
-     *  可进行 分配操作,分配后
-     *  此资源变为私有状态
+     * 可进行 分配操作,分配后
+     * 此资源变为私有状态
+     *
      * @param joyoCode
      * @return
      */
@@ -362,8 +377,58 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      * @return
      */
     @Override
-    public MeetingHostUserVO selectUserByJoyoCode(String joyoCode) {
+    public CommonResult<MeetingHostUserVO> selectUserByJoyoCode(String joyoCode) {
         MeetingHostUserVO meetingHostUserVO = meetingResouceDaoService.selectUserByJoyoCode(joyoCode);
-        return meetingHostUserVO;
+        if (meetingHostUserVO != null) {
+            return CommonResult.success(meetingHostUserVO);
+        } else {
+            return null;
+        }
+    }
+
+
+    /**
+     * 2公有预约 即为公有资源 有人预约时,可进行   预分配  操作
+     * 操作后,此资源在此刻后，不可再被预约。当所有预约会议都结束后，此资源置为私有。
+     *
+     * @param vmrId
+     * @return
+     */
+    @Override
+    public CommonResult updateMeetingResourceStatusPrivate(String vmrId) throws ServiceException {
+        //1:选中的公有资源不允许预约会议
+
+        //2:判断该资源下会议是否结束
+
+        //3:当所有预约会议都结束后,此资源置为私有,执行下列代码,进行数据库修改操作
+        int result = meetingResouceDaoService.updateMeetingResourceStatusPrivate(vmrId);
+        //判断数据库更改操作执行是否成功
+        if (result == 0) {
+            return null;
+        } else {
+            return CommonResult.success(result);
+        }
+
+
+    }
+
+
+
+    /**
+     * 4设为公有空闲:在预分配状态资源下,可操作设为公有空闲
+     * 操作后,此资源变为公有空闲,可被预约操作。
+     *
+     * @param vmrId
+     * @return
+     */
+    @Override
+    public CommonResult updateMeetingResourceStatusPublicFree(String vmrId) throws ServiceException {
+        int result = meetingResouceDaoService.updateMeetingResourceStatusPublicFree(vmrId);
+        //判断数据库更改操作执行是否成功
+        if (result == 0) {
+            return null;
+        } else {
+            return CommonResult.success(result);
+        }
     }
 }

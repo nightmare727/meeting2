@@ -13,6 +13,7 @@ import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.repository.po.MeetingResoucePO;
 import com.tiens.meeting.repository.service.MeetingResouceDaoService;
 import common.enums.MeetingResourceEnum;
+import common.enums.MeetingResourceStatusEnum;
 import common.pojo.CommonResult;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +45,7 @@ class RpcMeetingResouceServiceImplTest {
         System.out.println("打印:" + client);
         SearchCorpVmrRequest request = new SearchCorpVmrRequest();
 
-        request.withVmrMode(1);
+        request.withVmrMode(2);
         try {
             SearchCorpVmrResponse response = client.searchCorpVmr(request);
             List<QueryOrgVmrResultDTO> responseData = response.getData();
@@ -53,18 +54,20 @@ class RpcMeetingResouceServiceImplTest {
                 MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
                 meetingResoucePO.setVmrId(item.getId());
                 meetingResoucePO.setVmrConferenceId(item.getVmrId());
-                meetingResoucePO.setVmrMode(1);
+                meetingResoucePO.setVmrMode(2);
                 meetingResoucePO.setVmrName(item.getVmrName());
                 meetingResoucePO.setVmrPkgName(item.getVmrPkgName());
                 meetingResoucePO.setSize(item.getMaxAudienceParties());
 
                 Integer status = item.getStatus();
-                if (status == 0) {
-                    meetingResoucePO.setStatus("公有空闲");
-                } else if (status == 1) {
-                    meetingResoucePO.setStatus("公有预约");
+                if (status == 1) {
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_FREE.getCode());
                 } else if (status == 2) {
-                    meetingResoucePO.setStatus("私有");
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_RESERVED.getCode());
+                } else if (status == 3) {
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PRIVATE.getCode());
+                } else if (status == 4) {
+                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_PRE_ALLOCATED.getCode());
                 }
 
                 Integer vmrPkgParties = item.getMaxAudienceParties();
@@ -87,6 +90,7 @@ class RpcMeetingResouceServiceImplTest {
 
                 Date date = new Date(item.getExpireDate());
                 meetingResoucePO.setExpireDate(date);
+                System.out.println("打印打印meetingResoucePO:"+meetingResoucePO);
                 meetingResouceDaoService.save(meetingResoucePO);
 
             }
