@@ -396,7 +396,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      */
     @Override
     public CommonResult updateMeetingResourceStatusPrivate(String vmrId) throws ServiceException {
-        //1:选中的公有资源不允许预约会议
+        //1:选中的公有资源不允许再有预约会议
 
         //2:判断该资源下会议是否结束
 
