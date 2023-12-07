@@ -4,12 +4,19 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tiens.meeting.repository.mapper.MeetingResouceMapper">
 
-    <!--更改会议资源状态,改为闲置-->
+    <!--更改会议资源状态,改为公有空闲-->
     <update id="update">
         update meeting_resource
-        set status='0'
+        set status='1'
         where vmr_id = #{vmrId}
     </update>
+    <!--更改会议资源状态,改为公有预约-->
+    <update id="update1">
+        update meeting_resource
+        set status='2'
+        where vmr_id = #{vmrId}
+    </update>
+
 
     <!--根据资源id进行更新资源状态及相应userid-->
    <!-- <update id="updateStatusAndOwnerUserId">
@@ -20,11 +27,26 @@
     </update>-->
 
 
-    <!--根据accid==owner_im_user_id更改status为2私有-->
+    <!--根据accid==owner_im_user_id更改status为3私有-->
     <update id="updateStatusByAccId">
         update meeting_resource
-        set status='2'
+        set status='3'
         where owner_im_user_id = #{accId}
+    </update>
+
+    <!--公有预约 即为公有资源 有人预约时,可进行预分配操作,当所有预约会议都结束后，此资源置为私有-->
+    <update id="updateMeetingResourceStatusPrivate">
+        update meeting_resource
+        set status='3'
+        where vmr_id = #{vmrId}
+    </update>
+
+
+    <!--在预分配4状态资源下,可操作设为公有空闲1,操作后此资源变为公有空闲1,可被预约操作。-->
+    <update id="updateMeetingResourceStatusPublicFree">
+        update meeting_resource
+        set status='1'
+        where vmr_id = #{vmrId}
     </update>
 
     <!--通过joyocode查询accid-->
