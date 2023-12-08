@@ -125,6 +125,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         try {
             SearchCorpVmrResponse response = client.searchCorpVmr(request);
             List<QueryOrgVmrResultDTO> responseData = response.getData();
+            //对比本地数据库,判断是否已存储
             for (QueryOrgVmrResultDTO item : responseData) {
                 System.out.println("打印打印打印打印打印打印打印item:" + item);
                 MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
@@ -274,6 +275,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         //2:若此资源下 有原来的预约会议，则为公有预约。不取消其在私有状态下的会议。
         //判断查询一下名下是否有会议根据conferenceID查询ShowMeetingDetail(查询会议详情)
         //2.1如果没有会议改为公有空闲
+        //查询本地数据库状态进行判断是否符合修改
         //更改本地数据库状态
         int a = meetingResouceDaoService.updateMeetingStatusById(vmrId);
         System.out.println("打印本地数据库资源状态更改结果:" + a);
@@ -331,6 +333,8 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
         //查询一下传入的joyocode号所对应的accid
         String accId = meetingResouceDaoService.seleceAccIdByJoyoCode(joyoCode);
+        //查询本地数据库状态进行判断是否符合修改
+
         //更改本地数据库分配会议资源操作
         int i = meetingResouceDaoService.assignMeetingResouce(accId);
         System.out.println("打印分配会议资源更改数据库结果:" + i);
@@ -400,6 +404,8 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
         //2:判断该资源下会议是否结束
 
+        //查询本地数据库状态进行判断是否符合修改
+
         //3:当所有预约会议都结束后,此资源置为私有,执行下列代码,进行数据库修改操作
         int result = meetingResouceDaoService.updateMeetingResourceStatusPrivate(vmrId);
         //判断数据库更改操作执行是否成功
@@ -423,6 +429,10 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      */
     @Override
     public CommonResult updateMeetingResourceStatusPublicFree(String vmrId) throws ServiceException {
+
+        //查询本地数据库状态进行判断是否符合修改
+
+        //修改本地数据库状态
         int result = meetingResouceDaoService.updateMeetingResourceStatusPublicFree(vmrId);
         //判断数据库更改操作执行是否成功
         if (result == 0) {
