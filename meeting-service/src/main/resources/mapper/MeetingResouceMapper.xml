@@ -19,12 +19,12 @@
 
 
     <!--根据资源id进行更新资源状态及相应userid-->
-   <!-- <update id="updateStatusAndOwnerUserId">
-        update meeting_resource
-        set status='0',
-            owner_user_id=#{ownerUserId}
-        where id = #{resouceId}
-    </update>-->
+    <!-- <update id="updateStatusAndOwnerUserId">
+         update meeting_resource
+         set status='0',
+             owner_user_id=#{ownerUserId}
+         where id = #{resouceId}
+     </update>-->
 
 
     <!--根据accid==owner_im_user_id更改status为3私有-->
@@ -73,6 +73,11 @@
     <!--通过vmrid查询accid-->
     <select id="selectAccIdByVmrId" resultType="java.lang.String">
         select owner_im_user_id
+        from meeting_resource
+        where vmr_id = #{vmr_id};
+    </select>
+    <select id="selectVOByVMR" resultType="com.tiens.api.vo.MeetingResouceSelectVO">
+        select vmr_id
         from meeting_resource
         where vmr_id = #{vmr_id};
     </select>

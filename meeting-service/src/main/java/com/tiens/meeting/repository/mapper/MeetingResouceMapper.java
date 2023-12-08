@@ -4,8 +4,10 @@ package com.tiens.meeting.repository.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tiens.api.vo.MeetingHostUserVO;
 
+import com.tiens.api.vo.MeetingResouceSelectVO;
 import com.tiens.meeting.repository.po.MeetingResoucePO;
 import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
 
 /**
 * @author 78267
@@ -14,6 +16,7 @@ import org.springframework.context.annotation.Primary;
 * @Entity com.tiens.repository.po.MeetingResoucePO
 */
 @Primary
+@Repository
 public interface MeetingResouceMapper extends BaseMapper<MeetingResoucePO> {
 
     /**
@@ -86,6 +89,8 @@ public interface MeetingResouceMapper extends BaseMapper<MeetingResoucePO> {
      * @return
      */
     int updateMeetingResourceStatusPublicFree(String vmrId);
+
+    MeetingResouceSelectVO selectVOByVMR(String vmrId);
 }
 
 
