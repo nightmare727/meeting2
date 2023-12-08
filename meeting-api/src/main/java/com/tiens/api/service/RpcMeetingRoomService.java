@@ -1,10 +1,11 @@
 package com.tiens.api.service;
 
-import com.tiens.api.dto.*;
-import com.tiens.api.vo.AvailableResourcePeriodVO;
-import com.tiens.api.vo.MeetingResourceVO;
-import com.tiens.api.vo.MeetingRoomDetailDTO;
-import com.tiens.api.vo.VMMeetingCredentialVO;
+import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
+import com.tiens.api.dto.EnterMeetingRoomCheckDTO;
+import com.tiens.api.dto.FreeResourceListDTO;
+import com.tiens.api.dto.MeetingRoomCreateDTO;
+import com.tiens.api.dto.hwevent.HwEventReq;
+import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
 
 import java.util.List;
@@ -61,8 +62,9 @@ public interface RpcMeetingRoomService {
      *
      * @param meetingRoomId
      * @return
+     * @oaram imUserId
      */
-    CommonResult<MeetingRoomDetailDTO> getMeetingRoom(Long meetingRoomId);
+    CommonResult<MeetingRoomDetailDTO> getMeetingRoom(Long meetingRoomId, String imUserId);
 
     /**
      * 取消会议
@@ -74,17 +76,18 @@ public interface RpcMeetingRoomService {
 
     /**
      * 首页查询即将召开和进行中的会议列表
+     * @param imUserId
      *
      * @return
      */
-    CommonResult<List<MeetingRoomDetailDTO>> getFutureAndRunningMeetingRoomList();
+    CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(String imUserId);
 
     /**
      * 首页查询历史30天的会议列表
      *
      * @return
      */
-    CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList();
+    CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(String imUserId,Integer month);
 
     /**
      * 查询资源可用的时间段
@@ -94,5 +97,16 @@ public interface RpcMeetingRoomService {
      */
     CommonResult<List<AvailableResourcePeriodVO>> getAvailableResourcePeriod(
         AvailableResourcePeriodGetDTO availableResourcePeriodGetDTO);
+
+    /**
+     * 更新华为云会议室状态
+     *
+     * @param hwEventReq
+     * @return
+     */
+    CommonResult<String> updateMeetingRoomStatus(HwEventReq hwEventReq);
+
+
+
 
 }

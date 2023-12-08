@@ -1,5 +1,6 @@
 package com.tiens.api.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,6 +12,7 @@ import java.io.Serializable;
  * @Company: tiens
  */
 @Data
+@AllArgsConstructor
 public class AvailableResourcePeriodVO implements Serializable {
 
     private String beginTime;

@@ -1,6 +1,7 @@
 package com.tiens.meeting.dubboservice.core.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -10,18 +11,21 @@ import java.io.Serializable;
  * @TableName meeting_resouce
  */
 @Data
+@AllArgsConstructor
 public class MeetingRoomModel implements Serializable {
 
     /**
-     * 华为云云会议室的ID
+     * 华为云会议id
      */
-    @TableField(value = "vmr_id")
-    private String vmrId;
+    private String hwMeetingId;
 
     /**
-     * 云会议室的固定会议ID
+     * 华为会议code
      */
-    @TableField(value = "vmr_conference_id")
-    private String vmrConferenceId;
+    private String hwMeetingCode;
+    /**
+     *
+     */
+    private String state;
 
 }

@@ -1,6 +1,8 @@
 package com.tiens.api.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -21,7 +23,7 @@ public class MeetingRoomDetailDTO implements Serializable {
     /**
      * 华为云会议id
      */
-    private String conferenceId;
+    private String hwMeetingId;
 
     /**
      * 华为会议code
@@ -51,7 +53,7 @@ public class MeetingRoomDetailDTO implements Serializable {
     /**
      * 会议通知中会议时间的时区信息
      */
-    private String timeZoneId;
+    private Integer timeZoneId;
 
     /**
      * 时区偏移量
@@ -63,20 +65,28 @@ public class MeetingRoomDetailDTO implements Serializable {
      */
     private Integer duration;
     /**
-     * 会议预订者名称
+     * 主持人昵称
      */
-    private String scheduserName;
+    private String ownerUserName;
 
     /**
      * 会议状态。 ● “Schedule”：预定状态 ● “Creating”：正在创建状态 ● “Created”：会议已 经被创建，并正在召开 ● “Destroyed”：会议 已经关闭
      */
-    private String conferenceState;
+    private String state;
+    /**
+     * 录制状态 0：未录制完成  1：录制完成
+     */
+    private Integer recordStatus;
 
     /**
      * 资源id
      */
     private Integer resourceId;
 
+    /**
+     * 资源类型
+     */
+    private Integer resourceType;
     /**
      * 资源名称
      */
@@ -121,4 +131,24 @@ public class MeetingRoomDetailDTO implements Serializable {
      */
     private String audienceJoinUri;
 
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class RecordInner implements Serializable {
+        /**
+         * 下载鉴权token，下载文件时，使用该token鉴权。（一小时内有效，使用后立即失效）。
+         */
+        private String token;
+        /**
+         * 文件类型。
+         *
+         * Aux：辅流（会议中的共享画面；分辨率为720p） Hd：高清（会议中的视频画面；分辨率和会议中视频画面的分辨率一致，1080p或者720p）
+         * Sd：标清（会议中视频画面和共享画面的合成画面，视频画面是大画面，共享画面是小画面，共享画面布局在右下方；分辨率为4CIF） 单个MP4文件大小不超过1GB。
+         */
+        private String fileType;
+        /**
+         * 文件下载url，最大1000个字符。
+         */
+        private String url;
+    }
 }

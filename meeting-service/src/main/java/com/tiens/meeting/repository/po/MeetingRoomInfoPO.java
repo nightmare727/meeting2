@@ -1,9 +1,10 @@
 package com.tiens.meeting.repository.po;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,23 +14,26 @@ import java.util.Date;
  */
 @TableName(value = "meeting_room_info")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class MeetingRoomInfoPO implements Serializable {
     /**
      * 主键
      */
-    @TableId(value = "id")
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
      * 华为云会议id
      */
-    @TableField(value = "hw_meeting_id")
+    @TableField(value = "hw_meeting_id", updateStrategy = FieldStrategy.IGNORED)
     private String hwMeetingId;
 
     /**
      * 华为会议code
      */
-    @TableField(value = "hw_meeting_code")
+    @TableField(value = "hw_meeting_code", updateStrategy = FieldStrategy.IGNORED)
     private String hwMeetingCode;
 
     /**
@@ -72,7 +76,7 @@ public class MeetingRoomInfoPO implements Serializable {
      * 会议通知中会议时间的时区信息
      */
     @TableField(value = "time_zone_id")
-    private String timeZoneId;
+    private Integer timeZoneId;
 
     /**
      * 时区偏移量
@@ -98,10 +102,25 @@ public class MeetingRoomInfoPO implements Serializable {
     @TableField(value = "owner_im_user_id")
     private String ownerImUserId;
     /**
+     * 主持人昵称
+     */
+    @TableField(value = "owner_user_name")
+    private String ownerUserName;
+    /**
      * 会议状态。 ● “Schedule”：预定状 态 ● “Creating”：正在创 建状态 ● “Created”：会议已 经被创建，并正在召开 ● “Destroyed”：会议 已经关闭
      */
     @TableField(value = "state")
     private String state;
+    /**
+     * 云会议类型 1：云会议室  2：网络研讨会
+     */
+    @TableField(value = "vmr_mode")
+    private Integer vmrMode;
+    /**
+     * 录制状态 0：未录制完成  1：录制完成
+     */
+    @TableField(value = "record_status")
+    private Integer recordStatus;
 
     /**
      * 创建时间

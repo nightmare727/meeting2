@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.VMMeetingCredentialVO;
 import com.tiens.meeting.ServiceApplication;
+import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import common.enums.MeetingRoomStateEnum;
@@ -18,7 +19,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -29,7 +32,7 @@ import java.util.function.Consumer;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ServiceApplication.class)
-@ActiveProfiles("dev2-server")
+@ActiveProfiles("local")
 class RpcMeetingRoomDaoServiceImplTest {
 
     @Autowired
@@ -37,6 +40,9 @@ class RpcMeetingRoomDaoServiceImplTest {
 
     @Autowired
     MeetingRoomInfoDaoService meetingRoomInfoDaoService;
+
+    @Resource
+    Map<String, HwMeetingRoomHandler> hwMeetingRoomHandlers;
 
     @Test
     void getCredential() {
@@ -60,6 +66,11 @@ class RpcMeetingRoomDaoServiceImplTest {
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
         System.out.println(list);
+    }
+
+    @Test
+    void testAutoWiredMap() {
+        System.out.println(hwMeetingRoomHandlers);
     }
 
 }

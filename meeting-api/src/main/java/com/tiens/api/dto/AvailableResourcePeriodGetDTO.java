@@ -3,6 +3,7 @@ package com.tiens.api.dto;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @Author: 蔚文杰
@@ -25,6 +26,6 @@ public class AvailableResourcePeriodGetDTO implements Serializable {
     /**
      * 日期 yyyy-MM-dd
      */
-    private String date;
+    private Date date;
 
 }

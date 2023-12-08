@@ -46,6 +46,7 @@ public interface GlobalErrorCodeConstants {
     ErrorCode NOT_EXIST_RESOURCE = new ErrorCode("2000006", "资源不存在，请刷新重试");
     ErrorCode RESOURCE_USED = new ErrorCode("2000007", "资源已被占用，请刷新重试");
     ErrorCode RESOURCE_MORE_THAN = new ErrorCode("2000008", "资源使用超出限制");
+    ErrorCode CAN_NOT_MOD_MEETING_ROOM = new ErrorCode("2000009", "会议状态非预约状态，无法编辑，请刷新重试");
 
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段

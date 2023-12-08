@@ -18,7 +18,7 @@ public enum MeetingResourceStateEnum {
     PUBLIC_FREE(1, "公有空闲"),
     PUBLIC_SUBSCRIBE(2, "公有预约"),
     PRIVATE(3, "私有"),
-    ;
+    REDISTRIBUTION(4, "公有预分配");
     private Integer state;
 
     private String desc;

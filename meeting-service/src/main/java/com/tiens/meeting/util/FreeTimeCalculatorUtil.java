@@ -1,8 +1,11 @@
 package com.tiens.meeting.util;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class FreeTimeCalculatorUtil {
@@ -41,14 +44,35 @@ public class FreeTimeCalculatorUtil {
 
         return freeTimeRanges;
     }
-
-    static class TimeRange implements Serializable {
+    @Data
+    public static class TimeRange implements Serializable {
         LocalTime start;
         LocalTime end;
 
         public TimeRange(LocalTime start, LocalTime end) {
             this.start = start;
             this.end = end;
+        }
+
+        public TimeRange(Date lockStartTime, Date lockEndTime) {
+            this.start = convertDateToLocalTime(lockStartTime);
+            this.end = convertDateToLocalTime(lockEndTime);
+        }
+
+        public static LocalTime convertDateToLocalTime(Date date) {
+            // 从Date对象中获取毫秒值
+            long millis = date.getTime();
+
+            // 将毫秒值转换为秒值
+            long seconds = millis / 1000;
+
+            // 将秒值转换为小时、分钟和秒
+            long hours = seconds / 3600;
+            long minutes = (seconds % 3600) / 60;
+            long remainingSeconds = seconds % 60;
+
+            // 使用这些值创建一个LocalTime对象
+            return LocalTime.of((int)hours, (int)minutes, (int)remainingSeconds);
         }
 
         @Override
