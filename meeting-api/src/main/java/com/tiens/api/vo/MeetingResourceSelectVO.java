@@ -1,19 +1,16 @@
-package com.tiens.meeting.repository.po;
+package com.tiens.api.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.Date;
 
-@TableName(value ="meeting_resource")
 @Data
-@EqualsAndHashCode
-public class MeetingResoucePO implements Serializable {
+public class MeetingResourceSelectVO implements Serializable {
+
     /**
      * 11111
      */

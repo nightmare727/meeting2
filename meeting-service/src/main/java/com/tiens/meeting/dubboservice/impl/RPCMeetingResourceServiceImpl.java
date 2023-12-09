@@ -17,18 +17,19 @@ import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.MeetingCredentials;
 import com.huaweicloud.sdk.meeting.v1.model.*;
 import com.tiens.api.dto.MeetingHostPageDTO;
-import com.tiens.api.dto.MeetingResouceIdDTO;
-import com.tiens.api.dto.MeetingResoucePageDTO;
+
+import com.tiens.api.dto.MeetingResourcePageDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.vo.MeetingHostUserVO;
-import com.tiens.api.vo.MeetingResouceVO;
-import com.tiens.api.vo.VMUserVO;
-import com.tiens.meeting.dubboservice.config.HWMeetingConfiguration;
+
+import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
-import com.tiens.meeting.repository.po.MeetingResoucePO;
-import com.tiens.meeting.repository.service.MeetingResouceDaoService;
+
+import com.tiens.meeting.repository.po.MeetingResourcePO;
+import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import common.enums.MeetingResourceEnum;
-import common.enums.MeetingResourceStatusEnum;
+
+import common.enums.MeetingResourceStateEnum;
 import common.exception.ServiceException;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
@@ -74,12 +75,12 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     }
 
 
-    private final MeetingResouceDaoService meetingResouceDaoService;
+    private final MeetingResourceDaoService meetingResourceDaoService;
 
     private final MeetingConfig meetingConfig;
 
     @Override
-    public CommonResult<MeetingResouceVO> queryMeetingResouce(String vmrId) throws ServiceException {
+    public CommonResult<MeetingResourceVO> queryMeetingResource(String vmrId) throws ServiceException {
         return null;
     }
 
@@ -90,8 +91,8 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      * @return
      */
     @Override
-    public PageResult<MeetingResouceVO> queryMeetingResoucePage(PageParam<MeetingResoucePageDTO> pageDTOPageParam) throws ServiceException {
-        Page<MeetingResoucePO> page = new Page<>(pageDTOPageParam.getPageNum(), pageDTOPageParam.getPageSize());
+    public PageResult<MeetingResourceVO> queryMeetingResourcePage(PageParam<MeetingResourcePageDTO> pageDTOPageParam) throws ServiceException {
+        Page<MeetingResourcePO> page = new Page<>(pageDTOPageParam.getPageNum(), pageDTOPageParam.getPageSize());
         /*查询条件
         MeetingResoucePageDTO condition = pageDTOPageParam.getCondition();
         LambdaQueryWrapper<MeetingResoucePO> queryWrapper = Wrappers.lambdaQuery(MeetingResoucePO.class);
@@ -100,11 +101,11 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 .like(ObjectUtil.isNotEmpty(condition.getPhone()), MeetingResoucePO::getPhone, condition.getPhone())
                 .like(ObjectUtil.isNotEmpty(condition.getEmail()), MeetingResoucePO::getEmail, condition.getEmail())
                 .orderByDesc(MeetingResoucePO::getCreateTime);*/
-        Page<MeetingResoucePO> pagePoResult = meetingResouceDaoService.page(page);
-        List<MeetingResoucePO> records = pagePoResult.getRecords();
-        List<MeetingResouceVO> meetingResouceVOS = BeanUtil.copyToList(records, MeetingResouceVO.class);
-        PageResult<MeetingResouceVO> pageResult = new PageResult<>();
-        pageResult.setList(meetingResouceVOS);
+        Page<MeetingResourcePO> pagePoResult = meetingResourceDaoService.page(page);
+        List<MeetingResourcePO> records = pagePoResult.getRecords();
+        List<MeetingResourceVO> meetingResourceVOS = BeanUtil.copyToList(records, MeetingResourceVO.class);
+        PageResult<MeetingResourceVO> pageResult = new PageResult<>();
+        pageResult.setList(meetingResourceVOS);
         pageResult.setTotal(pagePoResult.getTotal());
         return pageResult;
     }
@@ -128,47 +129,47 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
             //对比本地数据库,判断是否已存储
             for (QueryOrgVmrResultDTO item : responseData) {
                 System.out.println("打印打印打印打印打印打印打印item:" + item);
-                MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
-                meetingResoucePO.setVmrId(item.getId());
-                meetingResoucePO.setVmrConferenceId(item.getVmrId());
-                meetingResoucePO.setVmrMode(1);
-                meetingResoucePO.setVmrName(item.getVmrName());
-                meetingResoucePO.setVmrPkgName(item.getVmrPkgName());
-                meetingResoucePO.setSize(item.getMaxAudienceParties());
+                MeetingResourcePO meetingResourcePO = new MeetingResourcePO();
+                meetingResourcePO.setVmrId(item.getId());
+                meetingResourcePO.setVmrConferenceId(item.getVmrId());
+                meetingResourcePO.setVmrMode(1);
+                meetingResourcePO.setVmrName(item.getVmrName());
+                meetingResourcePO.setVmrPkgName(item.getVmrPkgName());
+                meetingResourcePO.setSize(item.getMaxAudienceParties());
 
                 Integer status = item.getStatus();
                 if (status == 1) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_FREE.getCode());
+                    meetingResourcePO.setStatus(MeetingResourceStateEnum.PUBLIC_FREE.getState());
                 } else if (status == 2) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_RESERVED.getCode());
+                    meetingResourcePO.setStatus(MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState());
                 } else if (status == 3) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PRIVATE.getCode());
+                    meetingResourcePO.setStatus(MeetingResourceStateEnum.PRIVATE.getState());
                 } else if (status == 4) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_PRE_ALLOCATED.getCode());
+                    meetingResourcePO.setStatus(MeetingResourceStateEnum.REDISTRIBUTION.getState());
                 }
                 //meetingResoucePO.setStatus(item.getStatus());
 
                 Integer vmrPkgParties = item.getMaxAudienceParties();
                 if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_10.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_10.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_10.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_50.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_50.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_50.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_100.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_100.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_100.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_200.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_200.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_200.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_500.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_500.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_500.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_1000.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_1000.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_1000.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_3000.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_3000.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_3000.getCode());
                 }
 
 
                 Date date = new Date(item.getExpireDate());
-                meetingResoucePO.setExpireDate(date);
-                meetingResouceDaoService.save(meetingResoucePO);
+                meetingResourcePO.setExpireDate(date);
+                meetingResourceDaoService.save(meetingResourcePO);
 
             }
             System.out.println("打印response:" + response.toString());
@@ -203,47 +204,47 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
             List<QueryOrgVmrResultDTO> responseData = response.getData();
             for (QueryOrgVmrResultDTO item : responseData) {
                 System.out.println("打印打印打印打印打印打印打印item:" + item);
-                MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
-                meetingResoucePO.setVmrId(item.getId());
-                meetingResoucePO.setVmrConferenceId(item.getVmrId());
-                meetingResoucePO.setVmrMode(2);
-                meetingResoucePO.setVmrName(item.getVmrName());
-                meetingResoucePO.setVmrPkgName(item.getVmrPkgName());
-                meetingResoucePO.setSize(item.getMaxAudienceParties());
+                MeetingResourcePO meetingResourcePO = new MeetingResourcePO();
+                meetingResourcePO.setVmrId(item.getId());
+                meetingResourcePO.setVmrConferenceId(item.getVmrId());
+                meetingResourcePO.setVmrMode(2);
+                meetingResourcePO.setVmrName(item.getVmrName());
+                meetingResourcePO.setVmrPkgName(item.getVmrPkgName());
+                meetingResourcePO.setSize(item.getMaxAudienceParties());
 
                 Integer status = item.getStatus();
                 if (status == 1) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_FREE.getCode());
+                    meetingResourcePO.setStatus(MeetingResourceStateEnum.PUBLIC_FREE.getState());
                 } else if (status == 2) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_RESERVED.getCode());
+                    meetingResourcePO.setStatus(MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState());
                 } else if (status == 3) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PRIVATE.getCode());
+                    meetingResourcePO.setStatus(MeetingResourceStateEnum.PRIVATE.getState());
                 } else if (status == 4) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_PRE_ALLOCATED.getCode());
+                    meetingResourcePO.setStatus(MeetingResourceStateEnum.REDISTRIBUTION.getState());
                 }
-                //meetingResoucePO.setStatus(item.getStatus());
+                //meetingResourcePO.setStatus(item.getStatus());
 
                 Integer vmrPkgParties = item.getMaxAudienceParties();
                 if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_10.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_10.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_10.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_50.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_50.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_50.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_100.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_100.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_100.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_200.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_200.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_200.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_500.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_500.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_500.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_1000.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_1000.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_1000.getCode());
                 } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_3000.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_3000.getCode());
+                    meetingResourcePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_3000.getCode());
                 }
 
 
                 Date date = new Date(item.getExpireDate());
-                meetingResoucePO.setExpireDate(date);
-                meetingResouceDaoService.save(meetingResoucePO);
+                meetingResourcePO.setExpireDate(date);
+                meetingResourceDaoService.save(meetingResourcePO);
 
             }
             System.out.println("打印response:" + response.toString());
@@ -270,18 +271,18 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     public CommonResult updateMeetingStatus(String vmrId) throws ServiceException {
 
         //1:通过vmrid查询accid
-        String accId = meetingResouceDaoService.selectAccIdByVmrId(vmrId);
+        String accId = meetingResourceDaoService.selectAccIdByVmrId(vmrId);
         System.out.println("打印查询到的accid为:" + accId);
         //2:若此资源下 有原来的预约会议，则为公有预约。不取消其在私有状态下的会议。
         //判断查询一下名下是否有会议根据conferenceID查询ShowMeetingDetail(查询会议详情)
         //2.1如果没有会议改为公有空闲
         //查询本地数据库状态进行判断是否符合修改
         //更改本地数据库状态
-        int a = meetingResouceDaoService.updateMeetingStatusById(vmrId);
+        int a = meetingResourceDaoService.updateMeetingStatusById(vmrId);
         System.out.println("打印本地数据库资源状态更改结果:" + a);
         //2.2如果有会议改为公有预约
         //更改本地数据库状态
-        int b = meetingResouceDaoService.updateMeetingStatusById1(vmrId);
+        int b = meetingResourceDaoService.updateMeetingStatusById1(vmrId);
         System.out.println("打印本地数据库资源状态更改结果:" + b);
 
 
@@ -327,16 +328,16 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      * @return
      */
     @Override
-    public CommonResult assignMeetingResouce(String joyoCode) throws ServiceException {
-        //int b = meetingResouceDaoService.assignMeetingResouce(joyoCode);
+    public CommonResult assignMeetingResource(String joyoCode) throws ServiceException {
+        //int b = meetingResourceDaoService.assignMeetingResource(joyoCode);
         //System.out.println("分配会议资源更改数据库结果:" + b);
 
         //查询一下传入的joyocode号所对应的accid
-        String accId = meetingResouceDaoService.seleceAccIdByJoyoCode(joyoCode);
+        String accId = meetingResourceDaoService.seleceAccIdByJoyoCode(joyoCode);
         //查询本地数据库状态进行判断是否符合修改
 
         //更改本地数据库分配会议资源操作
-        int i = meetingResouceDaoService.assignMeetingResouce(accId);
+        int i = meetingResourceDaoService.assignMeetingResource(accId);
         System.out.println("打印分配会议资源更改数据库结果:" + i);
 
         System.out.println("打印查询到的accid为:" + accId);
@@ -382,7 +383,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      */
     @Override
     public CommonResult<MeetingHostUserVO> selectUserByJoyoCode(String joyoCode) {
-        MeetingHostUserVO meetingHostUserVO = meetingResouceDaoService.selectUserByJoyoCode(joyoCode);
+        MeetingHostUserVO meetingHostUserVO = meetingResourceDaoService.selectUserByJoyoCode(joyoCode);
         if (meetingHostUserVO != null) {
             return CommonResult.success(meetingHostUserVO);
         } else {
@@ -407,7 +408,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         //查询本地数据库状态进行判断是否符合修改
 
         //3:当所有预约会议都结束后,此资源置为私有,执行下列代码,进行数据库修改操作
-        int result = meetingResouceDaoService.updateMeetingResourceStatusPrivate(vmrId);
+        int result = meetingResourceDaoService.updateMeetingResourceStatusPrivate(vmrId);
         //判断数据库更改操作执行是否成功
         if (result == 0) {
             return null;
@@ -433,7 +434,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         //查询本地数据库状态进行判断是否符合修改
 
         //修改本地数据库状态
-        int result = meetingResouceDaoService.updateMeetingResourceStatusPublicFree(vmrId);
+        int result = meetingResourceDaoService.updateMeetingResourceStatusPublicFree(vmrId);
         //判断数据库更改操作执行是否成功
         if (result == 0) {
             return null;

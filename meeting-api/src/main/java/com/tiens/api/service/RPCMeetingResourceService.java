@@ -1,9 +1,9 @@
 package com.tiens.api.service;
 
-import com.tiens.api.dto.MeetingResouceIdDTO;
-import com.tiens.api.dto.MeetingResoucePageDTO;
+import com.tiens.api.dto.MeetingResourcePageDTO;
 import com.tiens.api.vo.MeetingHostUserVO;
-import com.tiens.api.vo.MeetingResouceVO;
+
+import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingTimeZoneConfigVO;
 import common.exception.ServiceException;
 import common.pojo.CommonResult;
@@ -26,14 +26,14 @@ public interface RPCMeetingResourceService {
      * @param vmrId
      * @return
      */
-    CommonResult<MeetingResouceVO> queryMeetingResouce(String vmrId) throws ServiceException;
+    CommonResult<MeetingResourceVO> queryMeetingResource(String vmrId) throws ServiceException;
 
     /**
      * 分页查询会议资源列表
      * @param pageDTOPageParam
      * @return
      */
-    PageResult<MeetingResouceVO> queryMeetingResoucePage(PageParam<MeetingResoucePageDTO> pageDTOPageParam) throws ServiceException;
+    PageResult<MeetingResourceVO> queryMeetingResourcePage(PageParam<MeetingResourcePageDTO> pageDTOPageParam) throws ServiceException;
 
     /**
      * 调取华为会议资源:1云会议室
@@ -63,7 +63,7 @@ public interface RPCMeetingResourceService {
      * @param joyoCode
      * @return
      */
-    CommonResult assignMeetingResouce(String joyoCode) throws ServiceException;
+    CommonResult assignMeetingResource(String joyoCode) throws ServiceException;
 
     /**
      * 查询主持人

@@ -1,12 +1,12 @@
 package com.tiens.meeting.mgr.controller;
 
 import com.tiens.api.dto.MeetingHostPageDTO;
-import com.tiens.api.dto.MeetingResouceIdDTO;
-import com.tiens.api.dto.MeetingResoucePageDTO;
+
+import com.tiens.api.dto.MeetingResourcePageDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RPCMeetingTimeZoneService;
 import com.tiens.api.vo.MeetingHostUserVO;
-import com.tiens.api.vo.MeetingResouceVO;
+import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingTimeZoneConfigVO;
 import com.tiens.api.vo.VMUserVO;
 import common.exception.ServiceException;
@@ -54,12 +54,12 @@ public class MeetingResourceController {
      * @return
      */
     @ResponseBody
-    @PostMapping("/queryMeetingResoucePage")
-    public CommonResult queryMeetingResoucePage(
-            @RequestBody PageParam<MeetingResoucePageDTO> pageDTOPageParam) throws Exception {
+    @PostMapping("/queryMeetingResourcePage")
+    public CommonResult queryMeetingResourcePage(
+            @RequestBody PageParam<MeetingResourcePageDTO> pageDTOPageParam) throws Exception {
         rpcMeetingResourceService.SearchCorpVmrSolution1();
         rpcMeetingResourceService.SearchCorpVmrSolution2();
-        PageResult<MeetingResouceVO> vmUserVOCommonResult = rpcMeetingResourceService.queryMeetingResoucePage(pageDTOPageParam);
+        PageResult<MeetingResourceVO> vmUserVOCommonResult = rpcMeetingResourceService.queryMeetingResourcePage(pageDTOPageParam);
         return CommonResult.success(vmUserVOCommonResult);
     }
 
@@ -93,7 +93,7 @@ public class MeetingResourceController {
     @ResponseBody
     @PostMapping("/assignMeetingResouce")
     public CommonResult assignMeetingResouce(String joyoCode) throws Exception {
-        CommonResult commonResult = rpcMeetingResourceService.assignMeetingResouce(joyoCode);
+        CommonResult commonResult = rpcMeetingResourceService.assignMeetingResource(joyoCode);
         return commonResult;
     }
 
