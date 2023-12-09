@@ -63,7 +63,6 @@ public class AppointMeetingTask {
         }
 
         log.info("会议开始前30分钟前锁定资源分配完成】，id:{},result:{}", roomIds, update);
-        //2、给主持人发送V队长消息
 
     }
 }
