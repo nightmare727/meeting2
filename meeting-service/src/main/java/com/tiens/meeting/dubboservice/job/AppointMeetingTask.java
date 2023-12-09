@@ -18,5 +18,7 @@ public class AppointMeetingTask {
     @XxlJob("AppointMeetingJobHandler")
     public void jobHandler() throws Exception {
         System.out.println("ddd");
+        //1、预约提前30分钟锁定资源
+        //2、给主持人发送消息
     }
 }
