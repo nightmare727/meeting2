@@ -192,7 +192,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<MeetingResourcePO> levelFreeResourceList = meetingResourceDaoService.lambdaQuery()
             .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_FREE.getState())
             .le(MeetingResourcePO::getResourceType, maxResourceType)
-            .eq(MeetingResourcePO::getResourceType, freeResourceListDTO.getResourceType()).list();
+            .list();
         //去除空闲资源中被锁定的资源
         List<MeetingResourcePO> collect =
             levelFreeResourceList.stream().filter(t -> !lockedResourceIdList.contains(t)).collect(Collectors.toList());

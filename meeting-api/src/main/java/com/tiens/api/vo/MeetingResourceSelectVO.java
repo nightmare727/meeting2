@@ -1,23 +1,18 @@
-package com.tiens.meeting.repository.po;
+package com.tiens.api.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
 import lombok.Data;
 
-/**
- * 
- * @author yuwenjie
- * @TableName meeting_resouce
- */
-@TableName(value ="meeting_resource")
+import java.io.Serializable;
+import java.util.Date;
+
 @Data
-public class MeetingResourcePO implements Serializable {
+public class MeetingResourceSelectVO implements Serializable {
+
     /**
-     * 主键
+     * 11111
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
@@ -59,7 +54,7 @@ public class MeetingResourcePO implements Serializable {
     private Integer size;
 
     /**
-     * 资源状态 1:公有空闲 2:公有预约 3:私有
+     * 资源状态 1:公有空闲 2:公有预约 3:私有 4:公有预分配
      */
     @TableField(value = "status")
     private Integer status;
@@ -71,13 +66,13 @@ public class MeetingResourcePO implements Serializable {
     private Date expireDate;
 
     /**
-     * 私有者accid
+     * 主持人id
      */
-    @TableField(value = "owner_im_user_id")
-    private String ownerImUserId;
+    @TableField(value = "owner_user_id")
+    private Long ownerUserId;
 
     /**
-     * 资源类型 1：10方 2：50方 3：100方  4：200方 5：500方 6：1000方 7：3000方
+     * 资源类型
      */
     @TableField(value = "resource_type")
     private Integer resourceType;
