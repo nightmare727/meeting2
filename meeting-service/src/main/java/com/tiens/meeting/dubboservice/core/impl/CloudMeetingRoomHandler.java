@@ -1,10 +1,12 @@
 package com.tiens.meeting.dubboservice.core.impl;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.huaweicloud.sdk.core.exception.ConnectionException;
+import com.huaweicloud.sdk.core.exception.RequestTimeoutException;
+import com.huaweicloud.sdk.core.exception.ServiceResponseException;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.*;
 import com.tiens.api.dto.MeetingRoomCreateDTO;
@@ -79,7 +81,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         request.withBody(body);
         CreateMeetingResponse response = userMeetingClient.createMeeting(request);
         log.info("创建云会议结果响应：{}", response);
-        if (ObjectUtil.isEmpty(startTimeStr)) {
+        if (!ObjectUtil.isEmpty(startTimeStr)) {
             //为预约会议，预约完成后需要回收资源
             disassociateVmr(meetingRoomCreateDTO.getImUserId(),
                 Collections.singletonList(meetingRoomCreateDTO.getVmrId()));
@@ -166,8 +168,16 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         //取消会议
         CancelMeetingRequest request = new CancelMeetingRequest();
         request.withConferenceID(cancelMeetingRoomModel.getConferenceID());
-        CancelMeetingResponse response = userMeetingClient.cancelMeeting(request);
-        log.info("取消云会议结果：{}", response);
+        try {
+            CancelMeetingResponse response = userMeetingClient.cancelMeeting(request);
+            log.info("取消云会议结果：{}", response);
+        } catch (ConnectionException e) {
+            log.error("取消云会议连接异常", e);
+        } catch (RequestTimeoutException e) {
+            log.error("取消云会议连接超时", e);
+        } catch (ServiceResponseException e) {
+            log.error("取消云会议响应异常", e);
+        }
         //回收资源
         disassociateVmr(cancelMeetingRoomModel.getImUserId(),
             Collections.singletonList(cancelMeetingRoomModel.getVmrId()));

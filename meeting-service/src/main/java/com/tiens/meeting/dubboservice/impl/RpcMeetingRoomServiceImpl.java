@@ -191,8 +191,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //根据资源等级查询等级下的所有空闲资源
         List<MeetingResourcePO> levelFreeResourceList = meetingResourceDaoService.lambdaQuery()
             .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_FREE.getState())
-            .le(MeetingResourcePO::getResourceType, maxResourceType)
-            .list();
+            .le(MeetingResourcePO::getResourceType, maxResourceType).list();
         //去除空闲资源中被锁定的资源
         List<MeetingResourcePO> collect =
             levelFreeResourceList.stream().filter(t -> !lockedResourceIdList.contains(t)).collect(Collectors.toList());
@@ -281,8 +280,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
         }
         Integer status = meetingResourcePO.getStatus();
-        if (!MeetingResourceStateEnum.PUBLIC_FREE.getState().equals(status) || !ObjectUtil.equals(
-            meetingRoomCreateDTO.getImUserId(), meetingResourcePO.getOwnerImUserId())) {
+        if (!MeetingResourceStateEnum.PUBLIC_FREE.getState().equals(status) || (meetingResourcePO.getStatus()
+            .equals(MeetingResourceStateEnum.PRIVATE.getState()) &&
+            !ObjectUtil.equals(meetingRoomCreateDTO.getImUserId(), meetingResourcePO.getOwnerImUserId()))) {
             //判断资源是否已被使用
             return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_USED);
         }
@@ -386,6 +386,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         MeetingRoomInfoPO byId = meetingRoomInfoDaoService.getById(meetingRoomId);
         if (ObjectUtil.isNull(byId)) {
             return CommonResult.success(null);
+        }
+        String state = byId.getState();
+        if (MeetingRoomStateEnum.Destroyed.getState().equals(state)) {
+            return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_MEETING_ROOM);
         }
         Integer resourceId = byId.getResourceId();
         MeetingResourcePO byId1 = meetingResourceDaoService.getById(resourceId);
@@ -574,6 +578,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if ("meeting.started".equals(event)) {
             //推送会议开始事件
             boolean update = meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                .set(MeetingRoomInfoPO::getHwMeetingId, payload.getMeetingInfo().getMeetingUUID())
                 .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
                 .set(MeetingRoomInfoPO::getRelStartTime, DateUtil.date(timestamp)).update();
             log.info("华为云会议事件开始会议id：{}，结果：{}", meetingID, update);

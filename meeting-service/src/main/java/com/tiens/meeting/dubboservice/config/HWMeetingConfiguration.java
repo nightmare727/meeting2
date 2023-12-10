@@ -1,37 +1,13 @@
 package com.tiens.meeting.dubboservice.config;
 
-import java.util.Date;
-import java.util.List;
-
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.EnableSpringUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import com.alibaba.fastjson.JSON;
-import com.huaweicloud.sdk.core.auth.ICredential;
-import com.huaweicloud.sdk.core.exception.ConnectionException;
-import com.huaweicloud.sdk.core.exception.RequestTimeoutException;
-import com.huaweicloud.sdk.core.exception.ServiceResponseException;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.MeetingCredentials;
-import com.huaweicloud.sdk.meeting.v1.model.*;
-import com.tiens.meeting.ServiceApplication;
-import com.tiens.meeting.repository.po.MeetingResoucePO;
-import com.tiens.meeting.repository.service.MeetingResouceDaoService;
-import common.exception.ServiceException;
-import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
-import org.assertj.core.util.Lists;
-import org.mybatis.spring.annotation.MapperScan;
+import com.huaweicloud.sdk.meeting.v1.model.AuthTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 /**
  * @Author: 蔚文杰
@@ -42,8 +18,6 @@ import org.springframework.stereotype.Component;
 @Configuration
 public class HWMeetingConfiguration {
 
-    @Autowired
-    private static MeetingResouceDaoService meetingResouceDaoService;
 
     @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     @Bean

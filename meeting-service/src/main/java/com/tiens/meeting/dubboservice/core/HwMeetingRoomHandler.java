@@ -52,6 +52,7 @@ public abstract class HwMeetingRoomHandler {
         AssociateVmrRequest request = new AssociateVmrRequest();
         request.withAccount(imUserId);
         request.withBody(vmrIds);
+        request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         AssociateVmrResponse response = meetingClient.associateVmr(request);
         log.info("分配云会议室结果：{}", response);
     }
@@ -66,6 +67,7 @@ public abstract class HwMeetingRoomHandler {
         DisassociateVmrRequest request = new DisassociateVmrRequest();
         request.withAccount(imUserId);
         request.withBody(vmrIds);
+        request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         try {
             DisassociateVmrResponse response = meetingClient.disassociateVmr(request);
             log.info("回收云会议室结果：{}", response);

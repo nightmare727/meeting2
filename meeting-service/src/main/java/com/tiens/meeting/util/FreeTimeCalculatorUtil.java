@@ -1,5 +1,6 @@
 package com.tiens.meeting.util;
 
+import cn.hutool.core.collection.CollectionUtil;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -28,10 +29,15 @@ public class FreeTimeCalculatorUtil {
 
     public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges) {
         List<TimeRange> freeTimeRanges = new ArrayList<>();
-
         // 假设一天从0点开始，到23点59分结束
         LocalTime startOfDay = LocalTime.of(0, 0);
         LocalTime endOfDay = LocalTime.of(23, 59);
+        if (CollectionUtil.isEmpty(knownTimeRanges)) {
+            freeTimeRanges.add(new TimeRange(startOfDay, endOfDay));
+            return freeTimeRanges;
+        }
+
+
 
         // 初始化空闲时间段列表
         freeTimeRanges.add(new TimeRange(startOfDay, knownTimeRanges.get(0).start));
@@ -44,6 +50,7 @@ public class FreeTimeCalculatorUtil {
 
         return freeTimeRanges;
     }
+
     @Data
     public static class TimeRange implements Serializable {
         LocalTime start;
