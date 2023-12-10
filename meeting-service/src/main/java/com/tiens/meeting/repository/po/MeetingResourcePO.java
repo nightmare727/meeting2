@@ -13,7 +13,7 @@ import lombok.Data;
  * @author yuwenjie
  * @TableName meeting_resouce
  */
-@TableName(value ="meeting_resouce")
+@TableName(value ="meeting_resource")
 @Data
 public class MeetingResourcePO implements Serializable {
     /**
