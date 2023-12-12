@@ -12,6 +12,8 @@ import java.io.Serializable;
  */
 @Data
 public class CancelResourceAllocateDTO implements Serializable {
-
+    /**
+     * 资源id
+     */
     private Integer resourceId;
 }

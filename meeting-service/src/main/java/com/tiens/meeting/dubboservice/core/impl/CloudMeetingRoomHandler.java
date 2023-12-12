@@ -65,12 +65,13 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         RestScheduleConfDTO body = new RestScheduleConfDTO();
         RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
         confConfigInfobody.withIsGuestFreePwd(false)
-            //允许加入会议的范围。
+            //允许加入会议的范围。企业
             .withCallInRestriction(2)
             //随机会议id-私人会议，固定会议id
             .withVmrIDType(MeetingResourceStateEnum.PRIVATE.getState().equals(resourceStatus) ? 0 : 1)
             //自动延时30分钟
-            .withProlongLength(30).withGuestPwd(meetingRoomContextDTO.getGuestPwd()).withEnableWaitingRoom(true);
+            .withProlongLength(30).withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
+            .withEnableWaitingRoom(true);
         body.withVmrID(meetingRoomContextDTO.getVmrId());
         body.withVmrFlag(1);
         body.withConfConfigInfo(confConfigInfobody);
@@ -138,7 +139,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         RestScheduleConfDTO body = new RestScheduleConfDTO();
         RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
         confConfigInfobody.withCallInRestriction(2).withAllowGuestStartConf(false)
-            .withGuestPwd(meetingRoomContextDTO.getGuestPwd()).withVmrIDType(1).withProlongLength(30)
+            .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag()).withVmrIDType(1).withProlongLength(30)
             .withEnableWaitingRoom(true);
         body.withVmrID(meetingRoomContextDTO.getVmrId());
         body.withVmrFlag(1);

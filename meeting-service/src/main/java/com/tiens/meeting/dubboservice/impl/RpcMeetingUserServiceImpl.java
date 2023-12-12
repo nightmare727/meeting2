@@ -33,11 +33,14 @@ import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
+import common.util.cache.CacheKeyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
+import org.redisson.api.RMap;
+import org.redisson.api.RedissonClient;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,6 +68,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     private final MeetingLevelResourceConfigDaoService meetingLevelResourceConfigDaoService;
 
     private final HwMeetingUserService hwMeetingUserService;
+
+    private final RedissonClient redissonClient;
 
     /**
      * 通过卓越卡号查询用户
@@ -154,6 +159,11 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult addMeetingCommonUser(String accid) throws ServiceException {
+        RMap<String, String> hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
+        String userAddFlag = hwUserFlagMap.get(accid);
+        if (StrUtil.isNotBlank(userAddFlag)) {
+            return CommonResult.success(userAddFlag);
+        }
         //1、通过accid查询用户
         CommonResult<VMUserVO> vmUserVOCommonResult = queryVMUser("", accid);
         VMUserVO vmUserVO = vmUserVOCommonResult.getData();
@@ -169,7 +179,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         }
         return CommonResult.success(result);
     }
-
 
     private boolean RemoveHWMeetinguser(List<String> accIds) throws ServiceException {
         BatchDeleteUsersRequest request = new BatchDeleteUsersRequest();

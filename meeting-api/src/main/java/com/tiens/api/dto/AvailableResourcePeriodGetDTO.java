@@ -15,16 +15,16 @@ import java.util.Date;
 public class AvailableResourcePeriodGetDTO implements Serializable {
 
     /**
-     * 资源id
+     * (需要)资源id
      */
     private Integer resourceId;
 
     /**
-     * 用户id
+     * (不需要)用户id
      */
     private String imUserId;
     /**
-     * 日期 yyyy-MM-dd
+     * (需要)日期 yyyy-MM-dd
      */
     private Date date;
 

@@ -27,7 +27,7 @@ public class MeetingUserController {
     RpcMeetingUserService rpcMeetingUserService;
 
     /**
-     * 查询主持人信息
+     * (废弃) 查询主持人信息
      *
      * @param accid
      * @return

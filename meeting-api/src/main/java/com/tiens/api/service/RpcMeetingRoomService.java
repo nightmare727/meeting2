@@ -114,4 +114,5 @@ public interface RpcMeetingRoomService {
      */
     CommonResult<List<RecordVO>> getMeetingRoomRecordList(Long meetingRoomId);
 
+    CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList();
 }

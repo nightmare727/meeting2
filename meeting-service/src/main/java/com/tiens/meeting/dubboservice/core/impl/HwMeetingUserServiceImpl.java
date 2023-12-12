@@ -14,6 +14,7 @@ import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.dubboservice.core.HwMeetingUserService;
 import common.enums.VmUserSourceEnum;
 import common.exception.ServiceException;
+import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
@@ -61,11 +62,6 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
      */
     @Override
     public Boolean addHwUser(VMUserVO vmUserVO) {
-        RMap<String, String> hwUserFlagMap = redissonClient.getMap("hwUserFlag");
-        String userAddFlag = hwUserFlagMap.get(vmUserVO.getAccid());
-        if (StrUtil.isNotBlank(userAddFlag)) {
-            return Boolean.TRUE;
-        }
         AddUserRequest request = new AddUserRequest();
         AddUserDTO body = new AddUserDTO();
         body.withName(buildHWName(vmUserVO));
@@ -76,6 +72,8 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
         //userId
         try {
             AddUserResponse response = meetingClient.addUser(request);
+            RMap<String, String> hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
+            hwUserFlagMap.fastPut(vmUserVO.getAccid(),"ok");
             log.info("华为云添加用户结果：{}", JSON.toJSONString(response));
         } catch (ConnectionException e) {
             e.printStackTrace();

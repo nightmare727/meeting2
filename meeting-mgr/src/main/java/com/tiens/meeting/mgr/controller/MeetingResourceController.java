@@ -1,12 +1,12 @@
 package com.tiens.meeting.mgr.controller;
 
-import com.tiens.api.dto.MeetingResourcePageDTO;
+import com.tiens.api.dto.CancelResourceAllocateDTO;
+import com.tiens.api.dto.ResourceAllocateDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RPCMeetingTimeZoneService;
-import com.tiens.api.vo.MeetingHostUserVO;
+import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingTimeZoneConfigVO;
 import common.pojo.CommonResult;
-import common.pojo.PageParam;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -48,74 +48,34 @@ public class MeetingResourceController {
      * @return
      */
     @ResponseBody
-    @PostMapping("/queryMeetingResoucePage")
-    public CommonResult queryMeetingResoucePage(@RequestBody PageParam<MeetingResourcePageDTO> pageDTOPageParam)
-        throws Exception {
-        return CommonResult.success(null);
+    @GetMapping("/queryMeetingResoucePage")
+    public CommonResult<List<MeetingResourceVO>> queryMeetingResoucePage() {
+        CommonResult<List<MeetingResourceVO>> listCommonResult = rpcMeetingResourceService.queryMeetingResourceList();
+        return listCommonResult;
     }
 
     /**
-     * 3取消分配:私有状态即此资源属于某用户,可进行取消分配操作 操作后，此资源变为公有。 若此资源下有原来的预约会议,则为公有预约(不取消其在私有状态下的会议) 若此资源下没有预约会议,则为公有空闲
+     * 分配资源
      *
-     * @param vmrId
+     * @param resourceAllocateDTO
      * @return
      */
     @ResponseBody
-    @PostMapping("/updateMeetingStatus")
-    public CommonResult updateMeetingStatus(String vmrId) throws Exception {
-
-        return null;
-    }
-
-    ;
-
-    /**
-     * 1分配:公有空闲状态即公有资源无人预约时,可进行分配操作 分配后此资源变为私有状态
-     *
-     * @param joyoCode
-     * @return
-     */
-    @ResponseBody
-    @PostMapping("/assignMeetingResouce")
-    public CommonResult assignMeetingResouce(String joyoCode) throws Exception {
-        return null;
-    }
-
-    ;
-
-    /**
-     * 查询用户ID
-     *
-     * @param joyoCode
-     * @return
-     */
-    @ResponseBody
-    @PostMapping("/selectUserByJoyoCode")
-    public CommonResult<MeetingHostUserVO> selectUserByJoyoCode(String joyoCode) throws Exception {
-        return null;
+    @PostMapping("/allocate")
+    public CommonResult allocate(@RequestBody ResourceAllocateDTO resourceAllocateDTO) {
+        return rpcMeetingResourceService.allocate(resourceAllocateDTO);
     }
 
     /**
-     * 2预分配:公有预约即为公有资源,有人预约时可进行 预分配 操作 操作后,此资源在此刻后，不可再被预约。当所有预约会议都结束后，此资源置为私有。
+     * 取消分配
      *
-     * @param vmrId
+     * @param cancelResourceAllocateDTO
      * @return
      */
     @ResponseBody
-    @PostMapping("/updateMeetingResourceStatusPrivate")
-    public CommonResult updateMeetingResourceStatusPrivate(String vmrId) throws Exception {
-        return null;
+    @PostMapping("/cancelAllocate")
+    public CommonResult cancelAllocate(@RequestBody CancelResourceAllocateDTO cancelResourceAllocateDTO) {
+        return rpcMeetingResourceService.cancelAllocate(cancelResourceAllocateDTO);
     }
 
-    /**
-     * 4设为公有空闲:在预分配状态资源下,可操作设为公有空闲 操作后,此资源变为公有空闲,可被预约操作。
-     *
-     * @param vmrId
-     * @return
-     */
-    @ResponseBody
-    @PostMapping("/updateMeetingResourceStatusPublicFree")
-    public CommonResult updateMeetingResourceStatusPublicFree(String vmrId) throws Exception {
-        return null;
-    }
 }

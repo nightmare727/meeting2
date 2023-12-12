@@ -29,10 +29,7 @@ import com.tiens.meeting.dubboservice.core.entity.MeetingRoomModel;
 import com.tiens.meeting.repository.po.*;
 import com.tiens.meeting.repository.service.*;
 import com.tiens.meeting.util.FreeTimeCalculatorUtil;
-import common.enums.MeetingResourceHandleEnum;
-import common.enums.MeetingResourceStateEnum;
-import common.enums.MeetingRoomHandlerEnum;
-import common.enums.MeetingRoomStateEnum;
+import common.enums.*;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
 import lombok.RequiredArgsConstructor;
@@ -695,6 +692,18 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         MeetingRoomInfoPO byId = meetingRoomInfoDaoService.getById(meetingRoomId);
         List<RecordVO> recordVOS = hwMeetingCommonService.queryRecordFiles(byId.getHwMeetingId());
         return CommonResult.success(recordVOS);
+    }
+
+    @Override
+    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList() {
+
+        List<ResourceTypeVO> collect =
+            Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0).collect(Collectors.toList())
+                .stream()
+                .map(t -> ResourceTypeVO.builder().type(t.getCode()).desc(t.getDesc()).build())
+                .collect(Collectors.toList());
+        
+        return CommonResult.success(collect);
     }
 
     DateTime getMonth(Integer month) {

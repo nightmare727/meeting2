@@ -69,10 +69,8 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         body.withAudienceScope(2);
         //主持人、嘉宾入会范围
         body.withScope(2);
-        //观众密码
-        body.withAudiencePasswd(meetingRoomContextDTO.getGuestPwd());
         //嘉宾密码
-        body.withGuestPasswd(RandomUtil.randomNumbers(6));
+//        body.withGuestPasswd(RandomUtil.randomNumbers(6));
         body.withTimeZoneId(meetingRoomContextDTO.getTimeZoneID());
         body.withDuration(meetingRoomContextDTO.getLength());
         body.withStartTime(startTimeStr);
@@ -126,8 +124,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         body.withAudienceScope(2);
         body.withScope(2);
         body.withCallRestriction(true);
-        body.withAudiencePasswd(meetingRoomContextDTO.getGuestPwd());
-        body.withGuestPasswd(RandomUtil.randomNumbers(6));
+//        body.withGuestPasswd(RandomUtil.randomNumbers(6));
         body.withTimeZoneId(meetingRoomContextDTO.getTimeZoneID());
         body.withDuration(meetingRoomContextDTO.getLength());
         body.withStartTime(startTimeStr);

@@ -13,17 +13,24 @@ import java.util.Date;
  */
 @Data
 public class FreeResourceListDTO implements Serializable {
-
+    /**
+     * (不需要)accid
+     */
     private String imUserId;
+    /**
+     * (不需要)等级
+     */
     private Integer levelCode;
     /**
-     * 会议开始时间（UTC时间）。格 式：yyyy-MM-dd HH:mm。 说明 ● 创建预约会议时，如果没有指定 开始时间或填空串，则表示会议 马上开始 ● 时间是UTC时间，即0时区的时 间
+     * (需要)会议开始时间（GTM+8时间）。格 式：yyyy-MM-dd HH:mm。
      */
     private Date startTime;
     /**
-     * 会议持续时长，单位分钟。默认 30分钟。 最大1440分钟（24小时），最 小15分钟。
+     * (需要)会议持续时长，单位分钟。默认 30分钟。 最大1440分钟（24小时），最 小15分钟。
      */
     private Integer length;
-
+    /**
+     * (需要)资源类型
+     */
     private Integer resourceType;
 }

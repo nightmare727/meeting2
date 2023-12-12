@@ -77,6 +77,12 @@ public class MeetingUserController {
         return commonResult;
     }
 
+    /**
+     * 主持人列表查询
+     * @param pageDTOPageParam
+     * @return
+     * @throws Exception
+     */
     @ResponseBody
     @PostMapping("/queryPage")
     public CommonResult<PageResult<MeetingHostUserVO>> queryPage(
