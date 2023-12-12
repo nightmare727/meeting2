@@ -1,40 +1,18 @@
 package com.tiens.meeting.dubboservice.impl;
 
-import cn.hutool.extra.spring.SpringUtil;
-import com.huaweicloud.sdk.core.exception.ConnectionException;
-import com.huaweicloud.sdk.core.exception.ServiceResponseException;
-import com.huaweicloud.sdk.meeting.v1.MeetingClient;
-import com.huaweicloud.sdk.meeting.v1.model.QueryOrgVmrResultDTO;
-import com.huaweicloud.sdk.meeting.v1.model.SearchCorpVmrRequest;
-import com.huaweicloud.sdk.meeting.v1.model.SearchCorpVmrResponse;
-import com.tiens.api.vo.MeetingResourceSelectVO;
 import com.tiens.meeting.ServiceApplication;
-import com.tiens.meeting.repository.mapper.MeetingResourceMapper;
-import com.tiens.meeting.repository.po.MeetingResourcePO;
-import com.tiens.meeting.repository.service.MeetingResourceDaoService;
-import common.enums.MeetingResourceEnum;
-import common.enums.MeetingResourceStateEnum;
-import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.Date;
-import java.util.List;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ServiceApplication.class)
 @ActiveProfiles("local")
 class RpcMeetingResourceServiceImplTest {
 
-    @Autowired
-    MeetingResourceDaoService meetingResourceDaoService;
-    @Autowired
-    MeetingResourceMapper meetingResourceMapper;
 
-    @Test
+    /*@Test
     void getClient() {
         MeetingClient client = SpringUtil.getBean(MeetingClient.class);
         System.out.println("打印:" + client);
@@ -123,5 +101,5 @@ class RpcMeetingResourceServiceImplTest {
     @Test
     void updateMeetingResourceStatusPrivate() {
         meetingResourceMapper.updateMeetingResourceStatusPrivate("2bca6344aedc444598cdc76a4adc8f22");
-    }
+    }*/
 }

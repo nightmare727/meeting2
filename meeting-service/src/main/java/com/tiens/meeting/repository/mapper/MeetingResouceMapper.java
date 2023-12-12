@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tiens.api.vo.MeetingHostUserVO;
 
 import com.tiens.api.vo.MeetingResouceSelectVO;
-import com.tiens.meeting.repository.po.MeetingResoucePO;
+import com.tiens.meeting.repository.po.MeetingResourcePO;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository;
 */
 @Primary
 @Repository
-public interface MeetingResouceMapper extends BaseMapper<MeetingResoucePO> {
+public interface MeetingResouceMapper extends BaseMapper<MeetingResourcePO> {
 
     /**
      * 更改会议资源状态:置为公有空闲或公有预约

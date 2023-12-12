@@ -1,30 +1,30 @@
 package com.tiens.meeting.dubboservice.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.huaweicloud.sdk.core.exception.ConnectionException;
-import com.huaweicloud.sdk.core.exception.RequestTimeoutException;
-import com.huaweicloud.sdk.core.exception.ServiceResponseException;
-import com.huaweicloud.sdk.meeting.v1.MeetingClient;
-import com.huaweicloud.sdk.meeting.v1.model.*;
-import com.tiens.api.dto.MeetingResoucePageDTO;
+import cn.hutool.core.util.ObjectUtil;
+import com.tiens.api.dto.CancelResourceAllocateDTO;
+import com.tiens.api.dto.ResourceAllocateDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
-import com.tiens.api.vo.MeetingHostUserVO;
-import com.tiens.api.vo.MeetingResouceVO;
-import com.tiens.meeting.dubboservice.config.MeetingConfig;
-import com.tiens.meeting.repository.po.MeetingResoucePO;
-import com.tiens.meeting.repository.service.MeetingResouceDaoService;
-import common.enums.MeetingResourceEnum;
-import common.enums.MeetingResourceStatusEnum;
+import com.tiens.api.service.RpcMeetingUserService;
+import com.tiens.api.vo.MeetingResourceVO;
+import com.tiens.api.vo.VMUserVO;
+import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
+import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
+import com.tiens.meeting.repository.po.MeetingResourcePO;
+import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
+import com.tiens.meeting.repository.service.MeetingResourceDaoService;
+import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
+import common.enums.MeetingResourceStateEnum;
+import common.enums.MeetingRoomStateEnum;
 import common.exception.ServiceException;
+import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
-import common.pojo.PageParam;
-import common.pojo.PageResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
 
 import java.time.Instant;
@@ -43,13 +43,20 @@ import java.util.List;
 @Slf4j
 public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService {
 
+    @Reference(version = "1.0")
+    DubboCommonUserService dubboCommonUserService;
+
+    private final MeetingResourceDaoService meetingResourceDaoService;
+    private final MeetingRoomInfoDaoService meetingRoomInfoDaoService;
+
+    private final HwMeetingCommonService hwMeetingCommonService;
+    private final RpcMeetingUserService rpcMeetingUserService;
 
     public static void main(String[] args) {
         ZoneId zoneId1 = ZoneId.of("GMT+09:00");
         ZoneId zoneId2 = ZoneId.of("GMT+07:00");
         Instant now = Instant.now();
         Date date = new Date();
-
 
         DateTime dateTime = DateUtil.convertTimeZone(date, zoneId1);
 
@@ -61,372 +68,79 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 //        System.out.println(zonedDateTime);
     }
 
-
-    private final MeetingResouceDaoService meetingResouceDaoService;
-
-    private final MeetingConfig meetingConfig;
-
-    @Override
-    public CommonResult<MeetingResouceVO> queryMeetingResouce(String vmrId) throws ServiceException {
-        return null;
-    }
-
     /**
-     * 会议资源列表展示
+     * 分页查询会议资源列表
      *
-     * @param
      * @return
      */
     @Override
-    public PageResult<MeetingResouceVO> queryMeetingResoucePage(PageParam<MeetingResoucePageDTO> pageDTOPageParam) throws ServiceException {
-        Page<MeetingResoucePO> page = new Page<>(pageDTOPageParam.getPageNum(), pageDTOPageParam.getPageSize());
-        /*查询条件
-        MeetingResoucePageDTO condition = pageDTOPageParam.getCondition();
-        LambdaQueryWrapper<MeetingResoucePO> queryWrapper = Wrappers.lambdaQuery(MeetingResoucePO.class);
-                .like(ObjectUtil.isNotEmpty(condition.getName()), MeetingResoucePO::getName, condition.getName())
-                .eq(ObjectUtil.isNotEmpty(condition.getJoyoCode()), MeetingResoucePO::getJoyoCode, condition.getJoyoCode())
-                .like(ObjectUtil.isNotEmpty(condition.getPhone()), MeetingResoucePO::getPhone, condition.getPhone())
-                .like(ObjectUtil.isNotEmpty(condition.getEmail()), MeetingResoucePO::getEmail, condition.getEmail())
-                .orderByDesc(MeetingResoucePO::getCreateTime);*/
-        Page<MeetingResoucePO> pagePoResult = meetingResouceDaoService.page(page);
-        List<MeetingResoucePO> records = pagePoResult.getRecords();
-        List<MeetingResouceVO> meetingResouceVOS = BeanUtil.copyToList(records, MeetingResouceVO.class);
-        PageResult<MeetingResouceVO> pageResult = new PageResult<>();
-        pageResult.setList(meetingResouceVOS);
-        pageResult.setTotal(pagePoResult.getTotal());
-        return pageResult;
+    public CommonResult<List<MeetingResourceVO>> queryMeetingResourceList() throws ServiceException {
+        List<MeetingResourcePO> list = meetingResourceDaoService.list();
+        List<MeetingResourceVO> resourceVOS = BeanUtil.copyToList(list, MeetingResourceVO.class);
+        return CommonResult.success(resourceVOS);
     }
 
     /**
-     * 调取华为会议资源:1云会议室
+     * 分配
      *
-     * @param
+     * @param resourceAllocateDTO
      * @return
      */
     @Override
-    public void SearchCorpVmrSolution1() throws ServiceException {
-        MeetingClient client = SpringUtil.getBean(MeetingClient.class);
-        System.out.println("打印:" + client);
-        SearchCorpVmrRequest request = new SearchCorpVmrRequest();
-
-        request.withVmrMode(1);
-        try {
-            SearchCorpVmrResponse response = client.searchCorpVmr(request);
-            List<QueryOrgVmrResultDTO> responseData = response.getData();
-            //对比本地数据库,判断是否已存储
-            for (QueryOrgVmrResultDTO item : responseData) {
-                System.out.println("打印打印打印打印打印打印打印item:" + item);
-                MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
-                meetingResoucePO.setVmrId(item.getId());
-                meetingResoucePO.setVmrConferenceId(item.getVmrId());
-                meetingResoucePO.setVmrMode(1);
-                meetingResoucePO.setVmrName(item.getVmrName());
-                meetingResoucePO.setVmrPkgName(item.getVmrPkgName());
-                meetingResoucePO.setSize(item.getMaxAudienceParties());
-
-                Integer status = item.getStatus();
-                if (status == 1) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_FREE.getCode());
-                } else if (status == 2) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_RESERVED.getCode());
-                } else if (status == 3) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PRIVATE.getCode());
-                } else if (status == 4) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_PRE_ALLOCATED.getCode());
-                }
-                //meetingResoucePO.setStatus(item.getStatus());
-
-                Integer vmrPkgParties = item.getMaxAudienceParties();
-                if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_10.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_10.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_50.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_50.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_100.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_100.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_200.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_200.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_500.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_500.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_1000.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_1000.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_3000.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_3000.getCode());
-                }
-
-
-                Date date = new Date(item.getExpireDate());
-                meetingResoucePO.setExpireDate(date);
-                meetingResouceDaoService.save(meetingResoucePO);
-
-            }
-            System.out.println("打印response:" + response.toString());
-
-        } catch (ConnectionException e) {
-            e.printStackTrace();
-        } catch (ServiceResponseException e) {
-            e.printStackTrace();
-            //System.out.println(e.getHttpStatusCode());
-            //System.out.println(e.getRequestId());
-            //System.out.println(e.getErrorCode());
-            //System.out.println(e.getErrorMsg());
+    public CommonResult allocate(ResourceAllocateDTO resourceAllocateDTO) {
+        CommonResult<VMUserVO> vmUserVOCommonResult =
+            rpcMeetingUserService.queryVMUser(resourceAllocateDTO.getJoyoCode(), "");
+        VMUserVO vmUserVO = vmUserVOCommonResult.getData();
+        if (ObjectUtil.isEmpty(vmUserVO)) {
+            return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_HOST_INFO);
         }
-    }
-
-
-    /**
-     * 调取华为会议资源:2网络研讨会
-     *
-     * @param
-     * @return
-     */
-    @Override
-    public void SearchCorpVmrSolution2() throws ServiceException {
-        MeetingClient client = SpringUtil.getBean(MeetingClient.class);
-        System.out.println("打印:" + client);
-        SearchCorpVmrRequest request = new SearchCorpVmrRequest();
-
-        request.withVmrMode(2);
-        try {
-            SearchCorpVmrResponse response = client.searchCorpVmr(request);
-            List<QueryOrgVmrResultDTO> responseData = response.getData();
-            for (QueryOrgVmrResultDTO item : responseData) {
-                System.out.println("打印打印打印打印打印打印打印item:" + item);
-                MeetingResoucePO meetingResoucePO = new MeetingResoucePO();
-                meetingResoucePO.setVmrId(item.getId());
-                meetingResoucePO.setVmrConferenceId(item.getVmrId());
-                meetingResoucePO.setVmrMode(2);
-                meetingResoucePO.setVmrName(item.getVmrName());
-                meetingResoucePO.setVmrPkgName(item.getVmrPkgName());
-                meetingResoucePO.setSize(item.getMaxAudienceParties());
-
-                Integer status = item.getStatus();
-                if (status == 1) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_FREE.getCode());
-                } else if (status == 2) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_RESERVED.getCode());
-                } else if (status == 3) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PRIVATE.getCode());
-                } else if (status == 4) {
-                    meetingResoucePO.setStatus(MeetingResourceStatusEnum.MEETING_RESOURCE_STATUS_PUBLIC_PRE_ALLOCATED.getCode());
-                }
-                //meetingResoucePO.setStatus(item.getStatus());
-
-                Integer vmrPkgParties = item.getMaxAudienceParties();
-                if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_10.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_10.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_50.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_50.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_100.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_100.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_200.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_200.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_500.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_500.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_1000.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_1000.getCode());
-                } else if (vmrPkgParties == MeetingResourceEnum.MEETING_RESOURCE_3000.getValue()) {
-                    meetingResoucePO.setResourceType(MeetingResourceEnum.MEETING_RESOURCE_3000.getCode());
-                }
-
-
-                Date date = new Date(item.getExpireDate());
-                meetingResoucePO.setExpireDate(date);
-                meetingResouceDaoService.save(meetingResoucePO);
-
-            }
-            System.out.println("打印response:" + response.toString());
-
-        } catch (ConnectionException e) {
-            e.printStackTrace();
-        } catch (ServiceResponseException e) {
-            e.printStackTrace();
-            //System.out.println(e.getHttpStatusCode());
-            //System.out.println(e.getRequestId());
-            //System.out.println(e.getErrorCode());
-            //System.out.println(e.getErrorMsg());
+        //共有空闲、共有预约可分配，其他状态都不可分配
+        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceAllocateDTO.getResourceId());
+        Integer status = meetingResourcePO.getStatus();
+        if (MeetingResourceStateEnum.PRIVATE.getState()
+            .equals(status) || MeetingResourceStateEnum.REDISTRIBUTION.getState().equals(status)) {
+            return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_ALLOCATE_RESOURCE);
         }
-    }
-
-
-    /**
-     * 更改会议资源状态:取消分配,操作后，此资源变为公有。
-     *
-     * @param vmrId
-     * @return
-     */
-    @Override
-    public CommonResult updateMeetingStatus(String vmrId) throws ServiceException {
-
-        //1:通过vmrid查询accid
-        String accId = meetingResouceDaoService.selectAccIdByVmrId(vmrId);
-        System.out.println("打印查询到的accid为:" + accId);
-        //2:若此资源下 有原来的预约会议，则为公有预约。不取消其在私有状态下的会议。
-        //判断查询一下名下是否有会议根据conferenceID查询ShowMeetingDetail(查询会议详情)
-        //2.1如果没有会议改为公有空闲
-        //查询本地数据库状态进行判断是否符合修改
-        //更改本地数据库状态
-        int a = meetingResouceDaoService.updateMeetingStatusById(vmrId);
-        System.out.println("打印本地数据库资源状态更改结果:" + a);
-        //2.2如果有会议改为公有预约
-        //更改本地数据库状态
-        int b = meetingResouceDaoService.updateMeetingStatusById1(vmrId);
-        System.out.println("打印本地数据库资源状态更改结果:" + b);
-
-
-        boolean result = false;
-        try {
-            result = disassociateVmr(accId);
-        } catch (Exception e) {
-            log.error("取消分配操作发生异常！", e);
-        }
-        return CommonResult.success(result);
-    }
-
-    //同步华为云回收云会议室
-    private boolean disassociateVmr(String accId) throws ServiceException {
-        DisassociateVmrRequest request = new DisassociateVmrRequest();
-        request.withAccount(accId);
-        try {
-            MeetingClient client = SpringUtil.getBean(MeetingClient.class);
-            System.out.println("打印:" + client);
-            DisassociateVmrResponse response = client.disassociateVmr(request);
-            System.out.println(response.toString());
-        } catch (ConnectionException e) {
-            e.printStackTrace();
-        } catch (RequestTimeoutException e) {
-            e.printStackTrace();
-        } catch (ServiceResponseException e) {
-            e.printStackTrace();
-            System.out.println(e.getHttpStatusCode());
-            System.out.println(e.getRequestId());
-            System.out.println(e.getErrorCode());
-            System.out.println(e.getErrorMsg());
-        }
-        return true;
+        //当前资源状态是否为公有空闲
+        Boolean freeFlag = MeetingResourceStateEnum.PUBLIC_FREE.getState().equals(status);
+        meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceAllocateDTO.getResourceId())
+            .set(MeetingResourcePO::getStatus, freeFlag ? MeetingResourceStateEnum.PRIVATE.getState()
+                : MeetingResourceStateEnum.REDISTRIBUTION.getState())
+            .set(MeetingResourcePO::getOwnerImUserId, vmUserVO.getAccid())
+            .set(MeetingResourcePO::getOwnerImUserJoyoCode, vmUserVO.getJoyoCode())
+            .set(MeetingResourcePO::getOwnerImUserName, vmUserVO.getNickName()).update();
+        return CommonResult.success(null);
     }
 
     /**
-     * 分配会议资源
-     * 公有空闲状态 即 公有资源 无人预约时
-     * 可进行 分配操作,分配后
-     * 此资源变为私有状态
+     * 取消分配
      *
-     * @param joyoCode
+     * @param cancelResourceAllocateDTO
      * @return
      */
     @Override
-    public CommonResult assignMeetingResouce(String joyoCode) throws ServiceException {
-        //int b = meetingResouceDaoService.assignMeetingResouce(joyoCode);
-        //System.out.println("分配会议资源更改数据库结果:" + b);
-
-        //查询一下传入的joyocode号所对应的accid
-        String accId = meetingResouceDaoService.seleceAccIdByJoyoCode(joyoCode);
-        //查询本地数据库状态进行判断是否符合修改
-
-        //更改本地数据库分配会议资源操作
-        int i = meetingResouceDaoService.assignMeetingResouce(accId);
-        System.out.println("打印分配会议资源更改数据库结果:" + i);
-
-        System.out.println("打印查询到的accid为:" + accId);
-
-        //判断华为云同步结果
-        boolean result = false;
-        try {
-            result = associateVmrSolution(accId);
-        } catch (Exception e) {
-            log.error("分配会议资源操作发生异常！", e);
-        }
-        return CommonResult.success(result);
-    }
-
-    //同步华为云分配会议室
-    private boolean associateVmrSolution(String accId) throws ServiceException {
-        AssociateVmrRequest request = new AssociateVmrRequest();
-        request.withAccount(accId);
-        try {
-            MeetingClient client = SpringUtil.getBean(MeetingClient.class);
-            AssociateVmrResponse response = client.associateVmr(request);
-            System.out.println(response.toString());
-        } catch (ConnectionException e) {
-            e.printStackTrace();
-        } catch (RequestTimeoutException e) {
-            e.printStackTrace();
-        } catch (ServiceResponseException e) {
-            e.printStackTrace();
-            System.out.println(e.getHttpStatusCode());
-            System.out.println(e.getRequestId());
-            System.out.println(e.getErrorCode());
-            System.out.println(e.getErrorMsg());
-        }
-        return true;
-    }
-
-
-    /**
-     * 查询joyocode
-     *
-     * @param joyoCode
-     * @return
-     */
-    @Override
-    public CommonResult<MeetingHostUserVO> selectUserByJoyoCode(String joyoCode) {
-        MeetingHostUserVO meetingHostUserVO = meetingResouceDaoService.selectUserByJoyoCode(joyoCode);
-        if (meetingHostUserVO != null) {
-            return CommonResult.success(meetingHostUserVO);
-        } else {
-            return null;
-        }
-    }
-
-
-    /**
-     * 2公有预约 即为公有资源 有人预约时,可进行   预分配  操作
-     * 操作后,此资源在此刻后，不可再被预约。当所有预约会议都结束后，此资源置为私有。
-     *
-     * @param vmrId
-     * @return
-     */
-    @Override
-    public CommonResult updateMeetingResourceStatusPrivate(String vmrId) throws ServiceException {
-        //1:选中的公有资源不允许再有预约会议
-
-        //2:判断该资源下会议是否结束
-
-        //查询本地数据库状态进行判断是否符合修改
-
-        //3:当所有预约会议都结束后,此资源置为私有,执行下列代码,进行数据库修改操作
-        int result = meetingResouceDaoService.updateMeetingResourceStatusPrivate(vmrId);
-        //判断数据库更改操作执行是否成功
-        if (result == 0) {
-            return null;
-        } else {
-            return CommonResult.success(result);
+    public CommonResult cancelAllocate(CancelResourceAllocateDTO cancelResourceAllocateDTO) {
+        //共有空闲、共有预约可分配，其他状态都不可分配
+        Integer resourceId = cancelResourceAllocateDTO.getResourceId();
+        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
+        Integer status = meetingResourcePO.getStatus();
+        if (MeetingResourceStateEnum.PUBLIC_FREE.getState()
+            .equals(status) || MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState().equals(status)) {
+            return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_ALLOCATE_RESOURCE);
         }
 
+        //查询是否有进行中或者预约中的会议
+        List<MeetingRoomInfoPO> meetingRoomInfoPOList =
+            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, resourceId)
+                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).list();
+        Boolean emptyRoomFlag = CollectionUtil.isEmpty(meetingRoomInfoPOList);
 
-    }
-
-
-
-    /**
-     * 4设为公有空闲:在预分配状态资源下,可操作设为公有空闲
-     * 操作后,此资源变为公有空闲,可被预约操作。
-     *
-     * @param vmrId
-     * @return
-     */
-    @Override
-    public CommonResult updateMeetingResourceStatusPublicFree(String vmrId) throws ServiceException {
-
-        //查询本地数据库状态进行判断是否符合修改
-
-        //修改本地数据库状态
-        int result = meetingResouceDaoService.updateMeetingResourceStatusPublicFree(vmrId);
-        //判断数据库更改操作执行是否成功
-        if (result == 0) {
-            return null;
-        } else {
-            return CommonResult.success(result);
-        }
+        meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
+            .set(MeetingResourcePO::getOwnerImUserId, null).set(MeetingResourcePO::getOwnerImUserJoyoCode, null)
+            .set(MeetingResourcePO::getOwnerImUserName, null)
+            //没会议情况，变成公有空闲，否则变成公有预约
+            .set(MeetingResourcePO::getStatus, emptyRoomFlag ? MeetingResourceStateEnum.PUBLIC_FREE.getState()
+                : MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState()).update();
+        return CommonResult.success(null);
     }
 }

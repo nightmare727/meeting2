@@ -3,6 +3,7 @@ package com.tiens.meeting.dubboservice.job;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import com.tiens.imchatapi.api.message.MessageService;
+import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
@@ -39,7 +40,7 @@ public class AppointMeetingTask {
     @Autowired
     MeetingResourceDaoService meetingResourceDaoService;
     @Autowired
-    Map<String, HwMeetingRoomHandler> hwMeetingRoomHandlers;
+    HwMeetingCommonService hwMeetingCommonService;
 
     @XxlJob("AppointMeetingJobHandler")
     public void jobHandler() throws Exception {
@@ -59,7 +60,7 @@ public class AppointMeetingTask {
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
             String ownerImUserId = meetingRoomInfoPO.getOwnerImUserId();
             MeetingResourcePO byId = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
-            hwMeetingRoomHandlers.get(1).associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
+            hwMeetingCommonService.associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
         }
 
         log.info("会议开始前30分钟前锁定资源分配完成】，id:{},result:{}", roomIds, update);

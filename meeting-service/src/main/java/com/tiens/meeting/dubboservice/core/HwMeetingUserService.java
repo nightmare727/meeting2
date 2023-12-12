@@ -15,13 +15,13 @@ public interface HwMeetingUserService {
      *
      * @param vmUserVO
      */
-    public void addHwUser(VMUserVO vmUserVO);
+    public Boolean addHwUser(VMUserVO vmUserVO);
 
     /**
      * 修改用户
      *
      * @param vmUserVO
      */
-    public void modHwUser(VMUserVO vmUserVO);
+    public Boolean modHwUser(VMUserVO vmUserVO);
 
 }

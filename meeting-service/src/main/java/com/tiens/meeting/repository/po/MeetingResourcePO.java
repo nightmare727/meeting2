@@ -4,16 +4,16 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
 import lombok.Data;
 
+import java.io.Serializable;
+import java.util.Date;
+
 /**
- * 
  * @author yuwenjie
  * @TableName meeting_resouce
  */
-@TableName(value ="meeting_resource")
+@TableName(value = "meeting_resource")
 @Data
 public class MeetingResourcePO implements Serializable {
     /**
@@ -81,6 +81,11 @@ public class MeetingResourcePO implements Serializable {
      */
     @TableField(value = "resource_type")
     private Integer resourceType;
+
+    @TableField(value = "owner_im_user_name")
+    private String ownerImUserName;
+    @TableField(value = "owner_im_user_joyo_code")
+    private String ownerImUserJoyoCode;
 
     /**
      * 创建时间

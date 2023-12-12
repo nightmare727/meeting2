@@ -12,7 +12,7 @@ import java.util.Date;
  * @Company: tiens 创建会议
  */
 @Data
-public class MeetingRoomCreateDTO implements Serializable {
+public class MeetingRoomContextDTO implements Serializable {
 
     /**
      * 会议id
@@ -40,6 +40,11 @@ public class MeetingRoomCreateDTO implements Serializable {
      * 资源id
      */
     private Integer resourceId;
+
+    /**
+     * 资源状态
+     */
+    private Integer resourceStatus;
 
     /**
      * 华为资源id

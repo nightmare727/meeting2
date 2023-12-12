@@ -1,12 +1,12 @@
 package com.tiens.api.vo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 
  * @author yuwenjie
  * @TableName meeting_resouce
  */
@@ -48,7 +48,7 @@ public class MeetingResourceVO implements Serializable {
     private Integer size;
 
     /**
-     * 资源状态 0：正常 1：停用  2：未分配
+     * 资源状态 1:公有空闲 2:公有预约 3:私有 4:预分配
      */
     private Integer status;
 
@@ -76,5 +76,8 @@ public class MeetingResourceVO implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+
+    private String ownerImUserName;
+    private String ownerImUserJoyoCode;
 
 }

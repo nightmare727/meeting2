@@ -48,6 +48,8 @@ public interface GlobalErrorCodeConstants {
     ErrorCode RESOURCE_MORE_THAN = new ErrorCode("2000008", "资源使用超出限制");
     ErrorCode CAN_NOT_MOD_MEETING_ROOM = new ErrorCode("2000009", "会议状态非预约状态，无法编辑，请刷新重试");
     ErrorCode CAN_NOT_CANCEL_MEETING_ROOM = new ErrorCode("2000010", "会议已结束，无法重复取消，请刷新重试");
+    ErrorCode CAN_NOT_ALLOCATE_RESOURCE = new ErrorCode("2000011", "无法分配会议资源，会议状态异常，请刷新重试");
+    ErrorCode CAN_NOT_CANCEL_ALLOCATE_RESOURCE = new ErrorCode("2000012", "无法取消分配会议资源，会议状态异常，请刷新重试");
 
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段

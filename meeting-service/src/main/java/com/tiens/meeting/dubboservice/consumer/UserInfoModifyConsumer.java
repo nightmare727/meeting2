@@ -1,17 +1,13 @@
 package com.tiens.meeting.dubboservice.consumer;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import com.huaweicloud.sdk.meeting.v1.MeetingClient;
-import com.huaweicloud.sdk.meeting.v1.model.AuthTypeEnum;
-import com.huaweicloud.sdk.meeting.v1.model.ModUserDTO;
-import com.huaweicloud.sdk.meeting.v1.model.UpdateUserRequest;
-import com.huaweicloud.sdk.meeting.v1.model.UpdateUserResponse;
+import com.tiens.api.vo.VMUserVO;
 import com.tiens.china.circle.api.bo.HomepageBo;
 import com.tiens.china.circle.api.common.result.Result;
 import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
+import com.tiens.meeting.dubboservice.core.HwMeetingUserService;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +44,9 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
     @Reference(version = "1.0")
     DubboCommonUserService dubboCommonUserService;
 
+    @Autowired
+    HwMeetingUserService hwMeetingUserService;
+
     @Override
     public void onMessage(MessageExt messageExt) {
 
@@ -77,27 +76,7 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
             .set(MeetingHostUserPO::getPhone, mobile).set(MeetingHostUserPO::getName, nickName)
             .set(MeetingHostUserPO::getEmail, email).update();
         log.info("修改主持人结果：{}", update);
-        //尝试修改华为云用户信息
-        MeetingClient meetingClient = SpringUtil.getBean(MeetingClient.class);
-        UpdateUserRequest request = new UpdateUserRequest();
-        ModUserDTO body = new ModUserDTO();
-//        String mobile = vmUserVO.getMobile();
-//        if (ObjectUtil.isNotEmpty(mobile)) {
-//            body.withPhone(mobile);
-//        }
-        //1-买买 2-云购 3 Vshare 4 瑞狮 5意涵永
-        body.withName(StrUtil.brief(nickName, 64));
-        body.setEmail(email);
-        request.withBody(body);
-        request.withAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
-        request.withAccount(accid);
-
-        try {
-            UpdateUserResponse updateUserResponse = meetingClient.updateUser(request);
-            log.info("修改华为云用户结果：{}", updateUserResponse);
-        } catch (Exception e) {
-            log.info("修改华为云用户异常", e);
-        }
-
+        Boolean aBoolean = hwMeetingUserService.modHwUser(BeanUtil.copyProperties(data, VMUserVO.class));
+        log.info("修改华为云用户信息结果：{}", aBoolean);
     }
 }
