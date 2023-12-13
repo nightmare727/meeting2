@@ -22,7 +22,6 @@ public class MeetingUserController {
 
     @Reference
     RpcMeetingRoomService rpcMeetingRoomService;
-
     @Reference
     RpcMeetingUserService rpcMeetingUserService;
 
