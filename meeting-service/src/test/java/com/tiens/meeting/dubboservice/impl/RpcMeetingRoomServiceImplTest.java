@@ -7,9 +7,11 @@ import com.tiens.api.dto.CancelMeetingRoomDTO;
 import com.tiens.api.dto.FreeResourceListDTO;
 import com.tiens.api.dto.MeetingRoomContextDTO;
 import com.tiens.api.service.RpcMeetingRoomService;
+import com.tiens.api.vo.ResourceTypeVO;
 import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.dubboservice.job.HWResourceTask;
 import common.enums.MeetingResourceHandleEnum;
+import common.pojo.CommonResult;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -153,5 +156,14 @@ class RpcMeetingRoomServiceImplTest {
     @SneakyThrows
     void hwResourceTask() {
         hwResourceTask.jobHandler();
+    }
+
+    @Test
+    @SneakyThrows
+    void getMeetingResourceTypeList() {
+
+        System.out.println(rpcMeetingRoomService.getMeetingResourceTypeList("123", 7));
+
+
     }
 }

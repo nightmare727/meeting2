@@ -1,10 +1,7 @@
 package com.tiens.meeting.dubboservice.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.BetweenFormatter;
-import cn.hutool.core.date.DateField;
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.*;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
@@ -36,8 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -580,18 +575,20 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         futureAndRunningMeetingRoomListVO.setTomorrowRooms(tomorrowRooms);
         futureAndRunningMeetingRoomListVO.setOtherRooms(otherRooms);*/
 
-        TreeMap<String, List<MeetingRoomDetailDTO>> sortMap = new TreeMap<>(Comparator.comparing(DateUtil::parse));
-        Map<String, List<MeetingRoomDetailDTO>> collect = list.stream().collect(Collectors.groupingBy(
-            f -> f.getLockStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), () -> sortMap,
-            Collectors.mapping(l -> packBaseMeetingRoomDetailDTO(l, false), Collectors.collectingAndThen(
-                Collectors.toCollection(
-                    () -> new TreeSet<>(Comparator.comparing(MeetingRoomDetailDTO::getLockStartTime))),
-                Lists::newArrayList))));
-
+       /* TreeMap<String, List<MeetingRoomDetailDTO>> sortMap = new TreeMap<>(Comparator.comparing(DateUtil::parse));
+        Map<String, List<MeetingRoomDetailDTO>> collect = list.stream().collect(
+            Collectors.groupingBy(f -> DateUtil.format(f.getLockStartTime(), DatePattern.NORM_DATE_PATTERN),
+                () -> sortMap, Collectors.mapping(l -> packBaseMeetingRoomDetailDTO(l, false),
+                    Collectors.collectingAndThen(Collectors.toCollection(
+                            () -> new TreeSet<>(Comparator.comparing(MeetingRoomDetailDTO::getLockStartTime))),
+                        Lists::newArrayList))));
+        futureAndRunningMeetingRoomListVO.setRooms(collect);*/
         return futureAndRunningMeetingRoomListVO;
     }
 
+    public static void main(String[] args) {
+
+    }
 
     /**
      * @return
