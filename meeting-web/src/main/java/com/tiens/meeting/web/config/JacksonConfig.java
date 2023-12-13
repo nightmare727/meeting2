@@ -27,7 +27,6 @@ public class JacksonConfig {
         simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
         simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
         simpleModule.addSerializer(BigDecimal.class, ToStringSerializer.instance);
-        simpleModule.addSerializer(Date.class,CustomDateSerializer.instance);
         objectMapper.registerModule(simpleModule);
         return objectMapper;
     }
