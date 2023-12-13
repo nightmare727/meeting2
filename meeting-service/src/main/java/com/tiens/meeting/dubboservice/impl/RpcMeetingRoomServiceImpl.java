@@ -12,10 +12,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
 import com.huaweicloud.sdk.meeting.v1.utils.HmacSHA256;
-import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
-import com.tiens.api.dto.EnterMeetingRoomCheckDTO;
-import com.tiens.api.dto.FreeResourceListDTO;
-import com.tiens.api.dto.MeetingRoomContextDTO;
+import com.tiens.api.dto.*;
 import com.tiens.api.dto.hwevent.EventInfo;
 import com.tiens.api.dto.hwevent.HwEventReq;
 import com.tiens.api.dto.hwevent.Payload;
@@ -35,11 +32,12 @@ import common.pojo.CommonResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -136,17 +134,35 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Override
     public CommonResult<List<MeetingResourceVO>> getFreeResourceList(FreeResourceListDTO freeResourceListDTO) {
         //前端用户能看到的资源列表=【公池该用户等级相关空闲子资源与主持人绑定公池空闲资源 的【并集】】+用户私池
+        List<MeetingResourceVO> result;
+        if (NumberUtil.isNumber(freeResourceListDTO.getResourceType())) {
+            //2、查询用户公池资源
+            result = getPublicResourceList(freeResourceListDTO);
+        } else {
+            DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), -30);
+            DateTime endTime = DateUtil.date(freeResourceListDTO.getStartTime())
+                .offset(DateField.MINUTE, freeResourceListDTO.getLength() + 30);
+            Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
+                wrapper -> wrapper.ge(MeetingRoomInfoPO::getLockStartTime, startTime)
+                    .le(MeetingRoomInfoPO::getLockStartTime, endTime)
+                    .or(wrapper1 -> wrapper1.ge(MeetingRoomInfoPO::getLockEndTime, startTime)
+                        .le(MeetingRoomInfoPO::getLockEndTime, endTime))
+                    .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, startTime)
+                        .ge(MeetingRoomInfoPO::getLockEndTime, endTime));
+            //该段时间正在锁定的会议
+            List<MeetingRoomInfoPO> lockedMeetingRoomList = meetingRoomInfoDaoService.lambdaQuery()
+                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
+            //该段时间正在锁定的资源
+            List<Integer> lockedResourceIdList =
+                lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
+            //1、查询用户私池资源
+            List<MeetingResourceVO> privateResourceList = getPrivateResourceList(freeResourceListDTO);
+            //去除空闲资源中被锁定的资源
+            result = privateResourceList.stream().filter(t -> !lockedResourceIdList.contains(t.getId()))
+                .collect(Collectors.toList());
 
-        ArrayList<@Nullable MeetingResourceVO> finalResourceList = Lists.newArrayList();
-
-        //1、查询用户私池资源
-        List<MeetingResourceVO> privateResourceList = getPrivateResourceList(freeResourceListDTO);
-
-        //2、查询用户公池资源
-        List<MeetingResourceVO> publicResourceList = getPublicResourceList(freeResourceListDTO);
-        finalResourceList.addAll(privateResourceList);
-        finalResourceList.addAll(publicResourceList);
-        return CommonResult.success(finalResourceList);
+        }
+        return CommonResult.success(result);
     }
 
     private List<MeetingResourceVO> getPrivateResourceList(FreeResourceListDTO freeResourceListDTO) {
@@ -156,49 +172,46 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         return BeanUtil.copyToList(list, MeetingResourceVO.class);
     }
 
+    /**
+     * 查询所有可用的资源
+     *
+     * @param freeResourceListDTO
+     * @return
+     */
     private List<MeetingResourceVO> getPublicResourceList(FreeResourceListDTO freeResourceListDTO) {
         //公池该用户等级相关空闲子资源与主持人绑定公池空闲资源 的【并集】
         //查询当前时段所有被使用的资源列表
 
-        DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), -30);
-        DateTime endTime = DateUtil.date(freeResourceListDTO.getStartTime())
-            .offset(DateField.MINUTE, freeResourceListDTO.getLength() + 30);
-        Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
-            wrapper -> wrapper.ge(MeetingRoomInfoPO::getLockStartTime, startTime)
-                .le(MeetingRoomInfoPO::getLockStartTime, endTime)
-                .or(wrapper1 -> wrapper1.ge(MeetingRoomInfoPO::getLockEndTime, startTime)
-                    .le(MeetingRoomInfoPO::getLockEndTime, endTime))
-                .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, startTime)
-                    .ge(MeetingRoomInfoPO::getLockEndTime, endTime));
-        //该段时间正在锁定的会议
-        List<MeetingRoomInfoPO> lockedMeetingRoomList = meetingRoomInfoDaoService.lambdaQuery()
-            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
-        //该段时间正在锁定的资源
-        List<Integer> lockedResourceIdList =
-            lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
+        //根据资源类型查询所有空闲资源
+        List<MeetingResourcePO> levelFreeResourceList = meetingResourceDaoService.lambdaQuery()
+            .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_FREE.getState())
+            .eq(MeetingResourcePO::getResourceType, Integer.parseInt(freeResourceListDTO.getResourceType())).list();
 
+        return BeanUtil.copyToList(levelFreeResourceList, MeetingResourceVO.class);
+    }
+
+    /**
+     * 获取最大会议用户等级
+     *
+     * @param levelCode
+     * @param imUserId
+     * @return
+     */
+    public Integer getMaxLevel(Integer levelCode, String imUserId) {
         //根据等级查询资源
         MeetingLevelResourceConfigPO one =
             meetingLevelResourceConfigDaoService.lambdaQuery().select(MeetingLevelResourceConfigPO::getResourceType)
-                .eq(MeetingLevelResourceConfigPO::getVmUserLevel, freeResourceListDTO.getLevelCode()).one();
+                .eq(MeetingLevelResourceConfigPO::getVmUserLevel, levelCode).one();
         Integer maxResourceType = one.getResourceType();
         //查询该用户的主持人等级
         Optional<MeetingHostUserPO> meetingHostUserPOOptional =
-            meetingHostUserDaoService.lambdaQuery().eq(MeetingHostUserPO::getAccId, freeResourceListDTO.getImUserId())
+            meetingHostUserDaoService.lambdaQuery().eq(MeetingHostUserPO::getAccId, imUserId)
                 .select(MeetingHostUserPO::getResourceType).oneOpt();
         if (meetingHostUserPOOptional.isPresent()) {
             //比较和等级关联的资源类型大小
             maxResourceType = NumberUtil.max(meetingHostUserPOOptional.get().getResourceType(), maxResourceType);
         }
-        //根据资源等级查询等级下的所有空闲资源
-        List<MeetingResourcePO> levelFreeResourceList = meetingResourceDaoService.lambdaQuery()
-            .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_FREE.getState())
-            .le(MeetingResourcePO::getResourceType, maxResourceType).list();
-        //去除空闲资源中被锁定的资源
-        List<MeetingResourcePO> collect =
-            levelFreeResourceList.stream().filter(t -> !lockedResourceIdList.contains(t)).collect(Collectors.toList());
-
-        return BeanUtil.copyToList(collect, MeetingResourceVO.class);
+        return maxResourceType;
     }
 
     /**
@@ -281,7 +294,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //资源不存在
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
         }
-        FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO, meetingResourcePO);
+        FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
         if (!getFreeResourceList(freeResourceListDTO).getData().stream().anyMatch(
             t -> t.getId().equals(resourceId) || (meetingResourcePO.getStatus()
                 .equals(MeetingResourceStateEnum.PRIVATE.getState()) && !ObjectUtil.equals(
@@ -300,15 +313,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         return CommonResult.success(meetingResourcePO);
     }
 
-    private FreeResourceListDTO wrapperFreeResourceListDTO(MeetingRoomContextDTO meetingRoomContextDTO,
-        MeetingResourcePO meetingResourcePO) {
+    private FreeResourceListDTO wrapperFreeResourceListDTO(MeetingRoomContextDTO meetingRoomContextDTO) {
 
         FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
         freeResourceListDTO.setImUserId(meetingRoomContextDTO.getImUserId());
         freeResourceListDTO.setLevelCode(meetingRoomContextDTO.getLevelCode());
         freeResourceListDTO.setStartTime(meetingRoomContextDTO.getStartTime());
         freeResourceListDTO.setLength(meetingRoomContextDTO.getLength());
-        freeResourceListDTO.setResourceType(meetingResourcePO.getResourceType());
+        freeResourceListDTO.setResourceType(meetingRoomContextDTO.getResourceType());
         return freeResourceListDTO;
     }
 
@@ -337,7 +349,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
         Integer oldResourceId = byId.getResourceId();
 
-        FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO, meetingResourcePO);
+        FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
         //判断新资源是否已被使用
         if (!oldResourceId.equals(resourceId) && !getFreeResourceList(freeResourceListDTO).getData().stream().anyMatch(
             t -> t.getId().equals(resourceId) || (meetingResourcePO.getStatus()
@@ -437,13 +449,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     /**
      * 取消会议
      *
-     * @param meetingRoomId
+     * @param cancelMeetingRoomDTO
      * @return
      */
     @Override
     @Transactional
-    public CommonResult cancelMeetingRoom(Long meetingRoomId) {
-        log.info("取消会议，参数为：{}", meetingRoomId);
+    public CommonResult cancelMeetingRoom(CancelMeetingRoomDTO cancelMeetingRoomDTO) {
+        log.info("取消会议，参数为：{}", cancelMeetingRoomDTO);
+        Long meetingRoomId = cancelMeetingRoomDTO.getMeetingRoomId();
         MeetingRoomInfoPO byId = meetingRoomInfoDaoService.getById(meetingRoomId);
         if (ObjectUtil.isNull(byId)) {
             return CommonResult.success(null);
@@ -534,7 +547,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     private FutureAndRunningMeetingRoomListVO packFutureAndRunningMeetingRoomListVO(List<MeetingRoomInfoPO> list) {
         FutureAndRunningMeetingRoomListVO futureAndRunningMeetingRoomListVO = new FutureAndRunningMeetingRoomListVO();
-        List<MeetingRoomDetailDTO> todayRooms = Lists.newArrayList();
+       /*  List<MeetingRoomDetailDTO> todayRooms = Lists.newArrayList();
         List<MeetingRoomDetailDTO> tomorrowRooms = Lists.newArrayList();
         List<MeetingRoomDetailDTO> otherRooms = Lists.newArrayList();
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
@@ -565,14 +578,22 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         futureAndRunningMeetingRoomListVO.setTodayRooms(todayRooms);
         futureAndRunningMeetingRoomListVO.setTomorrowRooms(tomorrowRooms);
-        futureAndRunningMeetingRoomListVO.setOtherRooms(otherRooms);
+        futureAndRunningMeetingRoomListVO.setOtherRooms(otherRooms);*/
+
+        TreeMap<String, List<MeetingRoomDetailDTO>> sortMap = new TreeMap<>(Comparator.comparing(DateUtil::parse));
+        Map<String, List<MeetingRoomDetailDTO>> collect = list.stream().collect(Collectors.groupingBy(
+            f -> f.getLockStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), () -> sortMap,
+            Collectors.mapping(l -> packBaseMeetingRoomDetailDTO(l, false), Collectors.collectingAndThen(
+                Collectors.toCollection(
+                    () -> new TreeSet<>(Comparator.comparing(MeetingRoomDetailDTO::getLockStartTime))),
+                Lists::newArrayList))));
 
         return futureAndRunningMeetingRoomListVO;
     }
 
+
     /**
-     * PC查询历史30天的会议列表
-     *
      * @return
      */
     @Override
@@ -694,16 +715,64 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         return CommonResult.success(recordVOS);
     }
 
+    /**
+     * 会议类型返回
+     *
+     * @param imUserId
+     * @param levelCode
+     * @return
+     */
     @Override
-    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList() {
-
-        List<ResourceTypeVO> collect =
-            Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0).collect(Collectors.toList())
-                .stream()
-                .map(t -> ResourceTypeVO.builder().type(t.getCode()).desc(t.getDesc()).build())
+    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode) {
+        //获取最大会议用户等级
+        Integer maxResourceType = getMaxLevel(levelCode, imUserId);
+        //根据资源等级过滤资源类型
+        List<ResourceTypeVO> levelResourceTypeVOList =
+            Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
+                .collect(Collectors.toList()).stream()
+                .map(t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc()).build())
                 .collect(Collectors.toList());
-        
+        //查询私池
+        String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
+        List<MeetingResourcePO> privateResourceList =
+            meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getOwnerImUserId, imUserId)
+                .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState()).list();
+
+        List<ResourceTypeVO> collect = privateResourceList.stream().map(MeetingResourcePO::getSize).distinct().map(
+            t -> ResourceTypeVO.builder().type(2).code(imUserId + "-" + t)
+                .desc(String.format(privateResourceTypeFormat, t)).build()).collect(Collectors.toList());
+
+        collect.addAll(levelResourceTypeVOList);
         return CommonResult.success(collect);
+    }
+
+    /**
+     * 获取某会议类型下所有会议列表
+     *
+     * @param resourceCode
+     * @return
+     */
+    @Override
+    public CommonResult<List<MeetingResourceVO>> getAllMeetingResourceList(String resourceCode) {
+        List<MeetingResourcePO> result;
+        //是数字
+        if (NumberUtil.isNumber(resourceCode)) {
+            result = meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getResourceType, resourceCode)
+                .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_FREE.getState())
+                .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState()).list().stream()
+                .collect(Collectors.toList());
+
+        } else {
+            String[] split = resourceCode.split("-");
+            String imUserId = split[0];
+            String resourceSize = split[1];
+            result = meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getResourceType, resourceCode)
+                .eq(MeetingResourcePO::getOwnerImUserId, imUserId).eq(MeetingResourcePO::getSize, resourceSize).list()
+                .stream().collect(Collectors.toList());
+
+        }
+
+        return CommonResult.success(BeanUtil.copyToList(result, MeetingResourceVO.class));
     }
 
     DateTime getMonth(Integer month) {
@@ -721,14 +790,4 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         return now;
     }
 
-    public static void main(String[] args) {
-      /*  DateTime month = getMonth(7);
-        System.out.println(month);
-        DateTime dateTime = DateUtil.beginOfMonth(month);
-        DateTime dateTime1 = DateUtil.endOfMonth(month);
-
-        System.out.println(dateTime);
-        System.out.println(dateTime1);*/
-
-    }
 }

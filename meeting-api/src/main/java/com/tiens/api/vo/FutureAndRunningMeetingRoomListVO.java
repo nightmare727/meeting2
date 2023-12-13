@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: 蔚文杰
@@ -14,15 +15,8 @@ import java.util.List;
 @Data
 public class FutureAndRunningMeetingRoomListVO implements Serializable {
     /**
-     * 今天会议集合
+     * key是yyyy-MM-dd格式日为维度的时间，value 是会议列表
      */
-    private List<MeetingRoomDetailDTO> todayRooms;
-    /**
-     * 明天会议集合
-     */
-    private List<MeetingRoomDetailDTO> tomorrowRooms;
-    /**
-     * 其他日期集合
-     */
-    private List<MeetingRoomDetailDTO> otherRooms;
+    private Map<String, List<MeetingRoomDetailDTO>> rooms;
+
 }

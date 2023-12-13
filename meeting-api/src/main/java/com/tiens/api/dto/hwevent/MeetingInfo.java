@@ -12,10 +12,16 @@ import java.io.Serializable;
  */
 @Data
 public class MeetingInfo implements Serializable {
-
+    /**
+     * 会议code
+     */
     private String meetingID;
-
+    /**
+     * 会议uuid
+     */
     private String meetingUUID;
-
+    /**
+     *
+     */
     private String meetingCycleSubID;
 }

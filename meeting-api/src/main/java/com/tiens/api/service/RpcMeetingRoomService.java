@@ -1,9 +1,6 @@
 package com.tiens.api.service;
 
-import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
-import com.tiens.api.dto.EnterMeetingRoomCheckDTO;
-import com.tiens.api.dto.FreeResourceListDTO;
-import com.tiens.api.dto.MeetingRoomContextDTO;
+import com.tiens.api.dto.*;
 import com.tiens.api.dto.hwevent.HwEventReq;
 import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
@@ -61,18 +58,18 @@ public interface RpcMeetingRoomService {
      * 查询会议详情
      *
      * @param meetingRoomId
-     * @return
      * @oaram imUserId
+     * @return
      */
     CommonResult<MeetingRoomDetailDTO> getMeetingRoom(Long meetingRoomId, String imUserId);
 
     /**
      * 取消会议
      *
-     * @param meetingRoomId
+     * @param cancelMeetingRoomDTO
      * @return
      */
-    CommonResult cancelMeetingRoom(Long meetingRoomId);
+    CommonResult cancelMeetingRoom(CancelMeetingRoomDTO cancelMeetingRoomDTO);
 
     /**
      * 首页查询即将召开和进行中的会议列表
@@ -114,5 +111,18 @@ public interface RpcMeetingRoomService {
      */
     CommonResult<List<RecordVO>> getMeetingRoomRecordList(Long meetingRoomId);
 
-    CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList();
+    /**
+     * 获取会议类型列表
+     *
+     * @return
+     */
+    CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode);
+
+    /**
+     * 获取某会议类型下所有会议列表
+     *
+     * @param resourceCode
+     * @return
+     */
+    CommonResult<List<MeetingResourceVO>> getAllMeetingResourceList(String resourceCode);
 }

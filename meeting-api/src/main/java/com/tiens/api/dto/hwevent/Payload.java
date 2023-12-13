@@ -12,5 +12,8 @@ import java.io.Serializable;
  */
 @Data
 public class Payload implements Serializable {
+    /**
+     * 会议相关
+     */
     private MeetingInfo meetingInfo;
 }

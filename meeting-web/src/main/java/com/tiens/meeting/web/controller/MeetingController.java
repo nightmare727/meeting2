@@ -16,23 +16,16 @@
 
 package com.tiens.meeting.web.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
-import com.tiens.api.dto.EnterMeetingRoomCheckDTO;
-import com.tiens.api.dto.FreeResourceListDTO;
-import com.tiens.api.dto.MeetingRoomContextDTO;
+import com.tiens.api.dto.*;
 import com.tiens.api.dto.hwevent.HwEventReq;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.*;
-import common.enums.MeetingResourceEnum;
 import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:chenxilzx1@gmail.com">theonefx</a>
@@ -45,6 +38,12 @@ public class MeetingController {
     @Reference
     RpcMeetingRoomService rpcMeetingRoomService;
 
+    /**
+     * 企业级华为云事件回调
+     *
+     * @param hwEventReq
+     * @return
+     */
     @ResponseBody
     @PostMapping("/openapi/meetingevent")
     public String addMeetingHostUser(@RequestBody HwEventReq hwEventReq) {
@@ -138,8 +137,8 @@ public class MeetingController {
      */
     @ResponseBody
     @PostMapping("/cancelMeetingRoom")
-    CommonResult cancelMeetingRoom(@RequestBody Long meetingRoomId) {
-        return rpcMeetingRoomService.cancelMeetingRoom(meetingRoomId);
+    CommonResult cancelMeetingRoom(@RequestBody CancelMeetingRoomDTO cancelMeetingRoomDTO) {
+        return rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
     }
 
     /**
@@ -201,11 +200,21 @@ public class MeetingController {
      */
     @ResponseBody
     @GetMapping("/getMeetingResourceTypeList")
-    CommonResult getMeetingResourceTypeList() {
-        CommonResult<List<ResourceTypeVO>> result = rpcMeetingRoomService.getMeetingResourceTypeList();
-        return CommonResult.success(result);
-
+    CommonResult getMeetingResourceTypeList(@RequestHeader("finalUserId") String finalUserId,
+        @RequestHeader("levelCode") Integer levelCode) {
+        return rpcMeetingRoomService.getMeetingResourceTypeList(finalUserId, levelCode);
     }
 
+    /**
+     * 查询某资源类型下全部资源
+     *
+     * @param resourceCode
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/getAllMeetingResourceList/{resourceCode}")
+    CommonResult getAllMeetingResourceList(@PathVariable("resourceCode") String resourceCode) {
+        return rpcMeetingRoomService.getAllMeetingResourceList(resourceCode);
+    }
 
 }

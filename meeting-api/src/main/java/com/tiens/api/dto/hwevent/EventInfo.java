@@ -12,9 +12,16 @@ import java.io.Serializable;
  */
 @Data
 public class EventInfo implements Serializable {
+    /**
+     * 事件名
+     */
     private String event;
-
+    /**
+     * 时间戳
+     */
     private Long timestamp;
-
+    /**
+     * 内容
+     */
     private Payload payload;
 }

@@ -3,6 +3,7 @@ package com.tiens.meeting.dubboservice.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
+import com.tiens.api.dto.CancelMeetingRoomDTO;
 import com.tiens.api.dto.FreeResourceListDTO;
 import com.tiens.api.dto.MeetingRoomContextDTO;
 import com.tiens.api.service.RpcMeetingRoomService;
@@ -56,7 +57,7 @@ class RpcMeetingRoomServiceImplTest {
         freeResourceListDTO.setLevelCode(9);
         freeResourceListDTO.setStartTime(new Date());
         freeResourceListDTO.setLength(30);
-        freeResourceListDTO.setResourceType(6);
+        freeResourceListDTO.setResourceType("6");
 
         System.out.println(rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO));
 
@@ -74,7 +75,7 @@ class RpcMeetingRoomServiceImplTest {
         meetingRoomContextDTO.setResourceId(203);
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
-        meetingRoomContextDTO.setGuestPwd("333444");
+        meetingRoomContextDTO.setGuestPwdFlag(false);
         meetingRoomContextDTO.setLevelCode(9);
         meetingRoomContextDTO.setImUserId("48cd6848a5ca47c883bd38a5c64287dd");
         meetingRoomContextDTO.setImUserName("文杰昵称");
@@ -95,7 +96,7 @@ class RpcMeetingRoomServiceImplTest {
         meetingRoomContextDTO.setResourceId(209);
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
-        meetingRoomContextDTO.setGuestPwd("333444");
+        meetingRoomContextDTO.setGuestPwdFlag(false);
         meetingRoomContextDTO.setLevelCode(9);
         meetingRoomContextDTO.setImUserId("48cd6848a5ca47c883bd38a5c64287dd");
         meetingRoomContextDTO.setImUserName("文杰昵称");
@@ -111,7 +112,9 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void cancelMeetingRoom() {
-        System.out.println(rpcMeetingRoomService.cancelMeetingRoom(1734014601566973954L));
+        CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
+        cancelMeetingRoomDTO.setMeetingRoomId(1734014601566973954L);
+        System.out.println(rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO));
     }
 
     @Test

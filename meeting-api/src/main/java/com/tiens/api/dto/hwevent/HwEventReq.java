@@ -12,14 +12,24 @@ import java.io.Serializable;
  */
 @Data
 public class HwEventReq implements Serializable {
-
+    /**
+     * appId
+     */
     private String appID;
-
+    /**
+     * 时间戳
+     */
     private Long timestamp;
-
+    /**
+     * 随机串
+     */
     private String nonce;
-
+    /**
+     * 签证
+     */
     private String signature;
-
+    /**
+     * 回调事件
+     */
     private EventInfo eventInfo;
 }

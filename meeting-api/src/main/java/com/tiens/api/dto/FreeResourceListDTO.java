@@ -32,5 +32,5 @@ public class FreeResourceListDTO implements Serializable {
     /**
      * (需要)资源类型
      */
-    private Integer resourceType;
+    private String resourceType;
 }

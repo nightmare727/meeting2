@@ -19,11 +19,15 @@ import java.io.Serializable;
 @Builder
 public class ResourceTypeVO implements Serializable {
     /**
-     * 类型
+     *
      */
-    private Integer type;
+    private String code;
     /**
      * 描述
      */
     private String desc;
+    /**
+     * 类型 1：公共 2：专属
+     */
+    private Integer type;
 }

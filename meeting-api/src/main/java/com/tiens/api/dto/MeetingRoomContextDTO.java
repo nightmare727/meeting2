@@ -39,6 +39,10 @@ public class MeetingRoomContextDTO implements Serializable {
      */
     private Integer timeZoneID = 56;
     /**
+     * （需要传）资源类型
+     */
+    private String resourceType;
+    /**
      * （需要传）资源id
      */
     private Integer resourceId;
