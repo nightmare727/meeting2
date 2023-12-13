@@ -130,9 +130,23 @@ public class MeetingController {
     }
 
     /**
+     * 根据会议号查询会议详情
+     *
+     * @param meetingCode
+     * @return
+     * @oaram imUserId
+     */
+    @ResponseBody
+    @GetMapping("/getMeetingRoomByCode/{meetingCode}")
+    CommonResult<MeetingRoomDetailDTO> getMeetingRoomByCode(@RequestHeader("finalUserId") String finalUserId,
+        @PathVariable("meetingCode") String meetingCode) {
+        return rpcMeetingRoomService.getMeetingRoomByCode(meetingCode);
+    }
+
+    /**
      * 取消会议
      *
-     * @param meetingRoomId
+     * @param cancelMeetingRoomDTO
      * @return
      */
     @ResponseBody

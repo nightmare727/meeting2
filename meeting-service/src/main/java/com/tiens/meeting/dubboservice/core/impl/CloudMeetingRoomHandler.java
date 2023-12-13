@@ -68,7 +68,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             //允许加入会议的范围。企业
             .withCallInRestriction(2)
             //随机会议id-私人会议，固定会议id
-            .withVmrIDType(MeetingResourceStateEnum.PRIVATE.getState().equals(resourceStatus) ? 0 : 1)
+            .withVmrIDType( 1)
             //自动延时30分钟
             .withProlongLength(30).withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
             .withEnableWaitingRoom(true);

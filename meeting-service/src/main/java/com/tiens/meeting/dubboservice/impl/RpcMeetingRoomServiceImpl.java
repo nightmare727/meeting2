@@ -578,8 +578,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         TreeMap<String, List<MeetingRoomDetailDTO>> sortMap = new TreeMap<>(Comparator.comparing(DateUtil::parse));
         Map<String, List<MeetingRoomDetailDTO>> collect = meetingRoomDetailDTOS.stream().collect(
             Collectors.groupingBy(f -> DateUtil.format(f.getLockStartTime(), DatePattern.NORM_DATE_PATTERN),
-                () -> sortMap,
-                Collectors.collectingAndThen(Collectors.toCollection(
+                () -> sortMap, Collectors.collectingAndThen(Collectors.toCollection(
                         () -> new TreeSet<>(Comparator.comparing(MeetingRoomDetailDTO::getLockStartTime))),
                     Lists::newArrayList)));
         futureAndRunningMeetingRoomListVO.setRooms(collect);
@@ -770,6 +769,20 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
 
         return CommonResult.success(BeanUtil.copyToList(result, MeetingResourceVO.class));
+    }
+
+    @Override
+    public CommonResult<MeetingRoomDetailDTO> getMeetingRoomByCode(String meetingCode) {
+        log.info("查询会议详情，meetingCode：{}", meetingCode);
+        MeetingRoomInfoPO meetingRoomInfoPO =
+            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingCode).one();
+        if (ObjectUtil.isNull(meetingRoomInfoPO)) {
+            return CommonResult.success(null);
+        }
+        Integer vmrMode = meetingRoomInfoPO.getVmrMode();
+        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, true);
+        hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail(result);
+        return CommonResult.success(result);
     }
 
     DateTime getMonth(Integer month) {

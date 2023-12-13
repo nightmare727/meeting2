@@ -125,4 +125,6 @@ public interface RpcMeetingRoomService {
      * @return
      */
     CommonResult<List<MeetingResourceVO>> getAllMeetingResourceList(String resourceCode);
+
+    CommonResult<MeetingRoomDetailDTO> getMeetingRoomByCode(String meetingCode);
 }
