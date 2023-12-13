@@ -72,18 +72,23 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     @Override
     public CommonResult<VMMeetingCredentialVO> getCredential(String userId) {
-        Long expireTime = System.currentTimeMillis() / 1000 + meetingConfig.getExpireSeconds();
+        Integer expireTime = Math.toIntExact(DateUtil.currentSeconds() + meetingConfig.getExpireSeconds());
         String nonce = RandomUtil.randomString(40);
         String data = meetingConfig.getAppId() + ":" + userId + ":" + expireTime + ":" + nonce;
         String authorization = HmacSHA256.encode(data, meetingConfig.getAppKey());
         VMMeetingCredentialVO vmMeetingCredentialVO = new VMMeetingCredentialVO();
         vmMeetingCredentialVO.setSignature(authorization);
-        vmMeetingCredentialVO.setExpireTime(expireTime);
+        vmMeetingCredentialVO.setExpireTime(Math.toIntExact(expireTime));
         vmMeetingCredentialVO.setNonce(nonce);
         vmMeetingCredentialVO.setUserId(userId);
         return CommonResult.success(vmMeetingCredentialVO);
     }
 
+    public static void main(String[] args) {
+        int i = Math.toIntExact(DateUtil.currentSeconds() + 100);
+        System.out.println(i);
+
+    }
     /**
      * 加入会议前置校验
      *
@@ -585,9 +590,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         return futureAndRunningMeetingRoomListVO;
     }
 
-    public static void main(String[] args) {
 
-    }
 
     /**
      * @return
