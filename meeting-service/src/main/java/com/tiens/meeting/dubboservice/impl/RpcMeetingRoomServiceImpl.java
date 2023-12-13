@@ -754,8 +754,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //是数字
         if (NumberUtil.isNumber(resourceCode)) {
             result = meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getResourceType, resourceCode)
-                .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_FREE.getState())
-                .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState()).list().stream()
+                .ne(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState())
+                .ne(MeetingResourcePO::getStatus, MeetingResourceStateEnum.REDISTRIBUTION.getState()).list().stream()
                 .collect(Collectors.toList());
 
         } else {
