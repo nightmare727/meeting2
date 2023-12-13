@@ -574,15 +574,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         futureAndRunningMeetingRoomListVO.setTodayRooms(todayRooms);
         futureAndRunningMeetingRoomListVO.setTomorrowRooms(tomorrowRooms);
         futureAndRunningMeetingRoomListVO.setOtherRooms(otherRooms);*/
-
-       /* TreeMap<String, List<MeetingRoomDetailDTO>> sortMap = new TreeMap<>(Comparator.comparing(DateUtil::parse));
-        Map<String, List<MeetingRoomDetailDTO>> collect = list.stream().collect(
+        List<MeetingRoomDetailDTO> meetingRoomDetailDTOS = BeanUtil.copyToList(list, MeetingRoomDetailDTO.class);
+        TreeMap<String, List<MeetingRoomDetailDTO>> sortMap = new TreeMap<>(Comparator.comparing(DateUtil::parse));
+        Map<String, List<MeetingRoomDetailDTO>> collect = meetingRoomDetailDTOS.stream().collect(
             Collectors.groupingBy(f -> DateUtil.format(f.getLockStartTime(), DatePattern.NORM_DATE_PATTERN),
-                () -> sortMap, Collectors.mapping(l -> packBaseMeetingRoomDetailDTO(l, false),
-                    Collectors.collectingAndThen(Collectors.toCollection(
-                            () -> new TreeSet<>(Comparator.comparing(MeetingRoomDetailDTO::getLockStartTime))),
-                        Lists::newArrayList))));
-        futureAndRunningMeetingRoomListVO.setRooms(collect);*/
+                () -> sortMap,
+                Collectors.collectingAndThen(Collectors.toCollection(
+                        () -> new TreeSet<>(Comparator.comparing(MeetingRoomDetailDTO::getLockStartTime))),
+                    Lists::newArrayList)));
+        futureAndRunningMeetingRoomListVO.setRooms(collect);
         return futureAndRunningMeetingRoomListVO;
     }
 
