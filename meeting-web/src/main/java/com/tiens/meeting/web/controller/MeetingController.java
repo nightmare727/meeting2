@@ -88,7 +88,7 @@ public class MeetingController {
      */
     @ResponseBody
     @PostMapping("/createMeetingRoom")
-    CommonResult createMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
+    CommonResult<MeetingRoomDetailDTO> createMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
         @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
         @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) {
         meetingRoomContextDTO.setImUserId(finalUserId);

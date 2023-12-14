@@ -151,6 +151,11 @@ public class MeetingRoomInfoPO implements Serializable {
     @TableField(value = "is_deleted")
     @TableLogic
     private Integer isDeleted;
+    /**
+     * 会议标题
+     */
+    @TableField(value = "subject")
+    private String subject;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

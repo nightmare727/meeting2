@@ -134,6 +134,9 @@ public class MeetingRoomDetailDTO implements Serializable {
      * 观众入会地址
      */
     private String audienceJoinUri;
-
+    /**
+     * 会议标题
+     */
+    private String subject;
 
 }

@@ -89,6 +89,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         System.out.println(i);
 
     }
+
     /**
      * 加入会议前置校验
      *
@@ -222,7 +223,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     @Transactional
     @Override
-    public CommonResult createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
+    public CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         log.info("创建、预约会议开始，参数为：{}", meetingRoomContextDTO);
 
         CommonResult checkResult = checkCreateMeetingRoom(meetingRoomContextDTO);
@@ -246,8 +247,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         meetingRoomInfoDaoService.save(meetingRoomInfoPO);
         //3、锁定资源，更改资源状态为共有预约
         publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
-
-        return CommonResult.success(null);
+        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, false);
+        hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail(result);
+        return CommonResult.success(result);
     }
 
     private MeetingRoomInfoPO packMeetingRoomInfoPO(MeetingRoomContextDTO meetingRoomContextDTO,
@@ -274,7 +276,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .lockStartTime(lockStartTime).lockEndTime(lockEndTime).resourceId(resourceId)
             .ownerImUserId(meetingRoomContextDTO.getImUserId()).timeZoneId(meetingRoomContextDTO.getTimeZoneID())
             .timeZoneOffset(meetingTimeZoneConfigPO.getTimeZoneOffset()).vmrMode(meetingRoomContextDTO.getVmrMode())
-            .ownerUserName(meetingRoomContextDTO.getImUserName()).build();
+            .ownerUserName(meetingRoomContextDTO.getImUserName())
+            .
+            .build();
         if (ObjectUtil.isNotNull(meetingRoom)) {
             build.setHwMeetingId(meetingRoom.getHwMeetingId());
             build.setHwMeetingCode(meetingRoom.getHwMeetingCode());
@@ -589,8 +593,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         futureAndRunningMeetingRoomListVO.setRooms(collect);
         return futureAndRunningMeetingRoomListVO;
     }
-
-
 
     /**
      * @return
