@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -73,15 +72,9 @@ public class MeetingController {
      * @return
      */
     @ResponseBody
-    @GetMapping("/getFreeResourceList")
+    @PostMapping("/getFreeResourceList")
     CommonResult<List<MeetingResourceVO>> getFreeResourceList(@RequestHeader("levelCode") Integer levelCode,
-        @RequestHeader("finalUserId") String finalUserId, @RequestParam("startTime") Date startTime,
-        @RequestParam("length") Integer length, @RequestParam("resourceType") String resourceType) {
-        FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
-        freeResourceListDTO.setStartTime(startTime);
-        freeResourceListDTO.setLength(length);
-        freeResourceListDTO.setResourceType(resourceType);
-
+        @RequestHeader("finalUserId") String finalUserId, @RequestBody FreeResourceListDTO freeResourceListDTO) {
         freeResourceListDTO.setLevelCode(levelCode);
         freeResourceListDTO.setImUserId(finalUserId);
         return rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO);
