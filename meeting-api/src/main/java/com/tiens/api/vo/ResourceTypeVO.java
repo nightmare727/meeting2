@@ -30,4 +30,8 @@ public class ResourceTypeVO implements Serializable {
      * 类型 1：公共 2：专属
      */
     private Integer type;
+    /**
+     * 人数
+     */
+    private Integer size;
 }

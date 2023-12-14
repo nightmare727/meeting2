@@ -276,9 +276,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .lockStartTime(lockStartTime).lockEndTime(lockEndTime).resourceId(resourceId)
             .ownerImUserId(meetingRoomContextDTO.getImUserId()).timeZoneId(meetingRoomContextDTO.getTimeZoneID())
             .timeZoneOffset(meetingTimeZoneConfigPO.getTimeZoneOffset()).vmrMode(meetingRoomContextDTO.getVmrMode())
-            .ownerUserName(meetingRoomContextDTO.getImUserName())
-            .
-            .build();
+            .ownerUserName(meetingRoomContextDTO.getImUserName()).subject(meetingRoomContextDTO.getSubject()).build();
         if (ObjectUtil.isNotNull(meetingRoom)) {
             build.setHwMeetingId(meetingRoom.getHwMeetingId());
             build.setHwMeetingCode(meetingRoom.getHwMeetingCode());
@@ -730,9 +728,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //根据资源等级过滤资源类型
         List<ResourceTypeVO> levelResourceTypeVOList =
             Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
-                .collect(Collectors.toList()).stream()
-                .map(t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc()).build())
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()).stream().map(
+                    t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc())
+                        .size(t.getValue()).build()).collect(Collectors.toList());
         //查询私池
         String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
         List<MeetingResourcePO> privateResourceList =
@@ -741,7 +739,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         List<ResourceTypeVO> collect = privateResourceList.stream().map(MeetingResourcePO::getSize).distinct().map(
             t -> ResourceTypeVO.builder().type(2).code(imUserId + "-" + t)
-                .desc(String.format(privateResourceTypeFormat, t)).build()).collect(Collectors.toList());
+                .desc(String.format(privateResourceTypeFormat, t)).size(t).build()).collect(Collectors.toList());
 
         collect.addAll(levelResourceTypeVOList);
         return CommonResult.success(collect);
