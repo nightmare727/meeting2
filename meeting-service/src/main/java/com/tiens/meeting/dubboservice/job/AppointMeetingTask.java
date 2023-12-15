@@ -47,7 +47,7 @@ public class AppointMeetingTask {
         //1、预约提前30分钟锁定资源
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
-            .ge(MeetingRoomInfoPO::getLockStartTime, DateUtil.date()).eq(MeetingRoomInfoPO::getAssignResourceStatus, 0)
+            .le(MeetingRoomInfoPO::getLockStartTime, DateUtil.date()).eq(MeetingRoomInfoPO::getAssignResourceStatus, 0)
             .list();
         if (CollectionUtil.isEmpty(list)) {
             log.info("【会议开始前30分钟前发送消息】:当前无需要通知的消息");

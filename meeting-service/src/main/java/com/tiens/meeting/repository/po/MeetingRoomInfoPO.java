@@ -125,7 +125,7 @@ public class MeetingRoomInfoPO implements Serializable {
     /**
      * 分配状态 0：未分配 1：已分配
      */
-    @TableField(value = "record_status")
+    @TableField(value = "assign_resource_status")
     private Integer assignResourceStatus;
     /**
      * 会议结束通知状态 0：未通知 1：已通知
