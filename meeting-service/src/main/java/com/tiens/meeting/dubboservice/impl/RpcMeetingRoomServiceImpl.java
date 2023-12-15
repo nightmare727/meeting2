@@ -243,32 +243,24 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
                 .createMeetingRoom(meetingRoomContextDTO);
         //包装po实体
-        MeetingRoomInfoPO meetingRoomInfoPO = packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom);
+        MeetingRoomInfoPO meetingRoomInfoPO =
+            packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
         //2、创建本地会议
         meetingRoomInfoDaoService.save(meetingRoomInfoPO);
         //3、锁定资源，更改资源状态为共有预约
         publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
-        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, false);
-
-        String resourceType = meetingRoomContextDTO.getResourceType();
-        if (NumberUtil.isNumber(resourceType)) {
-            result.setResourceTypeDesc(MeetingResourceEnum.getByCode(Integer.parseInt(resourceType)).getDesc());
-        } else {
-            String size = resourceType.split("-")[1];
-            result.setResourceTypeDesc(String.format(privateResourceTypeFormat, size));
-
-        }
-
+        //返回创建后得详情
+        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO);
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail(result);
         return CommonResult.success(result);
     }
 
     private MeetingRoomInfoPO packMeetingRoomInfoPO(MeetingRoomContextDTO meetingRoomContextDTO,
-        MeetingRoomModel meetingRoom) {
+        MeetingRoomModel meetingRoom, MeetingResourcePO meetingResourcePO) {
 
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         //展示开始时间
-        Date showStartTime = meetingRoomContextDTO.getStartTime();
+        Date showStartTime = ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(), DateUtil.date());
         Integer length = meetingRoomContextDTO.getLength();
         //展示结束时间
         DateTime showEndTime = DateUtil.offsetMinute(showStartTime, length);
@@ -282,10 +274,22 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = meetingTimeZoneConfigDaoService.lambdaQuery()
             .eq(MeetingTimeZoneConfigPO::getTimeZoneId, meetingRoomContextDTO.getTimeZoneID()).one();
 
+        String resourceTypeDesc;
+        String resourceType = meetingRoomContextDTO.getResourceType();
+        if (NumberUtil.isNumber(resourceType)) {
+            resourceTypeDesc = MeetingResourceEnum.getByCode(Integer.parseInt(resourceType)).getDesc();
+        } else {
+            String size = resourceType.split("-")[1];
+            resourceTypeDesc = String.format(privateResourceTypeFormat, size);
+
+        }
+
         MeetingRoomInfoPO build = MeetingRoomInfoPO.builder().id(meetingRoomContextDTO.getMeetingRoomId())
             .duration(meetingRoomContextDTO.getLength()).showStartTime(showStartTime).showEndTime(showEndTime)
             .lockStartTime(lockStartTime).lockEndTime(lockEndTime).resourceId(resourceId)
-            .ownerImUserId(meetingRoomContextDTO.getImUserId()).timeZoneId(meetingRoomContextDTO.getTimeZoneID())
+            .resourceType(meetingRoomContextDTO.getResourceType()).resourceName(meetingResourcePO.getVmrName())
+            .resourceTypeDesc(resourceTypeDesc).ownerImUserId(meetingRoomContextDTO.getImUserId())
+            .timeZoneId(meetingRoomContextDTO.getTimeZoneID())
             .timeZoneOffset(meetingTimeZoneConfigPO.getTimeZoneOffset()).vmrMode(meetingRoomContextDTO.getVmrMode())
             .ownerUserName(meetingRoomContextDTO.getImUserName()).subject(meetingRoomContextDTO.getSubject()).build();
         if (ObjectUtil.isNotNull(meetingRoom)) {
@@ -414,12 +418,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
 
         //包装po实体
-        MeetingRoomInfoPO meetingRoomInfoPO = packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom);
+        MeetingRoomInfoPO meetingRoomInfoPO =
+            packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
         //2、修改本地会议
         meetingRoomInfoDaoService.updateById(meetingRoomInfoPO);
         //3、锁定资源，更改资源状态为共有预约
         publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
-        //4、更换资源，
+        //4、更换资源
         if (!oldMeetingRoomInfoPO.getResourceId().equals(meetingRoomContextDTO.getResourceId())) {
             //1、变更旧资源状态
             publicResourceHoldHandle(oldMeetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_DOWN);
@@ -442,19 +447,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.success(null);
         }
         Integer vmrMode = meetingRoomInfoPO.getVmrMode();
-        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, true);
+        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO);
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail(result);
         return CommonResult.success(result);
     }
 
-    private MeetingRoomDetailDTO packBaseMeetingRoomDetailDTO(MeetingRoomInfoPO meetingRoomInfoPO,
-        boolean needResource) {
+    private MeetingRoomDetailDTO packBaseMeetingRoomDetailDTO(MeetingRoomInfoPO meetingRoomInfoPO) {
         MeetingRoomDetailDTO result = BeanUtil.copyProperties(meetingRoomInfoPO, MeetingRoomDetailDTO.class);
-        if (needResource) {
-            MeetingResourcePO byId = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
-            result.setResourceType(byId.getResourceType());
-            result.setResourceName(byId.getVmrName());
-        }
         return result;
     }
 
@@ -616,7 +615,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
                 .eq(MeetingRoomInfoPO::getOwnerImUserId, imUserId).orderByDesc(MeetingRoomInfoPO::getCreateTime).list();
         List<MeetingRoomDetailDTO> collect =
-            list.stream().map(t -> packBaseMeetingRoomDetailDTO(t, false)).collect(Collectors.toList());
+            list.stream().map(t -> packBaseMeetingRoomDetailDTO(t)).collect(Collectors.toList());
         return CommonResult.success(collect);
     }
 
@@ -793,7 +792,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.success(null);
         }
         Integer vmrMode = meetingRoomInfoPO.getVmrMode();
-        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, true);
+        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO);
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail(result);
         return CommonResult.success(result);
     }

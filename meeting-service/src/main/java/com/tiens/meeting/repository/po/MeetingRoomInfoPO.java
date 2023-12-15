@@ -97,6 +97,22 @@ public class MeetingRoomInfoPO implements Serializable {
     private Integer resourceId;
 
     /**
+     * 资源类型描述
+     */
+    @TableField(value = "resource_type_desc")
+    private String resourceTypeDesc;
+    /**
+     * 资源名
+     */
+    @TableField(value = "resource_name")
+    private String resourceName;
+    /**
+     * 类型
+     */
+    @TableField(value = "resource_type")
+    private String resourceType;
+
+    /**
      * 主持人accid
      */
     @TableField(value = "owner_im_user_id")

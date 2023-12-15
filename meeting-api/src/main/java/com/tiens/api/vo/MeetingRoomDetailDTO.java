@@ -90,7 +90,7 @@ public class MeetingRoomDetailDTO implements Serializable {
     /**
      * 资源类型
      */
-    private Integer resourceType;
+    private String resourceType;
     /**
      * 资源名称
      */
