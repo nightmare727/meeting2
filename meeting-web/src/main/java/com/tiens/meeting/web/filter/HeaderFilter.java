@@ -49,8 +49,8 @@ public class HeaderFilter implements Filter {
     private static final Set<String> whiteListSet = new HashSet<>();
 
     static {
-        whiteListSet.add("/meeting/web/room/openapi/meetingevent");
-        whiteListSet.add("/meeting/web/ping");
+        whiteListSet.add("/vmeeting/web/room/openapi/meetingevent");
+        whiteListSet.add("/vmeeting/web/ping");
 
         //临时增加白名单，注意后期删除
 //        whiteListSet.add("/meeting/web/courses/increCoursePv");
