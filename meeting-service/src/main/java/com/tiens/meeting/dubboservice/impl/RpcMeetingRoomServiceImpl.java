@@ -64,6 +64,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     private final HwMeetingCommonService hwMeetingCommonService;
 
+    public static final String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
+
     /**
      * 前端获取认证资质
      *
@@ -82,12 +84,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         vmMeetingCredentialVO.setNonce(nonce);
         vmMeetingCredentialVO.setUserId(userId);
         return CommonResult.success(vmMeetingCredentialVO);
-    }
-
-    public static void main(String[] args) {
-        int i = Math.toIntExact(DateUtil.currentSeconds() + 100);
-        System.out.println(i);
-
     }
 
     /**
@@ -167,9 +163,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     private List<MeetingResourceVO> getPrivateResourceList(FreeResourceListDTO freeResourceListDTO) {
+        String resourceType = freeResourceListDTO.getResourceType();
+        String[] split = resourceType.split("-");
+        String userId = split[0];
+        String size = split[1];
+        String relType = split[2];
         List<MeetingResourcePO> list = meetingResourceDaoService.lambdaQuery()
             .eq(MeetingResourcePO::getOwnerImUserId, freeResourceListDTO.getImUserId())
-            .eq(MeetingResourcePO::getResourceType, freeResourceListDTO.getResourceType()).list();
+            .eq(MeetingResourcePO::getResourceType, relType).list();
         return BeanUtil.copyToList(list, MeetingResourceVO.class);
     }
 
@@ -443,7 +444,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             MeetingResourcePO byId = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
             result.setResourceType(byId.getResourceType());
             result.setResourceName(byId.getVmrName());
-            result.setResourceType(byId.getResourceType());
+
         }
         return result;
     }
@@ -732,13 +733,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc())
                         .size(t.getValue()).build()).collect(Collectors.toList());
         //查询私池
-        String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
         List<MeetingResourcePO> privateResourceList =
             meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getOwnerImUserId, imUserId)
                 .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState()).list();
 
         List<ResourceTypeVO> collect = privateResourceList.stream().map(MeetingResourcePO::getSize).distinct().map(
-            t -> ResourceTypeVO.builder().type(2).code(imUserId + "-" + t)
+            t -> ResourceTypeVO.builder().type(2)
+                .code(imUserId + "-" + t + "-" + MeetingResourceEnum.getBySize(t).getCode())
                 .desc(String.format(privateResourceTypeFormat, t)).size(t).build()).collect(Collectors.toList());
 
         collect.addAll(levelResourceTypeVOList);
