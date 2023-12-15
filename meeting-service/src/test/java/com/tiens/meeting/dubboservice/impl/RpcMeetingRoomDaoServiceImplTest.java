@@ -12,8 +12,11 @@ import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import common.enums.MeetingRoomStateEnum;
 import common.pojo.CommonResult;
+import common.util.cache.CacheKeyUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+import org.redisson.api.RAtomicLong;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -44,11 +47,16 @@ class RpcMeetingRoomDaoServiceImplTest {
     @Resource
     Map<String, HwMeetingRoomHandler> hwMeetingRoomHandlers;
 
+    @Autowired
+    RedissonClient redissonClient;
+
     @Test
     void getCredential() {
-        CommonResult<VMMeetingCredentialVO> commonResult =
+      /*  CommonResult<VMMeetingCredentialVO> commonResult =
             rpcMeetingRoomService.getCredential("h5v4qv8wl6916xld599q2vwkyrnncb9lfkj7kmh1");
-        System.out.println(commonResult);
+        System.out.println(commonResult);*/
+        RAtomicLong atomicLong = redissonClient.getAtomicLong(CacheKeyUtil.getHwMeetingRoomMaxSyncKey("1231"));
+        System.out.println(atomicLong.get());
     }
 
     @Test

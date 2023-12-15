@@ -23,17 +23,22 @@ import com.tiens.meeting.dubboservice.core.entity.MeetingRoomModel;
 import com.tiens.meeting.repository.po.*;
 import com.tiens.meeting.repository.service.*;
 import com.tiens.meeting.util.FreeTimeCalculatorUtil;
+import com.tiens.meeting.util.WheelTimerContext;
 import common.enums.*;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
+import common.util.cache.CacheKeyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
+import org.redisson.api.RAtomicLong;
+import org.redisson.api.RedissonClient;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -63,6 +68,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private final Map<String, HwMeetingRoomHandler> hwMeetingRoomHandlers;
 
     private final HwMeetingCommonService hwMeetingCommonService;
+
+    private final RedissonClient redissonClient;
 
     public static final String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
 
@@ -251,7 +258,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
         //返回创建后得详情
         MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO);
-        hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail(result);
+//        hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail
+//        (result);
         log.info("创建、预约会议完成，参数为：{}", meetingRoomContextDTO);
         return CommonResult.success(result);
     }
@@ -267,9 +275,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         DateTime showEndTime = DateUtil.offsetMinute(showStartTime, length);
 
         //锁定开始时间
-        //锁定结束时间
         DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
-        DateTime lockEndTime = DateUtil.date(showStartTime).offset(DateField.MINUTE, length + 30);
+        //锁定结束时间
+        DateTime lockEndTime = DateUtil.offsetMinute(showEndTime, 30);
 
         //查询时区配置
         MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = meetingTimeZoneConfigDaoService.lambdaQuery()
@@ -673,6 +681,17 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID).oneOpt();
         if (!meetingRoomInfoPOOptional.isPresent()) {
             log.error("事件回调数据异常，数据不存在 meetingID：{}", meetingID);
+            RAtomicLong count = redissonClient.getAtomicLong(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));
+            int maxErrorCount = 3;
+            if (count.getAndIncrement() == maxErrorCount) {
+                log.error("事件回调数据异常达到次数上限：{}次,会议号：{}", maxErrorCount, meetingID);
+                return CommonResult.errorMsg("事件达到次数上限");
+            }
+            //5、5秒后重试，优化立即会议
+            WheelTimerContext.getInstance().createTimeoutTask(timeout -> {
+                //重试
+                updateMeetingRoomStatus(hwEventReq);
+            }, 5, TimeUnit.SECONDS);
             return CommonResult.success("");
         }
         MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOptional.get();
