@@ -252,6 +252,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //返回创建后得详情
         MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO);
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail(result);
+        log.info("创建、预约会议完成，参数为：{}", meetingRoomContextDTO);
         return CommonResult.success(result);
     }
 
