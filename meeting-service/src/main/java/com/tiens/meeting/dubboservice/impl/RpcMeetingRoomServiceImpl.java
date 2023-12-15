@@ -15,6 +15,7 @@ import com.tiens.api.dto.hwevent.HwEventReq;
 import com.tiens.api.dto.hwevent.Payload;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.*;
+import com.tiens.meeting.dubboservice.async.RoomAsyncTaskService;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
@@ -70,6 +71,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private final HwMeetingCommonService hwMeetingCommonService;
 
     private final RedissonClient redissonClient;
+
+    private final RoomAsyncTaskService roomAsyncTaskService;
 
     public static final String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
 
@@ -664,6 +667,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Override
     public CommonResult<String> updateMeetingRoomStatus(HwEventReq hwEventReq) {
         log.info("企业级华为云事件推送入入参：{}", hwEventReq);
+
+        roomAsyncTaskService.saveHwEventLog(hwEventReq);
         String nonce = hwEventReq.getNonce();
         EventInfo eventInfo = hwEventReq.getEventInfo();
         //事件名
