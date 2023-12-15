@@ -249,6 +249,16 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //3、锁定资源，更改资源状态为共有预约
         publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
         MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, false);
+
+        String resourceType = meetingRoomContextDTO.getResourceType();
+        if (NumberUtil.isNumber(resourceType)) {
+            result.setResourceTypeDesc(MeetingResourceEnum.getByCode(Integer.parseInt(resourceType)).getDesc());
+        } else {
+            String size = resourceType.split("-")[1];
+            result.setResourceTypeDesc(String.format(privateResourceTypeFormat, size));
+
+        }
+
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail(result);
         return CommonResult.success(result);
     }
@@ -444,7 +454,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             MeetingResourcePO byId = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
             result.setResourceType(byId.getResourceType());
             result.setResourceName(byId.getVmrName());
-
         }
         return result;
     }
