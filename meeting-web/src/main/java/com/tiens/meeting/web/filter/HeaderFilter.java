@@ -86,9 +86,10 @@ public class HeaderFilter implements Filter {
             vmUserVO = vmUserVOCommonResult.getData();
             bucket.setIfAbsentAsync(vmUserVO);
         }
-       /* if (ObjectUtil.isEmpty(vmUserVO)) {
+        if (ObjectUtil.isEmpty(vmUserVO)) {
             //仍为null
-        }*/
+            log.error("VM数据查询异常，accid:{}", finalUserId);
+        }
         Integer levelCode = vmUserVO.getLevelCode();
         String joyoCode = vmUserVO.getJoyoCode();
         String nickName = vmUserVO.getNickName();

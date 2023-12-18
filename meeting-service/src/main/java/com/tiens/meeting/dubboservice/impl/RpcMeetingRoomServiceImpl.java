@@ -700,6 +700,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.success("");
         }
         MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOptional.get();
+        Integer vmrMode = meetingRoomInfoPO.getVmrMode();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
 
         if ("meeting.started".equals(event)) {
@@ -712,7 +713,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             log.info("华为云会议事件开始会议id：{}，结果：{}", meetingID, update);
         } else if ("meeting.end".equals(event)) {
             //会议结束事件-当企业下的某个会议结束，服务端会推送会议结束事件消息的post请求到企业开发者回调URL。会议结束后，如果会议预定的结束时间还没到，可以再次加入该会议。
-        } else if ("meeting.conclude".equals(event)) {
+        } else if ("meeting.conclude".equals(event) || (MeetingRoomHandlerEnum.SEMINAR.getVmrMode()
+            .equals(vmrMode) && "meeting.end".equals(event))) {
+
             //会议关闭事件
             boolean update = meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
                 .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())

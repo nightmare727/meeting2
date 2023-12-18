@@ -47,6 +47,7 @@ public class MeetingController {
     @ResponseBody
     @PostMapping("/openapi/meetingevent")
     public String addMeetingHostUser(@RequestBody HwEventReq hwEventReq) {
+        log.info("企业级华为云事件回调入参：{}", hwEventReq);
         CommonResult<String> stringCommonResult = rpcMeetingRoomService.updateMeetingRoomStatus(hwEventReq);
         return stringCommonResult.getData();
     }
