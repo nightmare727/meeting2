@@ -1,5 +1,6 @@
 package com.tiens.meeting.dubboservice.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
 import com.tiens.api.dto.CancelMeetingRoomDTO;
@@ -52,11 +53,11 @@ class RpcMeetingRoomServiceImplTest {
     void getFreeResourceList() {
 
         FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
-        freeResourceListDTO.setImUserId("123123");
+        freeResourceListDTO.setImUserId("0bae35214bae4b7d8e58378cb5a6a3b1");
         freeResourceListDTO.setLevelCode(9);
-        freeResourceListDTO.setStartTime(new Date());
-        freeResourceListDTO.setLength(30);
-        freeResourceListDTO.setResourceType("6");
+        freeResourceListDTO.setStartTime(DateUtil.parse("2023-12-18 22:00:00"));
+        freeResourceListDTO.setLength(60);
+        freeResourceListDTO.setResourceType("1");
 
         System.out.println(rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO));
 
@@ -70,14 +71,13 @@ class RpcMeetingRoomServiceImplTest {
 //        meetingRoomContextDTO.setStartTime(DateUtil.parse("2023-12-22 12:00:00"));
         meetingRoomContextDTO.setLength(200);
         meetingRoomContextDTO.setSubject("网络研讨会-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setTimeZoneID(56);
-        meetingRoomContextDTO.setResourceId(224);
-        meetingRoomContextDTO.setResourceType("3");
+        meetingRoomContextDTO.setResourceId(229);
+        meetingRoomContextDTO.setResourceType("6");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
         meetingRoomContextDTO.setGuestPwdFlag(false);
         meetingRoomContextDTO.setLevelCode(9);
-        meetingRoomContextDTO.setImUserId("48cd6848a5ca47c883bd38a5c64287dd");
+        meetingRoomContextDTO.setImUserId("0bae35214bae4b7d8e58378cb5a6a3b1");
         meetingRoomContextDTO.setImUserName("文杰昵称");
 
         System.out.println(rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO));

@@ -146,29 +146,28 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //2、查询用户公池资源
             result = getPublicResourceList(freeResourceListDTO);
         } else {
-            DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), -30);
-            DateTime endTime = DateUtil.date(freeResourceListDTO.getStartTime())
-                .offset(DateField.MINUTE, freeResourceListDTO.getLength() + 30);
-            Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
-                wrapper -> wrapper.ge(MeetingRoomInfoPO::getLockStartTime, startTime)
-                    .le(MeetingRoomInfoPO::getLockStartTime, endTime)
-                    .or(wrapper1 -> wrapper1.ge(MeetingRoomInfoPO::getLockEndTime, startTime)
-                        .le(MeetingRoomInfoPO::getLockEndTime, endTime))
-                    .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, startTime)
-                        .ge(MeetingRoomInfoPO::getLockEndTime, endTime));
-            //该段时间正在锁定的会议
-            List<MeetingRoomInfoPO> lockedMeetingRoomList = meetingRoomInfoDaoService.lambdaQuery()
-                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
-            //该段时间正在锁定的资源
-            List<Integer> lockedResourceIdList =
-                lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
             //1、查询用户私池资源
-            List<MeetingResourceVO> privateResourceList = getPrivateResourceList(freeResourceListDTO);
-            //去除空闲资源中被锁定的资源
-            result = privateResourceList.stream().filter(t -> !lockedResourceIdList.contains(t.getId()))
-                .collect(Collectors.toList());
-
+            result = getPrivateResourceList(freeResourceListDTO);
         }
+        DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), -30);
+        DateTime endTime = DateUtil.date(freeResourceListDTO.getStartTime())
+            .offset(DateField.MINUTE, freeResourceListDTO.getLength() + 30);
+        Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
+            wrapper -> wrapper.ge(MeetingRoomInfoPO::getLockStartTime, startTime)
+                .le(MeetingRoomInfoPO::getLockStartTime, endTime)
+                .or(wrapper1 -> wrapper1.ge(MeetingRoomInfoPO::getLockEndTime, startTime)
+                    .le(MeetingRoomInfoPO::getLockEndTime, endTime))
+                .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, startTime)
+                    .ge(MeetingRoomInfoPO::getLockEndTime, endTime));
+        //该段时间正在锁定的会议
+        List<MeetingRoomInfoPO> lockedMeetingRoomList = meetingRoomInfoDaoService.lambdaQuery()
+            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
+        //该段时间正在锁定的资源
+        List<Integer> lockedResourceIdList =
+            lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
+        //去除空闲资源中被锁定的资源
+        result = result.stream().filter(t -> !lockedResourceIdList.contains(t.getId())).collect(Collectors.toList());
+
         return CommonResult.success(result);
     }
 
@@ -196,7 +195,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         //根据资源类型查询所有空闲资源
         List<MeetingResourcePO> levelFreeResourceList = meetingResourceDaoService.lambdaQuery()
-            .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_FREE.getState())
+            .notIn(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState(),
+                MeetingResourceStateEnum.REDISTRIBUTION.getState())
             .eq(MeetingResourcePO::getResourceType, Integer.parseInt(freeResourceListDTO.getResourceType())).list();
 
         return BeanUtil.copyToList(levelFreeResourceList, MeetingResourceVO.class);
