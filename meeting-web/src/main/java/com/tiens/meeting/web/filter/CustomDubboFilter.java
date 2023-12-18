@@ -12,7 +12,7 @@ import java.util.Map;
  * @Version 1.0
  * @Company: tiens
  */
-//@Activate(group = {CommonConstants.PROVIDER, CommonConstants.CONSUMER})
+@Activate(group = {CommonConstants.CONSUMER})
 public class CustomDubboFilter implements Filter {
 
     @Override

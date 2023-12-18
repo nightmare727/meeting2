@@ -12,7 +12,7 @@ import java.util.Map;
  * @Version 1.0
  * @Company: tiens
  */
-@Service(version = "1.0")
+@Service(version = "1.0", filter = "testProviderFilter")
 public class TestDubboImpl implements TestDubboService {
     @Override
     public String hello(String param) {
