@@ -170,7 +170,7 @@ public class MeetingController {
     }
 
     /**
-     * 首页查询历史30天的会议列表
+     * 查询历史会议列表
      *
      * @return
      */

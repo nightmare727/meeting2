@@ -651,7 +651,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list().stream()
                 .map(t -> new FreeTimeCalculatorUtil.TimeRange(t.getLockStartTime(), t.getLockEndTime()))
                 .collect(Collectors.toList());
-        List<FreeTimeCalculatorUtil.TimeRange> timeRanges = FreeTimeCalculatorUtil.calculateFreeTimeRanges(collect);
+        //最大6小时切割
+        List<FreeTimeCalculatorUtil.TimeRange> timeRanges = FreeTimeCalculatorUtil.calculateFreeTimeRanges(collect, 6);
         List<AvailableResourcePeriodVO> result =
             timeRanges.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
                 .collect(Collectors.toList());
