@@ -137,8 +137,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     public static void main(String[] args) {
-        System.out.println(String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getMsg(),
-            new Date().getTime()));
+        System.out.println(
+            String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getMsg(), new Date().getTime()));
 
     }
 

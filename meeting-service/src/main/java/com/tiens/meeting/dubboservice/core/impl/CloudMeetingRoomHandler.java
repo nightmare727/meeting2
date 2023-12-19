@@ -70,7 +70,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
                 .withVmrIDType(1)
                 //自动延时30分钟
                 .withProlongLength(30).withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
-                .withEnableWaitingRoom(true);
+                //是否开启等候室
+                .withEnableWaitingRoom(false);
             body.withVmrID(meetingRoomContextDTO.getVmrId());
             body.withVmrFlag(1);
             body.withConfConfigInfo(confConfigInfobody);
