@@ -31,6 +31,7 @@ import common.pojo.CommonResult;
 import common.util.cache.CacheKeyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RedissonClient;
@@ -247,12 +248,23 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         meetingRoomContextDTO.setResourceStatus(meetingResourcePO.getStatus());
         //创建会议
         Integer vmrMode = meetingResourcePO.getVmrMode();
-        //查询是否该资源已分配，如果已分配，则执行 回收-分配-再回收
-   
+        //查询是否该资源已分配，
+        String currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
+        if (StringUtils.isNotBlank(currentUseImUserId)) {
+            //如果已分配，则执行 回收-分配-再回收
+            hwMeetingCommonService.disassociateVmr(currentUseImUserId,
+                Collections.singletonList(meetingResourcePO.getVmrId()));
+        }
         //1、创建华为云会议
         MeetingRoomModel meetingRoom =
             hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
                 .createMeetingRoom(meetingRoomContextDTO);
+        if (StringUtils.isNotBlank(currentUseImUserId)) {
+            //如果已分配，则执行 回收-分配-再回收
+            hwMeetingCommonService.associateVmr(currentUseImUserId,
+                Collections.singletonList(meetingResourcePO.getVmrId()));
+        }
+
         //包装po实体
         MeetingRoomInfoPO meetingRoomInfoPO =
             packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
@@ -415,6 +427,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         meetingRoomContextDTO.setMeetingCode(oldMeetingRoomInfoPO.getHwMeetingCode());
         //编辑会议
         Integer vmrMode = meetingResourcePO.getVmrMode();
+        //查询是否该资源已分配，
+        String currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
+        if (StringUtils.isNotBlank(currentUseImUserId)) {
+            //如果已分配，则执行 回收-分配-再回收
+            hwMeetingCommonService.disassociateVmr(currentUseImUserId,
+                Collections.singletonList(meetingResourcePO.getVmrId()));
+        }
+
         MeetingRoomModel meetingRoom =
             new MeetingRoomModel(oldMeetingRoomInfoPO.getHwMeetingId(), oldMeetingRoomInfoPO.getHwMeetingCode(), "");
         if (hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
@@ -428,6 +448,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             meetingRoom = hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
                 .createMeetingRoom(meetingRoomContextDTO);
 
+        }
+        //查询是否该资源已分配，
+        if (StringUtils.isNotBlank(currentUseImUserId)) {
+            //如果已分配，则执行 回收-分配-再回收
+            hwMeetingCommonService.associateVmr(currentUseImUserId,
+                Collections.singletonList(meetingResourcePO.getVmrId()));
         }
 
         //包装po实体
