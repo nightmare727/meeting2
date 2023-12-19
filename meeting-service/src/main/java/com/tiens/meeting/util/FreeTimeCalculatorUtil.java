@@ -1,6 +1,8 @@
 package com.tiens.meeting.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.google.common.collect.Lists;
 import lombok.Data;
 
@@ -101,7 +103,8 @@ public class FreeTimeCalculatorUtil {
         public static LocalTime convertDateToLocalTime(Date date) {
             // 从Date对象中获取毫秒值
             long millis = date.getTime();
-
+            DateTime dateTime = DateUtil.beginOfDay(date);
+            millis = millis - dateTime.getTime();
             // 将毫秒值转换为秒值
             long seconds = millis / 1000;
 

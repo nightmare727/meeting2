@@ -696,6 +696,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         return CommonResult.success(result);
     }
 
+    public static void main(String[] args) {
+
+        System.out.println(
+            new FreeTimeCalculatorUtil.TimeRange(DateUtil.parse("2023-12-19 11:00:00"), DateUtil.parse("2023-12-19 " +
+                "11:00:00")));
+    }
+
     /**
      * 更新华为云会议室状态
      *
