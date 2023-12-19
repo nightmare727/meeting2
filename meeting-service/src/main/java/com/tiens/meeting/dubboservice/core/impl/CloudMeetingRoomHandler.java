@@ -75,13 +75,20 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withVmrID(meetingRoomContextDTO.getVmrId());
             body.withVmrFlag(1);
             body.withConfConfigInfo(confConfigInfobody);
-            //禁用录播
-            body.withRecordType(0);
+            //录播类型。默认为禁用。
+            //0: 禁用
+            //1: 直播
+            //2: 录播
+            //3: 直播+录播
+            body.withRecordType(2);
+//            会议是否自动启动录制，在录播类型为：录播、录播+直播时才生效。默认为不自动启动。
+//            1：自动启动录制
+//            0：不自动启动录制
+            body.withIsAutoRecord(1);
             //固定时区GMT+8
             body.withTimeZoneID(String.valueOf(meetingRoomContextDTO.getTimeZoneID()));
             body.withLanguage("zh-CN");
             body.withEncryptMode(2);
-            body.withIsAutoRecord(1);
             body.withMediaTypes("HDVideo");
             body.withSubject(meetingRoomContextDTO.getSubject());
             body.withLength(meetingRoomContextDTO.getLength());
@@ -154,6 +161,15 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withTimeZoneID(String.valueOf(meetingRoomContextDTO.getTimeZoneID()));
             body.withLanguage("zh-CN");
             body.withEncryptMode(2);
+            //录播类型。默认为禁用。
+            //0: 禁用
+            //1: 直播
+            //2: 录播
+            //3: 直播+录播
+            body.withRecordType(2);
+//            会议是否自动启动录制，在录播类型为：录播、录播+直播时才生效。默认为不自动启动。
+//            1：自动启动录制
+//            0：不自动启动录制
             body.withIsAutoRecord(1);
             body.withMediaTypes("HDVideo");
             body.withSubject(meetingRoomContextDTO.getSubject());
