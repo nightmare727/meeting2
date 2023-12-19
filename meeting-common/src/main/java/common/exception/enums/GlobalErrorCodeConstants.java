@@ -55,6 +55,7 @@ public interface GlobalErrorCodeConstants {
     ErrorCode HW_MOD_MEETING_ERROR = new ErrorCode("2000014", "编辑会议错误，请稍后重试");
     ErrorCode HW_CANCEL_MEETING_ERROR = new ErrorCode("2000015", "取消会议错误，请稍后重试");
     ErrorCode HW_START_TIME_ERROR_ERROR = new ErrorCode("2000016", "会议开始时间小于当前时间，请刷新重试");
+    ErrorCode NOT_ARRIVE_START_TIME_ERROR = new ErrorCode("2000017", "%s");
 
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段

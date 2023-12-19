@@ -126,11 +126,20 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 //未到开会开始时间
                 String betweenDate = DateUtil.formatBetween(now, lockStartTime, BetweenFormatter.Level.MINUTE);
                 //未到开会开始时间
-                return CommonResult.errorMsg(String.format("请在 %s后进入会议", betweenDate));
+                return CommonResult.error(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getCode(),
+                    String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getMsg(),
+                        lockStartTime.getTime()));
+//                return CommonResult.errorMsg(String.format("请在 %s后进入会议", betweenDate));
             }
         }
         //返回主持人的id
         return CommonResult.success(meetingRoomInfoPO.getOwnerImUserId());
+    }
+
+    public static void main(String[] args) {
+        System.out.println(String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getMsg(),
+            new Date().getTime()));
+
     }
 
     /**
@@ -694,13 +703,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             timeRanges.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
                 .collect(Collectors.toList());
         return CommonResult.success(result);
-    }
-
-    public static void main(String[] args) {
-
-        System.out.println(
-            new FreeTimeCalculatorUtil.TimeRange(DateUtil.parse("2023-12-19 11:00:00"), DateUtil.parse("2023-12-19 " +
-                "11:00:00")));
     }
 
     /**
