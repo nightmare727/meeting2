@@ -84,7 +84,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
 //            会议是否自动启动录制，在录播类型为：录播、录播+直播时才生效。默认为不自动启动。
 //            1：自动启动录制
 //            0：不自动启动录制
-            body.withIsAutoRecord(1);
+            body.withIsAutoRecord(0);
             //固定时区GMT+8
             body.withTimeZoneID(String.valueOf(meetingRoomContextDTO.getTimeZoneID()));
             body.withLanguage("zh-CN");
@@ -170,7 +170,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
 //            会议是否自动启动录制，在录播类型为：录播、录播+直播时才生效。默认为不自动启动。
 //            1：自动启动录制
 //            0：不自动启动录制
-            body.withIsAutoRecord(1);
+            body.withIsAutoRecord(0);
             body.withMediaTypes("HDVideo");
             body.withSubject(meetingRoomContextDTO.getSubject());
             body.withLength(meetingRoomContextDTO.getLength());
