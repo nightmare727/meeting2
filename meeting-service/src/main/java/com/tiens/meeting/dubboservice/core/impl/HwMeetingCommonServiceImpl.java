@@ -10,12 +10,12 @@ import com.huaweicloud.sdk.meeting.v1.model.*;
 import com.tiens.api.vo.RecordVO;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
-import lombok.Data;
+import com.tiens.meeting.repository.po.MeetingResourcePO;
+import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -34,6 +34,8 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
     @Autowired
     public MeetingClient meetingClient;
 
+    @Autowired
+    MeetingResourceDaoService meetingResourceDaoService;
 
     public MeetingClient getUserMeetingClient(String imUserId) {
         MeetingCredentials auth =
@@ -57,6 +59,12 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         AssociateVmrResponse response = meetingClient.associateVmr(request);
         log.info("分配云会议室结果：{}", response);
+        for (String vmrId : vmrIds) {
+            //设置当前使用者
+            meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getVmrId, vmrId)
+                .set(MeetingResourcePO::getCurrentUseImUserId, imUserId).update();
+        }
+        log.info("分配云会议室结果：{}", response);
     }
 
     /**
@@ -73,6 +81,11 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         try {
             DisassociateVmrResponse response = meetingClient.disassociateVmr(request);
             log.info("回收云会议室结果：{}", response);
+            for (String vmrId : vmrIds) {
+                //取消当前使用者
+                meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getVmrId, vmrId)
+                    .set(MeetingResourcePO::getCurrentUseImUserId, null).update();
+            }
         } catch (ConnectionException e) {
             e.printStackTrace();
         } catch (RequestTimeoutException e) {

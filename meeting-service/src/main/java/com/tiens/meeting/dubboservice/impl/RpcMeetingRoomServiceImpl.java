@@ -247,7 +247,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         meetingRoomContextDTO.setResourceStatus(meetingResourcePO.getStatus());
         //创建会议
         Integer vmrMode = meetingResourcePO.getVmrMode();
-
+        //查询是否该资源已分配，如果已分配，则执行 回收-分配-再回收
+   
         //1、创建华为云会议
         MeetingRoomModel meetingRoom =
             hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))

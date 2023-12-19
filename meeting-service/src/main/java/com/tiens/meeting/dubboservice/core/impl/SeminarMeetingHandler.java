@@ -1,5 +1,6 @@
 package com.tiens.meeting.dubboservice.core.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
@@ -11,6 +12,7 @@ import com.tiens.api.vo.MeetingRoomDetailDTO;
 import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
 import com.tiens.meeting.dubboservice.core.entity.CancelMeetingRoomModel;
 import com.tiens.meeting.dubboservice.core.entity.MeetingRoomModel;
+import common.enums.MeetingRoomStateEnum;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -204,19 +207,57 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
      */
     @Override
     public void setMeetingRoomDetail(MeetingRoomDetailDTO meetingRoomDetailDTO) {
-
-        ListUpComingWebinarsRequest request = new ListUpComingWebinarsRequest();
-        request.withSearchKey(meetingRoomDetailDTO.getHwMeetingCode());
-        ListUpComingWebinarsResponse response = meetingClient.listUpComingWebinars(request);
-        OpenWebinarUpcomingInfo openWebinarUpcomingInfo = response.getData().get(0);
-        meetingRoomDetailDTO.setChairmanPwd(openWebinarUpcomingInfo.getChairPasswd());
+        String state = meetingRoomDetailDTO.getState();
+        if (MeetingRoomStateEnum.Schedule.getState().equals(state)) {
+            ListUpComingWebinarsRequest request = new ListUpComingWebinarsRequest();
+            request.withSearchKey(meetingRoomDetailDTO.getHwMeetingCode());
+            ListUpComingWebinarsResponse response = meetingClient.listUpComingWebinars(request);
+            List<OpenWebinarUpcomingInfo> data = response.getData();
+            if (CollectionUtil.isEmpty(data)) {
+                log.info("即将招开的研讨会会议查询不到数据，会议号：{}", meetingRoomDetailDTO.getHwMeetingCode());
+                return;
+            }
+            OpenWebinarUpcomingInfo openWebinarUpcomingInfo = data.get(0);
+            meetingRoomDetailDTO.setChairmanPwd(openWebinarUpcomingInfo.getChairPasswd());
 //        meetingRoomDetailDTO.setGeneralPwd(response);
-        meetingRoomDetailDTO.setGuestPwd(openWebinarUpcomingInfo.getGuestPasswd());
-        meetingRoomDetailDTO.setAudiencePasswd(openWebinarUpcomingInfo.getAudiencePasswd());
-        meetingRoomDetailDTO.setChairJoinUri(openWebinarUpcomingInfo.getChairJoinUri());
-        meetingRoomDetailDTO.setGuestJoinUri(openWebinarUpcomingInfo.getGuestJoinUri());
-        //网络研讨会观众会议链接地址
-        meetingRoomDetailDTO.setAudienceJoinUri(openWebinarUpcomingInfo.getAudienceJoinUri());
+            meetingRoomDetailDTO.setGuestPwd(openWebinarUpcomingInfo.getGuestPasswd());
+            meetingRoomDetailDTO.setAudiencePasswd(openWebinarUpcomingInfo.getAudiencePasswd());
+            meetingRoomDetailDTO.setChairJoinUri(openWebinarUpcomingInfo.getChairJoinUri());
+            meetingRoomDetailDTO.setGuestJoinUri(openWebinarUpcomingInfo.getGuestJoinUri());
+            //网络研讨会观众会议链接地址
+            meetingRoomDetailDTO.setAudienceJoinUri(openWebinarUpcomingInfo.getAudienceJoinUri());
+        } else if (MeetingRoomStateEnum.Created.getState().equals(state)) {
+            ListOngoingWebinarsRequest listOngoingWebinarsRequest = new ListOngoingWebinarsRequest();
+            listOngoingWebinarsRequest.withSearchKey(meetingRoomDetailDTO.getHwMeetingCode());
+            ListOngoingWebinarsResponse listOngoingWebinarsResponse =
+                meetingClient.listOngoingWebinars(listOngoingWebinarsRequest);
+            List<OpenWebinarOngoingInfo> data = listOngoingWebinarsResponse.getData();
+            if (CollectionUtil.isEmpty(data)) {
+                log.info("进行中的研讨会会议查询不到数据，会议号：{}", meetingRoomDetailDTO.getHwMeetingCode());
+                return;
+            }
+            OpenWebinarOngoingInfo openWebinarOngoingInfo = data.get(0);
+            meetingRoomDetailDTO.setChairmanPwd(openWebinarOngoingInfo.getChairPasswd());
+//        meetingRoomDetailDTO.setGeneralPwd(response);
+            meetingRoomDetailDTO.setGuestPwd(openWebinarOngoingInfo.getGuestPasswd());
+            meetingRoomDetailDTO.setAudiencePasswd(openWebinarOngoingInfo.getAudiencePasswd());
+            meetingRoomDetailDTO.setChairJoinUri(openWebinarOngoingInfo.getChairJoinUri());
+            meetingRoomDetailDTO.setGuestJoinUri(openWebinarOngoingInfo.getGuestJoinUri());
+            //网络研讨会观众会议链接地址
+            meetingRoomDetailDTO.setAudienceJoinUri(openWebinarOngoingInfo.getAudienceJoinUri());
+        } else if (MeetingRoomStateEnum.Destroyed.getState().equals(state)) {
+            ListHistoryWebinarsRequest listHistoryWebinarsRequest = new ListHistoryWebinarsRequest();
+            listHistoryWebinarsRequest.withSearchKey(meetingRoomDetailDTO.getHwMeetingCode());
+            ListHistoryWebinarsResponse listHistoryWebinarsResponse =
+                meetingClient.listHistoryWebinars(listHistoryWebinarsRequest);
+            List<OpenWebinarHistoryInfo> data = listHistoryWebinarsResponse.getData();
+            if (CollectionUtil.isEmpty(data)) {
+                log.info("历史研讨会会议查询不到数据，会议号：{}", meetingRoomDetailDTO.getHwMeetingCode());
+                return;
+            }
+            OpenWebinarHistoryInfo openWebinarHistoryInfo = data.get(0);
+        }
+
     }
 
     /**
