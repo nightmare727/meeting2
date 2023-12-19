@@ -4,9 +4,6 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.huaweicloud.sdk.core.exception.ConnectionException;
-import com.huaweicloud.sdk.core.exception.RequestTimeoutException;
-import com.huaweicloud.sdk.core.exception.ServiceResponseException;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.*;
 import com.tiens.api.dto.MeetingRoomContextDTO;
@@ -14,7 +11,8 @@ import com.tiens.api.vo.MeetingRoomDetailDTO;
 import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
 import com.tiens.meeting.dubboservice.core.entity.CancelMeetingRoomModel;
 import com.tiens.meeting.dubboservice.core.entity.MeetingRoomModel;
-import common.enums.MeetingResourceStateEnum;
+import common.exception.ServiceException;
+import common.exception.enums.GlobalErrorCodeConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -55,57 +53,62 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             startTimeStr = dateTimeFormatter.format(of);
         }
-        //分配云会议资源
-        hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
-            Collections.singletonList(meetingRoomContextDTO.getVmrId()));
-
-        MeetingClient userMeetingClient =
-            hwMeetingCommonService.getUserMeetingClient(meetingRoomContextDTO.getImUserId());
-        CreateMeetingRequest request = new CreateMeetingRequest();
-        RestScheduleConfDTO body = new RestScheduleConfDTO();
-        RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
-        confConfigInfobody.withIsGuestFreePwd(false)
-            //允许加入会议的范围。企业
-            .withCallInRestriction(2)
-            //随机会议id-私人会议，固定会议id
-            .withVmrIDType( 1)
-            //自动延时30分钟
-            .withProlongLength(30).withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
-            .withEnableWaitingRoom(true);
-        body.withVmrID(meetingRoomContextDTO.getVmrId());
-        body.withVmrFlag(1);
-        body.withConfConfigInfo(confConfigInfobody);
-        //禁用录播
-        body.withRecordType(0);
-        //固定时区GMT+8
-        body.withTimeZoneID(String.valueOf(meetingRoomContextDTO.getTimeZoneID()));
-        body.withLanguage("zh-CN");
-        body.withEncryptMode(2);
-        body.withIsAutoRecord(1);
-        body.withMediaTypes("HDVideo");
-        body.withSubject(meetingRoomContextDTO.getSubject());
-        body.withLength(meetingRoomContextDTO.getLength());
-        //会议开始时间（UTC时间）。格式：yyyy-MM-dd HH:mm。 > * 创建预约会议时，如果没有指定开始时间或填空串，则表示会议马上开始 > * 时间是UTC时间，即0时区的时间
-        body.withStartTime(startTimeStr);
-        request.withBody(body);
-        CreateMeetingResponse response = userMeetingClient.createMeeting(request);
-        log.info("创建云会议结果响应：{}", response);
-        if (!ObjectUtil.isEmpty(startTimeStr)) {
-            //为预约会议，预约完成后需要回收资源
-            hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+        try {
+            //分配云会议资源
+            hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
                 Collections.singletonList(meetingRoomContextDTO.getVmrId()));
-        }
-        List<ConferenceInfo> body1 = response.getBody();
-        ConferenceInfo conferenceInfo = body1.get(0);
-        //会议id
-        String conferenceID = conferenceInfo.getConferenceID();
-        //云会议室会议ID或个人会议ID。如果“vmrFlag”为“1”，则该字段不为空。
-        String vmrID = conferenceInfo.getVmrID();
-        //会议的UUID-只有创建立即开始的会议才返回UUID，如果是预约未来的会议，不会返回UUID
-        String confUUID = conferenceInfo.getConfUUID();
-        String conferenceState = conferenceInfo.getConferenceState();
 
-        return new MeetingRoomModel(confUUID, conferenceID, conferenceState);
+            MeetingClient userMeetingClient =
+                hwMeetingCommonService.getUserMeetingClient(meetingRoomContextDTO.getImUserId());
+            CreateMeetingRequest request = new CreateMeetingRequest();
+            RestScheduleConfDTO body = new RestScheduleConfDTO();
+            RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
+            confConfigInfobody.withIsGuestFreePwd(false)
+                //允许加入会议的范围。企业
+                .withCallInRestriction(2)
+                //随机会议id-私人会议，固定会议id
+                .withVmrIDType(1)
+                //自动延时30分钟
+                .withProlongLength(30).withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
+                .withEnableWaitingRoom(true);
+            body.withVmrID(meetingRoomContextDTO.getVmrId());
+            body.withVmrFlag(1);
+            body.withConfConfigInfo(confConfigInfobody);
+            //禁用录播
+            body.withRecordType(0);
+            //固定时区GMT+8
+            body.withTimeZoneID(String.valueOf(meetingRoomContextDTO.getTimeZoneID()));
+            body.withLanguage("zh-CN");
+            body.withEncryptMode(2);
+            body.withIsAutoRecord(1);
+            body.withMediaTypes("HDVideo");
+            body.withSubject(meetingRoomContextDTO.getSubject());
+            body.withLength(meetingRoomContextDTO.getLength());
+            //会议开始时间（UTC时间）。格式：yyyy-MM-dd HH:mm。 > * 创建预约会议时，如果没有指定开始时间或填空串，则表示会议马上开始 > * 时间是UTC时间，即0时区的时间
+            body.withStartTime(startTimeStr);
+            request.withBody(body);
+            CreateMeetingResponse response = userMeetingClient.createMeeting(request);
+            log.info("创建云会议结果响应：{}", response);
+            List<ConferenceInfo> body1 = response.getBody();
+            ConferenceInfo conferenceInfo = body1.get(0);
+            //会议id
+            String conferenceID = conferenceInfo.getConferenceID();
+            //云会议室会议ID或个人会议ID。如果“vmrFlag”为“1”，则该字段不为空。
+            String vmrID = conferenceInfo.getVmrID();
+            //会议的UUID-只有创建立即开始的会议才返回UUID，如果是预约未来的会议，不会返回UUID
+            String confUUID = conferenceInfo.getConfUUID();
+            String conferenceState = conferenceInfo.getConferenceState();
+            return new MeetingRoomModel(confUUID, conferenceID, conferenceState);
+        } catch (Exception e) {
+            log.error("创建云会议、预约会议异常，异常信息：{}", e);
+            throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);
+        } finally {
+            if (!ObjectUtil.isEmpty(startTimeStr)) {
+                //为预约会议，预约完成后需要回收资源
+                hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                    Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+            }
+        }
     }
 
     /**
@@ -127,41 +130,48 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         String startTimeStr = dateTimeFormatter.format(of);
 
-        //分配云会议资源
-        hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
-            Collections.singletonList(meetingRoomContextDTO.getVmrId()));
-
-        MeetingClient userMeetingClient =
-            hwMeetingCommonService.getUserMeetingClient(meetingRoomContextDTO.getImUserId());
-
-        UpdateMeetingRequest request = new UpdateMeetingRequest();
-        request.withConferenceID(meetingRoomContextDTO.getMeetingCode());
-        RestScheduleConfDTO body = new RestScheduleConfDTO();
-        RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
-        confConfigInfobody.withCallInRestriction(2).withAllowGuestStartConf(false)
-            .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag()).withVmrIDType(1).withProlongLength(30)
-            .withEnableWaitingRoom(true);
-        body.withVmrID(meetingRoomContextDTO.getVmrId());
-        body.withVmrFlag(1);
-        body.withRecordAuthType(1);
-        body.withConfConfigInfo(confConfigInfobody);
-        body.withRecordType(0);
-        body.withTimeZoneID(String.valueOf(meetingRoomContextDTO.getTimeZoneID()));
-        body.withLanguage("zh-CN");
-        body.withEncryptMode(2);
-        body.withIsAutoRecord(1);
-        body.withMediaTypes("HDVideo");
-        body.withSubject(meetingRoomContextDTO.getSubject());
-        body.withLength(meetingRoomContextDTO.getLength());
-        body.withStartTime(startTimeStr);
-        request.withBody(body);
-        UpdateMeetingResponse response = userMeetingClient.updateMeeting(request);
-        log.info("编辑云会议会议结果响应：{}", response);
-        if (!immediatelyFlag) {
-            //为预约会议，预约完成后需要回收资源
-            hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+        try {
+            //分配云会议资源
+            hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
                 Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+
+            MeetingClient userMeetingClient =
+                hwMeetingCommonService.getUserMeetingClient(meetingRoomContextDTO.getImUserId());
+
+            UpdateMeetingRequest request = new UpdateMeetingRequest();
+            request.withConferenceID(meetingRoomContextDTO.getMeetingCode());
+            RestScheduleConfDTO body = new RestScheduleConfDTO();
+            RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
+            confConfigInfobody.withCallInRestriction(2).withAllowGuestStartConf(false)
+                .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag()).withVmrIDType(1).withProlongLength(30)
+                .withEnableWaitingRoom(true);
+            body.withVmrID(meetingRoomContextDTO.getVmrId());
+            body.withVmrFlag(1);
+            body.withRecordAuthType(1);
+            body.withConfConfigInfo(confConfigInfobody);
+            body.withRecordType(0);
+            body.withTimeZoneID(String.valueOf(meetingRoomContextDTO.getTimeZoneID()));
+            body.withLanguage("zh-CN");
+            body.withEncryptMode(2);
+            body.withIsAutoRecord(1);
+            body.withMediaTypes("HDVideo");
+            body.withSubject(meetingRoomContextDTO.getSubject());
+            body.withLength(meetingRoomContextDTO.getLength());
+            body.withStartTime(startTimeStr);
+            request.withBody(body);
+            UpdateMeetingResponse response = userMeetingClient.updateMeeting(request);
+            log.info("编辑云会议会议结果响应：{}", response);
+        } catch (Exception e) {
+            log.error("编辑云会议、预约会议异常，异常信息：{}", e);
+            throw new ServiceException(GlobalErrorCodeConstants.HW_MOD_MEETING_ERROR);
+        } finally {
+            if (!immediatelyFlag) {
+                //为预约会议，预约完成后需要回收资源
+                hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                    Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+            }
         }
+
     }
 
     /**
@@ -172,27 +182,27 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
      */
     @Override
     public void cancelMeetingRoom(CancelMeetingRoomModel cancelMeetingRoomModel) {
-        //分配云会议资源
-        hwMeetingCommonService.associateVmr(cancelMeetingRoomModel.getImUserId(),
-            Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
-        MeetingClient userMeetingClient =
-            hwMeetingCommonService.getUserMeetingClient(cancelMeetingRoomModel.getImUserId());
-        //取消会议
-        CancelMeetingRequest request = new CancelMeetingRequest();
-        request.withConferenceID(cancelMeetingRoomModel.getConferenceID());
+
         try {
+            //分配云会议资源
+            hwMeetingCommonService.associateVmr(cancelMeetingRoomModel.getImUserId(),
+                Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+            MeetingClient userMeetingClient =
+                hwMeetingCommonService.getUserMeetingClient(cancelMeetingRoomModel.getImUserId());
+            //取消会议
+            CancelMeetingRequest request = new CancelMeetingRequest();
+            request.withConferenceID(cancelMeetingRoomModel.getConferenceID());
             CancelMeetingResponse response = userMeetingClient.cancelMeeting(request);
-            log.info("取消云会议结果：{}", response);
-        } catch (ConnectionException e) {
-            log.error("取消云会议连接异常", e);
-        } catch (RequestTimeoutException e) {
-            log.error("取消云会议连接超时", e);
-        } catch (ServiceResponseException e) {
-            log.error("取消云会议响应异常", e);
+            log.info("取消云会议会议结果响应：{}", response);
+        } catch (Exception e) {
+            log.error("取消云会议异常，异常信息：{}", e);
+            throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
+        } finally {
+            //回收资源
+            hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
+                Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
         }
-        //回收资源
-        hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
-            Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+
     }
 
     /**
@@ -216,27 +226,34 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
     public void setMeetingRoomDetail(MeetingRoomDetailDTO meetingRoomDetailDTO) {
         ShowMeetingDetailRequest request = new ShowMeetingDetailRequest();
         request.withConferenceID(meetingRoomDetailDTO.getHwMeetingCode());
-        ShowMeetingDetailResponse response = meetingClient.showMeetingDetail(request);
-        //会议信息
-        ConferenceInfo conferenceData = response.getConferenceData();
-        List<PasswordEntry> passwordEntry = conferenceData.getPasswordEntry();
-        for (PasswordEntry entry : passwordEntry) {
-            String conferenceRole = entry.getConferenceRole();
-            String password = entry.getPassword();
-            if (ObjectUtil.equals("chair", conferenceRole)) {
-                //主持人
-                meetingRoomDetailDTO.setChairmanPwd(password);
-            } else if (ObjectUtil.equals("general", conferenceRole)) {
-                //与会者密码
-                meetingRoomDetailDTO.setGeneralPwd(password);
+        try {
+            ShowMeetingDetailResponse response = meetingClient.showMeetingDetail(request);
+            //会议信息
+            ConferenceInfo conferenceData = response.getConferenceData();
+            List<PasswordEntry> passwordEntry = conferenceData.getPasswordEntry();
+            for (PasswordEntry entry : passwordEntry) {
+                String conferenceRole = entry.getConferenceRole();
+                String password = entry.getPassword();
+                if (ObjectUtil.equals("chair", conferenceRole)) {
+                    //主持人
+                    meetingRoomDetailDTO.setChairmanPwd(password);
+                } else if (ObjectUtil.equals("general", conferenceRole)) {
+                    //与会者密码
+                    meetingRoomDetailDTO.setGeneralPwd(password);
+                }
             }
-        }
 //        meetingRoomDetailDTO.setGuestPwd();
 //        meetingRoomDetailDTO.setAudiencePasswd();
-        meetingRoomDetailDTO.setChairJoinUri(conferenceData.getChairJoinUri());
-        meetingRoomDetailDTO.setGuestJoinUri(conferenceData.getGuestJoinUri());
-        //网络研讨会观众会议链接地址
-        meetingRoomDetailDTO.setAudienceJoinUri(conferenceData.getAudienceJoinUri());
+            meetingRoomDetailDTO.setChairJoinUri(conferenceData.getChairJoinUri());
+            meetingRoomDetailDTO.setGuestJoinUri(conferenceData.getGuestJoinUri());
+            //网络研讨会观众会议链接地址
+            meetingRoomDetailDTO.setAudienceJoinUri(conferenceData.getAudienceJoinUri());
+        } catch (Exception e) {
+            log.error("取消云会议异常，异常信息：{}", e);
+            throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
+        } finally {
+
+        }
 
     }
 
@@ -253,6 +270,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         request.withSearchKey(meetingCode);
         SearchMeetingsResponse response = meetingClient.searchMeetings(request);
         return response.getCount() > 0;
+
     }
 
     /**

@@ -49,7 +49,11 @@ public interface GlobalErrorCodeConstants {
     ErrorCode CAN_NOT_MOD_MEETING_ROOM = new ErrorCode("2000009", "会议状态非预约状态，无法编辑，请刷新重试");
     ErrorCode CAN_NOT_CANCEL_MEETING_ROOM = new ErrorCode("2000010", "会议已结束，无法重复取消，请刷新重试");
     ErrorCode CAN_NOT_ALLOCATE_RESOURCE = new ErrorCode("2000011", "无法分配会议资源，会议状态异常，请刷新重试");
-    ErrorCode CAN_NOT_CANCEL_ALLOCATE_RESOURCE = new ErrorCode("2000012", "无法取消分配会议资源，会议状态异常，请刷新重试");
+    ErrorCode CAN_NOT_CANCEL_ALLOCATE_RESOURCE =
+        new ErrorCode("2000012", "无法取消分配会议资源，会议状态异常，请刷新重试");
+    ErrorCode HW_CREATE_MEETING_ERROR = new ErrorCode("2000013", "创建会议错误，请稍后重试");
+    ErrorCode HW_MOD_MEETING_ERROR = new ErrorCode("2000014", "编辑会议错误，请稍后重试");
+    ErrorCode HW_CANCEL_MEETING_ERROR = new ErrorCode("2000015", "取消会议错误，请稍后重试");
 
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段

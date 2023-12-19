@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
-import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
@@ -15,10 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +42,7 @@ public class AppointMeetingTask {
     HwMeetingCommonService hwMeetingCommonService;
 
     @XxlJob("AppointMeetingJobHandler")
+    @Transactional(rollbackFor = Exception.class)
     public void jobHandler() throws Exception {
         //1、预约提前30分钟锁定资源
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()

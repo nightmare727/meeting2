@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -47,6 +48,7 @@ public class MeetingStopTask {
     String pushContent;
 
     @XxlJob("MeetingStopJobHandler")
+    @Transactional(rollbackFor = Exception.class)
     public void jobHandler() throws Exception {
         //1、找到快结束的会议室，给主持人发送IM消息
 
@@ -70,6 +72,7 @@ public class MeetingStopTask {
         batchMessageVo.setPushcontent(pushContent);
         batchMessageVo.setAttach(JSONUtil.createObj().putOnce("pushContent", pushContent).toString());
 //        batchMessageVo.setPayload("");//不传ios收不到
+        log.info("定时推送会议30分钟前发送消息入参：{}", batchMessageVo);
         Result<?> result = messageService.batchSendAttachMessage(batchMessageVo);
         log.info("定时推送会议30分钟前发送消息结果：{}", result);
 

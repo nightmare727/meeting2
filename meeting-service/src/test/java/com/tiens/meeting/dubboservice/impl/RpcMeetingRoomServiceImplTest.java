@@ -8,6 +8,7 @@ import com.tiens.api.dto.FreeResourceListDTO;
 import com.tiens.api.dto.MeetingRoomContextDTO;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.ServiceApplication;
+import com.tiens.meeting.dubboservice.job.AppointMeetingTask;
 import com.tiens.meeting.dubboservice.job.HWResourceTask;
 import common.enums.MeetingResourceHandleEnum;
 import lombok.SneakyThrows;
@@ -38,6 +39,8 @@ class RpcMeetingRoomServiceImplTest {
 
     @Autowired
     HWResourceTask hwResourceTask;
+    @Autowired
+    AppointMeetingTask appointMeetingTask;
 
     @Test
     void getCredential() {
@@ -55,8 +58,8 @@ class RpcMeetingRoomServiceImplTest {
         FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
         freeResourceListDTO.setImUserId("0bae35214bae4b7d8e58378cb5a6a3b1");
         freeResourceListDTO.setLevelCode(9);
-        freeResourceListDTO.setStartTime(DateUtil.parse("2023-12-18 22:00:00"));
-        freeResourceListDTO.setLength(60);
+        freeResourceListDTO.setStartTime(DateUtil.parse("2023-12-18 15:30:00"));
+        freeResourceListDTO.setLength(120);
         freeResourceListDTO.setResourceType("1");
 
         System.out.println(rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO));
@@ -154,6 +157,13 @@ class RpcMeetingRoomServiceImplTest {
     void hwResourceTask() {
         hwResourceTask.jobHandler();
     }
+
+    @Test
+    @SneakyThrows
+    void hwAPPointTask() {
+        appointMeetingTask.jobHandler();
+    }
+
 
     @Test
     @SneakyThrows

@@ -4,15 +4,15 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.*;
 import com.tiens.api.dto.MeetingRoomContextDTO;
 import com.tiens.api.vo.MeetingRoomDetailDTO;
-import com.tiens.api.vo.RecordVO;
 import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
 import com.tiens.meeting.dubboservice.core.entity.CancelMeetingRoomModel;
 import com.tiens.meeting.dubboservice.core.entity.MeetingRoomModel;
+import common.exception.ServiceException;
+import common.exception.enums.GlobalErrorCodeConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -52,42 +51,49 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         String startTimeStr = dateTimeFormatter.format(of);
-
-        //分配云会议资源
-        hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
-            Collections.singletonList(meetingRoomContextDTO.getVmrId()));
-
-        MeetingClient userMeetingClient =  hwMeetingCommonService.getUserMeetingClient(meetingRoomContextDTO.getImUserId());
-
-        CreateWebinarRequest request = new CreateWebinarRequest();
-        OpenScheduleConfReq body = new OpenScheduleConfReq();
-        //开启录制
-        body.withEnableRecording(YesNoEnum.Y);
-        //设置入会范围开关
-        body.withCallRestriction(true);
-        //观众入会范围
-        body.withAudienceScope(2);
-        //主持人、嘉宾入会范围
-        body.withScope(2);
-        //嘉宾密码
-//        body.withGuestPasswd(RandomUtil.randomNumbers(6));
-        body.withTimeZoneId(meetingRoomContextDTO.getTimeZoneID());
-        body.withDuration(meetingRoomContextDTO.getLength());
-        body.withStartTime(startTimeStr);
-        body.withSubject(meetingRoomContextDTO.getSubject());
-        body.withVmrID(meetingRoomContextDTO.getVmrId());
-        request.withBody(body);
-        CreateWebinarResponse response = userMeetingClient.createWebinar(request);
-        log.info("创建网络研讨会会议结果响应：{}", response);
-        if (!immediatelyFlag) {
-            //为预约会议，预约完成后需要回收资源
-            hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+        try {
+            //分配云会议资源
+            hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
                 Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+
+            MeetingClient userMeetingClient =
+                hwMeetingCommonService.getUserMeetingClient(meetingRoomContextDTO.getImUserId());
+
+            CreateWebinarRequest request = new CreateWebinarRequest();
+            OpenScheduleConfReq body = new OpenScheduleConfReq();
+            //开启录制
+            body.withEnableRecording(YesNoEnum.Y);
+            //设置入会范围开关
+            body.withCallRestriction(true);
+            //观众入会范围
+            body.withAudienceScope(2);
+            //主持人、嘉宾入会范围
+            body.withScope(2);
+            //嘉宾密码
+//        body.withGuestPasswd(RandomUtil.randomNumbers(6));
+            body.withTimeZoneId(meetingRoomContextDTO.getTimeZoneID());
+            body.withDuration(meetingRoomContextDTO.getLength());
+            body.withStartTime(startTimeStr);
+            body.withSubject(meetingRoomContextDTO.getSubject());
+            body.withVmrID(meetingRoomContextDTO.getVmrId());
+            request.withBody(body);
+            CreateWebinarResponse response = userMeetingClient.createWebinar(request);
+            log.info("创建网络研讨会会议结果响应：{}", response);
+
+            //会议id
+            String conferenceId = response.getConferenceId();
+            String state = response.getState().getValue();
+            return new MeetingRoomModel("", conferenceId, state);
+        } catch (Exception e) {
+            log.error("创建网络研讨会会议、预约会议异常，异常信息：{}", e);
+            throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);
+        } finally {
+            if (!immediatelyFlag) {
+                //为预约会议，预约完成后需要回收资源
+                hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                    Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+            }
         }
-        //会议id
-        String conferenceId = response.getConferenceId();
-        String state = response.getState().getValue();
-        return new MeetingRoomModel("", conferenceId, state);
 
     }
 
@@ -109,33 +115,42 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         String startTimeStr = dateTimeFormatter.format(of);
-
-        //分配云会议资源
-        hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(), Collections.singletonList(meetingRoomContextDTO.getVmrId()));
-
-        MeetingClient userMeetingClient =  hwMeetingCommonService.getUserMeetingClient(meetingRoomContextDTO.getImUserId());
-
-        //编辑网络研讨会会议
-        UpdateWebinarRequest request = new UpdateWebinarRequest();
-        OpenEditConfReq body = new OpenEditConfReq();
-        body.withConferenceId(meetingRoomContextDTO.getMeetingCode());
-        body.withSubject(meetingRoomContextDTO.getSubject());
-        body.withEnableRecording(YesNoEnum.Y);
-        body.withAudienceScope(2);
-        body.withScope(2);
-        body.withCallRestriction(true);
-//        body.withGuestPasswd(RandomUtil.randomNumbers(6));
-        body.withTimeZoneId(meetingRoomContextDTO.getTimeZoneID());
-        body.withDuration(meetingRoomContextDTO.getLength());
-        body.withStartTime(startTimeStr);
-        body.withConferenceId(meetingRoomContextDTO.getMeetingCode());
-        request.withBody(body);
-        UpdateWebinarResponse response = userMeetingClient.updateWebinar(request);
-        log.info("编辑网络研讨会会议结果响应：{}", response);
-        if (!immediatelyFlag) {
-            //为预约会议，预约完成后需要回收资源
-            hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+        try {
+            //分配云会议资源
+            hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
                 Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+
+            MeetingClient userMeetingClient =
+                hwMeetingCommonService.getUserMeetingClient(meetingRoomContextDTO.getImUserId());
+
+            //编辑网络研讨会会议
+            UpdateWebinarRequest request = new UpdateWebinarRequest();
+            OpenEditConfReq body = new OpenEditConfReq();
+            body.withConferenceId(meetingRoomContextDTO.getMeetingCode());
+            body.withSubject(meetingRoomContextDTO.getSubject());
+            body.withEnableRecording(YesNoEnum.Y);
+            body.withAudienceScope(2);
+            body.withScope(2);
+            body.withCallRestriction(true);
+//        body.withGuestPasswd(RandomUtil.randomNumbers(6));
+            body.withTimeZoneId(meetingRoomContextDTO.getTimeZoneID());
+            body.withDuration(meetingRoomContextDTO.getLength());
+            body.withStartTime(startTimeStr);
+            body.withConferenceId(meetingRoomContextDTO.getMeetingCode());
+            request.withBody(body);
+            UpdateWebinarResponse response = userMeetingClient.updateWebinar(request);
+            log.info("编辑网络研讨会会议结果响应：{}", response);
+
+        } catch (Exception e) {
+            log.error("编辑网络研讨会会议异常，异常信息：{}", e);
+            throw new ServiceException(GlobalErrorCodeConstants.HW_MOD_MEETING_ERROR);
+        } finally {
+            if (!immediatelyFlag) {
+                //为预约会议，预约完成后需要回收资源
+                hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                    Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+            }
+
         }
     }
 
@@ -147,18 +162,27 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
      */
     @Override
     public void cancelMeetingRoom(CancelMeetingRoomModel cancelMeetingRoomModel) {
-        //分配云会议资源
-        hwMeetingCommonService.associateVmr(cancelMeetingRoomModel.getImUserId(),
-            Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
-        MeetingClient userMeetingClient =  hwMeetingCommonService.getUserMeetingClient(cancelMeetingRoomModel.getImUserId());
-        //取消会议
-        DeleteWebinarRequest request = new DeleteWebinarRequest();
-        request.withConferenceId(cancelMeetingRoomModel.getConferenceID());
-        DeleteWebinarResponse response = userMeetingClient.deleteWebinar(request);
-        log.info("取消网络研讨会结果：{}", response);
-        //回收资源
-        hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
-            Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+        try {
+            //分配云会议资源
+            hwMeetingCommonService.associateVmr(cancelMeetingRoomModel.getImUserId(),
+                Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+            MeetingClient userMeetingClient =
+                hwMeetingCommonService.getUserMeetingClient(cancelMeetingRoomModel.getImUserId());
+            //取消会议
+            DeleteWebinarRequest request = new DeleteWebinarRequest();
+            request.withConferenceId(cancelMeetingRoomModel.getConferenceID());
+            DeleteWebinarResponse response = userMeetingClient.deleteWebinar(request);
+            log.info("取消网络研讨会结果：{}", response);
+
+        } catch (Exception e) {
+            log.error("取消网络研讨会异常，异常信息：{}", e);
+            throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
+        } finally {
+            //回收资源
+            hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
+                Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+        }
+
     }
 
     /**
