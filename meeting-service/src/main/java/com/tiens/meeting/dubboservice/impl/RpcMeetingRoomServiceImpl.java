@@ -329,7 +329,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (meetingRoomContextDTO.getLevelCode() <= 2) {
             return CommonResult.error(GlobalErrorCodeConstants.LEVEL_NOT_ENOUGH);
         }
-
+        Date startTime = meetingRoomContextDTO.getStartTime();
+        if (ObjectUtil.isNotNull(startTime) && startTime.before(DateUtil.date())) {
+            //开始时间小于当前时间
+            //资源不存在
+            return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR_ERROR);
+        }
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         if (ObjectUtil.isNull(meetingResourcePO)) {
@@ -371,7 +376,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (meetingRoomContextDTO.getLevelCode() <= 2) {
             return CommonResult.error(GlobalErrorCodeConstants.LEVEL_NOT_ENOUGH);
         }
-
+        Date startTime = meetingRoomContextDTO.getStartTime();
+        if (ObjectUtil.isNotNull(startTime) && startTime.before(DateUtil.date())) {
+            //开始时间小于当前时间
+            //资源不存在
+            return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR_ERROR);
+        }
         MeetingRoomInfoPO byId = meetingRoomInfoDaoService.getById(meetingRoomContextDTO.getMeetingRoomId());
         if (ObjectUtil.isNull(byId)) {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
@@ -512,7 +522,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.success(null);
         }
         String state = byId.getState();
-        if (MeetingRoomStateEnum.Destroyed.getState().equals(state)) {
+        if (!MeetingRoomStateEnum.Schedule.getState().equals(state)) {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_MEETING_ROOM);
         }
         Integer resourceId = byId.getResourceId();
@@ -775,6 +785,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult<List<RecordVO>> getMeetingRoomRecordList(Long meetingRoomId) {
 
         MeetingRoomInfoPO byId = meetingRoomInfoDaoService.getById(meetingRoomId);
+        if (ObjectUtil.isNull(byId)) {
+            return CommonResult.success(null);
+        }
         List<RecordVO> recordVOS = hwMeetingCommonService.queryRecordFiles(byId.getHwMeetingId());
         return CommonResult.success(recordVOS);
     }
