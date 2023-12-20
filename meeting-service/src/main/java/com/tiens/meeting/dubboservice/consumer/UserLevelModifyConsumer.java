@@ -2,32 +2,26 @@ package com.tiens.meeting.dubboservice.consumer;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
-import com.huaweicloud.sdk.core.exception.ServiceResponseException;
-import com.huaweicloud.sdk.meeting.v1.MeetingClient;
-import com.huaweicloud.sdk.meeting.v1.model.AuthTypeEnum;
-import com.huaweicloud.sdk.meeting.v1.model.BatchDeleteUsersRequest;
-import com.huaweicloud.sdk.meeting.v1.model.BatchDeleteUsersResponse;
-import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
+import com.tiens.meeting.dubboservice.bo.MqCacheCleanBO;
 import com.tiens.meeting.dubboservice.model.UserLevelModEntity;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.po.MeetingLevelResourceConfigPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
 import com.tiens.meeting.repository.service.MeetingLevelResourceConfigDaoService;
-import common.exception.ServiceException;
+import com.tiens.meeting.util.RedisKeyCleanUtil;
+import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.dubbo.config.annotation.Reference;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.redisson.api.RType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -52,10 +46,12 @@ public class UserLevelModifyConsumer implements RocketMQListener<MessageExt> {
     @Autowired
     MeetingLevelResourceConfigDaoService meetingLevelResourceConfigDaoService;
 
+    @Value("${rocketmq.producer.clean_cache_topic}")
+    String cleanCacheTopic;
 
     @Override
     public void onMessage(MessageExt messageExt) {
-        UserLevelModEntity userLevelModEntity=new UserLevelModEntity();
+        UserLevelModEntity userLevelModEntity = new UserLevelModEntity();
         try {
             String s = new String(messageExt.getBody(), "utf-8");
             userLevelModEntity = JSON.parseObject(s, UserLevelModEntity.class);
@@ -63,28 +59,36 @@ public class UserLevelModifyConsumer implements RocketMQListener<MessageExt> {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
+        //移除VM用户缓存
+        SpringUtil.getBean(RedisKeyCleanUtil.class).sendCleanCacheMsg(new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT,
+            CacheKeyUtil.getUserInfoKey(userLevelModEntity.getAccId()), null));
+
         //逻辑校验   是否在表中有记录
-        Optional<MeetingHostUserPO> meetingHostUserPO = meetingHostUserDaoService.lambdaQuery().eq(MeetingHostUserPO::getAccId, userLevelModEntity.getAccId()).oneOpt();
-        if(!meetingHostUserPO.isPresent()){
-            log.info("用户等级修改主持人表无此消息,参数：{}",userLevelModEntity);
+        Optional<MeetingHostUserPO> meetingHostUserPO =
+            meetingHostUserDaoService.lambdaQuery().eq(MeetingHostUserPO::getAccId, userLevelModEntity.getAccId())
+                .oneOpt();
+        if (!meetingHostUserPO.isPresent()) {
+            log.info("用户等级修改主持人表无此消息,参数：{}", userLevelModEntity);
             return;
         }
 
         //尝试修改主持人表
-        boolean update = meetingHostUserDaoService.lambdaUpdate().eq(MeetingHostUserPO::getAccId, userLevelModEntity.getAccId())
+        boolean update =
+            meetingHostUserDaoService.lambdaUpdate().eq(MeetingHostUserPO::getAccId, userLevelModEntity.getAccId())
                 .set(MeetingHostUserPO::getLevel, userLevelModEntity.getLevel()).update();
         log.info("修改主持人等级结果：{}", update);
         MeetingHostUserPO hostUserPO = meetingHostUserPO.get();
         //判断主持人配置的会议资源 9级特殊处理 ,1到8级必须大于自身等级的资源方数
-        if (userLevelModEntity.getLevel()==9){
-            if (!(hostUserPO.getResourceType()>=7)){
+        if (userLevelModEntity.getLevel() == 9) {
+            if (!(hostUserPO.getResourceType() >= 7)) {
                 //移除不符合规则的主持人
                 meetingHostUserDaoService.removeById(hostUserPO.getId());
             }
-        }else{
+        } else {
             //1-8级逻辑处理
-            MeetingLevelResourceConfigPO configPO = meetingLevelResourceConfigDaoService.lambdaQuery().eq(MeetingLevelResourceConfigPO::getVmUserLevel, userLevelModEntity.getLevel()).oneOpt().get();
-            if (hostUserPO.getResourceType()<=configPO.getResourceType()){
+            MeetingLevelResourceConfigPO configPO = meetingLevelResourceConfigDaoService.lambdaQuery()
+                .eq(MeetingLevelResourceConfigPO::getVmUserLevel, userLevelModEntity.getLevel()).oneOpt().get();
+            if (hostUserPO.getResourceType() <= configPO.getResourceType()) {
                 //移除不符合规则的主持人
                 meetingHostUserDaoService.removeById(hostUserPO.getId());
             }
