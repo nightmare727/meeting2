@@ -55,7 +55,7 @@ public class MeetingStopTask {
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
             .eq(MeetingRoomInfoPO::getNotifyRoomStopStatus, 0)
-            .le(MeetingRoomInfoPO::getLockEndTime, DateUtil.offsetMinute(new Date(), 30)).list();
+            .le(MeetingRoomInfoPO::getLockEndTime, DateUtil.offsetMinute(new Date(), 90)).list();
         if (CollectionUtil.isEmpty(list)) {
             log.info("【会议结束前30分钟前发送消息】:当前无需要通知的消息");
             return;
@@ -70,14 +70,15 @@ public class MeetingStopTask {
         batchMessageVo.setFromAccid(fromAccid);
         batchMessageVo.setToAccids(toAccIds);
         batchMessageVo.setPushcontent(pushContent);
-        batchMessageVo.setAttach(JSONUtil.createObj().putOnce("pushContent", pushContent).toString());
+        batchMessageVo.setAttach(
+            JSONUtil.createObj().set("pushContent", pushContent).set("push_type", "room_stop_notice").toString());
 //        batchMessageVo.setPayload("");//不传ios收不到
         log.info("定时推送会议30分钟前发送消息入参：{}", batchMessageVo);
         Result<?> result = messageService.batchSendAttachMessage(batchMessageVo);
         log.info("定时推送会议30分钟前发送消息结果：{}", result);
 
-        meetingRoomInfoDaoService.lambdaUpdate().set(MeetingRoomInfoPO::getNotifyRoomStopStatus, 1)
-            .in(MeetingRoomInfoPO::getId, ids).update();
+//        meetingRoomInfoDaoService.lambdaUpdate().set(MeetingRoomInfoPO::getNotifyRoomStopStatus, 1)
+//            .in(MeetingRoomInfoPO::getId, ids).update();
         log.info("会议结束前30分钟前发送消息完成，共执行：{}条", ids.size());
     }
 }
