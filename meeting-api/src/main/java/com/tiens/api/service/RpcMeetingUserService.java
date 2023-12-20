@@ -73,6 +73,7 @@ public interface RpcMeetingUserService {
     /**
      * 查询会议资源配置列表
      * @return
+     * @param level
      */
-    CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes();
+    CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes(Integer level);
 }
