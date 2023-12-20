@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.huaweicloud.sdk.core.exception.ServiceResponseException;
@@ -287,10 +288,16 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     }
 
     @Override
-    public CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes() {
-        List<MeetingLevelResourceConfigPO> list =
-            meetingLevelResourceConfigDaoService.lambdaQuery().ne(MeetingLevelResourceConfigPO::getResourceType, 0)
-                .list();
+    public CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes(Integer level) {
+        QueryWrapper<MeetingLevelResourceConfigPO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne("resource_type", 0);
+        if (level==9){
+            queryWrapper.eq("vm_user_level",level);
+        }
+        if (level>=3&&level!=9){
+            queryWrapper.gt("vm_user_level",level);
+        }
+        List<MeetingLevelResourceConfigPO> list = meetingLevelResourceConfigDaoService.list(queryWrapper);
         if (!ObjectUtil.isNotEmpty(list)) {
             return CommonResult.success(null);
         }

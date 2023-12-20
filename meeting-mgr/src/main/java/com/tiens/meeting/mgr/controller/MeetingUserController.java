@@ -97,8 +97,8 @@ public class MeetingUserController {
      */
     @ResponseBody
     @GetMapping("/queryResourceTypes")
-    public CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes(){
-        CommonResult<List<MeetingResourceTypeVO>> listCommonResult = rpcMeetingUserService.queryResourceTypes();
+    public CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes(@RequestParam("level") Integer level){
+        CommonResult<List<MeetingResourceTypeVO>> listCommonResult = rpcMeetingUserService.queryResourceTypes(level);
         return listCommonResult;
     }
 
