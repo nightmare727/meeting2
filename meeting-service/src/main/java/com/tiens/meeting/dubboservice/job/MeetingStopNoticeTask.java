@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class MeetingStopNoticeTask {
-    @Reference
+    @Reference(version = "1.0")
     MessageService messageService;
 
     @Autowired
