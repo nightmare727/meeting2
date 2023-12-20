@@ -15,6 +15,7 @@ import com.tiens.meeting.dubboservice.core.entity.MeetingRoomModel;
 import common.enums.MeetingRoomStateEnum;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
+import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -45,10 +46,12 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         //将开始时间转化成UTC时间
 
         Date startTime = meetingRoomContextDTO.getStartTime();
-        boolean immediatelyFlag;
-        if (immediatelyFlag = ObjectUtil.isNull(startTime)) {
-            startTime = DateUtil.date();
-        }
+
+        //是否预约会议
+        Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
+        //处理开始时间
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
+
         ZoneId zoneId3 = ZoneId.of("GMT");
         DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
@@ -91,7 +94,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             log.error("创建网络研讨会会议、预约会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);
         } finally {
-            if (!immediatelyFlag) {
+            if (subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
                 hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                     Collections.singletonList(meetingRoomContextDTO.getVmrId()));
@@ -109,10 +112,10 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
     @Override
     public void updateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         Date startTime = meetingRoomContextDTO.getStartTime();
-        boolean immediatelyFlag;
-        if (immediatelyFlag = ObjectUtil.isNull(startTime)) {
-            startTime = DateUtil.date();
-        }
+        //是否预约会议
+        Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
+        //处理开始时间
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
         ZoneId zoneId3 = ZoneId.of("GMT");
         DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
@@ -148,7 +151,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             log.error("编辑网络研讨会会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_MOD_MEETING_ERROR);
         } finally {
-            if (!immediatelyFlag) {
+            if (subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
                 hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                     Collections.singletonList(meetingRoomContextDTO.getVmrId()));

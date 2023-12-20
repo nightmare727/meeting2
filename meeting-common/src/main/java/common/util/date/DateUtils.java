@@ -1,5 +1,8 @@
 package common.util.date;
 
+import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 
 import java.time.*;
@@ -24,6 +27,42 @@ public class DateUtils {
     public static final String FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND = "yyyy-MM-dd HH:mm:ss";
 
     public static final String FORMAT_HOUR_MINUTE_SECOND = "HH:mm:ss";
+
+
+    /**
+     * 将给定的时间四舍五入到最近的半点时间
+     *
+     * @param dateTime 给定的时间
+     * @return 最近的半点时间
+     */
+    public static DateTime roundToHalfHour(DateTime dateTime) {
+        DateTime result = DateUtil.dateNew(dateTime);
+        int newUear = dateTime.getField(DateField.YEAR);
+        int newDay = dateTime.getField(DateField.DAY_OF_YEAR);
+        int newHour = dateTime.getField(DateField.HOUR_OF_DAY);
+        int newMinute = dateTime.getField(DateField.MINUTE);
+        if (newMinute < 30) {
+            newMinute = 30;
+        } else {
+            //大于30分钟
+            if (newHour == 23) {
+                //取当天最后一分
+                newMinute = 59;
+            } else {
+                //需要跨小时
+                newHour++;
+                newMinute = 0;
+            }
+
+        }
+        result.setField(DateField.YEAR, newUear);
+        result.setField(DateField.DAY_OF_YEAR, newDay);
+        result.setField(DateField.HOUR_OF_DAY, newHour);
+        result.setField(DateField.MINUTE, newMinute);
+        result.setField(DateField.SECOND, 0);
+        result.setField(DateField.MILLISECOND, 0);
+        return result;
+    }
 
     /**
      * 将 LocalDateTime 转换成 Date

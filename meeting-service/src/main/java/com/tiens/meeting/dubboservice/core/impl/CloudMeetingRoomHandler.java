@@ -13,6 +13,7 @@ import com.tiens.meeting.dubboservice.core.entity.CancelMeetingRoomModel;
 import com.tiens.meeting.dubboservice.core.entity.MeetingRoomModel;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
+import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -43,16 +44,15 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         //将开始时间转化成UTC时间
 
         Date startTime = meetingRoomContextDTO.getStartTime();
-        Integer resourceStatus = meetingRoomContextDTO.getResourceStatus();
-        String startTimeStr = "";
-        if (ObjectUtil.isNotNull(startTime)) {
-            //非空表示为预约会议
-            ZoneId zoneId3 = ZoneId.of("GMT");
-            DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
-            LocalDateTime of = LocalDateTimeUtil.of(dateTime);
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            startTimeStr = dateTimeFormatter.format(of);
-        }
+        //是否预约会议
+        Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
+        //处理开始时间
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
+        ZoneId zoneId3 = ZoneId.of("GMT");
+        DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
+        LocalDateTime of = LocalDateTimeUtil.of(dateTime);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        String startTimeStr = dateTimeFormatter.format(of);
         try {
             //分配云会议资源
             hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
@@ -111,7 +111,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             log.error("创建云会议、预约会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);
         } finally {
-            if (!ObjectUtil.isEmpty(startTimeStr)) {
+            if (subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
                 hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                     Collections.singletonList(meetingRoomContextDTO.getVmrId()));
@@ -128,10 +128,10 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
     @Override
     public void updateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         Date startTime = meetingRoomContextDTO.getStartTime();
-        boolean immediatelyFlag;
-        if (immediatelyFlag = ObjectUtil.isNull(startTime)) {
-            startTime = DateUtil.date();
-        }
+        //是否预约会议
+        Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
+        //处理开始时间
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
         ZoneId zoneId3 = ZoneId.of("GMT");
         DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
@@ -182,7 +182,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             log.error("编辑云会议、预约会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_MOD_MEETING_ERROR);
         } finally {
-            if (!immediatelyFlag) {
+            if (subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
                 hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                     Collections.singletonList(meetingRoomContextDTO.getVmrId()));

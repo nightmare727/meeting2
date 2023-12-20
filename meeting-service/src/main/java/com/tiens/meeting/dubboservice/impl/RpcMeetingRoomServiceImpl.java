@@ -29,6 +29,7 @@ import common.enums.*;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
 import common.util.cache.CacheKeyUtil;
+import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -137,8 +138,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     public static void main(String[] args) {
-        System.out.println(
-            String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getMsg(), new Date().getTime()));
+        // 获取当前时间
+        DateTime now = DateUtil.date();
+        System.out.println("当前时间：" + now);
+//        DateUtil.round()
+        // 四舍五入到最近的半点时间
+        DateTime roundedTime = DateUtils.roundToHalfHour(DateUtil.parse("2023-12-20 23:50:00"));
+        System.out.println("最近的半点时间：" + roundedTime);
 
     }
 
@@ -294,7 +300,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         //展示开始时间
-        Date showStartTime = ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(), DateUtil.date());
+        DateTime showStartTime = DateUtils.roundToHalfHour(
+            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), DateUtil.date()));
         Integer length = meetingRoomContextDTO.getLength();
         //展示结束时间
         DateTime showEndTime = DateUtil.offsetMinute(showStartTime, length);
