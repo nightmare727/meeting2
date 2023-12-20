@@ -3,6 +3,7 @@ package com.tiens.meeting.dubboservice.job;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
 import com.tiens.common.Result;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.imchatapi.vo.message.BatchAttachMessageVo;
@@ -61,14 +62,14 @@ public class MeetingStopNoticeTask {
             return;
         }
 
-        String toAccIds =
-            list.stream().map(MeetingRoomInfoPO::getOwnerImUserId).distinct().collect(Collectors.joining(","));
+        List<String> toAccIds =
+            list.stream().map(MeetingRoomInfoPO::getOwnerImUserId).distinct().collect(Collectors.toList());
 
         List<Long> ids = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
 
         BatchAttachMessageVo batchMessageVo = new BatchAttachMessageVo();
         batchMessageVo.setFromAccid(fromAccid);
-        batchMessageVo.setToAccids(toAccIds);
+        batchMessageVo.setToAccids(JSON.toJSONString(toAccIds));
         batchMessageVo.setPushcontent(pushContent);
         batchMessageVo.setAttach(
             JSONUtil.createObj().set("pushContent", pushContent).set("push_type", "room_stop_notice").toString());
