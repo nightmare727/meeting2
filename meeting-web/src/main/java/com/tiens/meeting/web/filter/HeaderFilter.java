@@ -5,11 +5,9 @@ import com.alibaba.fastjson.JSON;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.VMUserVO;
 import common.pojo.CommonResult;
-import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
-import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -78,14 +76,8 @@ public class HeaderFilter implements Filter {
             response.flushBuffer();
             return;
         }
-        //查询缓存
-        RBucket<VMUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(finalUserId));
-        VMUserVO vmUserVO = bucket.get();
-        if (ObjectUtil.isEmpty(vmUserVO)) {
-            CommonResult<VMUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryVMUser("", finalUserId);
-            vmUserVO = vmUserVOCommonResult.getData();
-            bucket.setIfAbsentAsync(vmUserVO);
-        }
+        CommonResult<VMUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryVMUser("", finalUserId);
+        VMUserVO vmUserVO = vmUserVOCommonResult.getData();
         if (ObjectUtil.isEmpty(vmUserVO)) {
             //仍为null
             log.error("VM数据查询异常，accid:{}", finalUserId);

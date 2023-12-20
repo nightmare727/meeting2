@@ -4,6 +4,7 @@ import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingHostUserVO;
 import com.tiens.api.vo.VMMeetingCredentialVO;
+import com.tiens.api.vo.VMUserVO;
 import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -38,6 +39,19 @@ public class MeetingUserController {
         CommonResult<MeetingHostUserVO> meetingHostUserVOCommonResult =
             rpcMeetingUserService.queryMeetingHostUser(accid);
         return meetingHostUserVOCommonResult;
+    }
+
+    /**
+     * 查询VM用户信息
+     *
+     * @param finalUserId
+     * @return
+     * @throws Exception
+     */
+    @ResponseBody
+    @GetMapping("/queryVMUser")
+    public CommonResult<VMUserVO> queryVMUser(@RequestHeader("finalUserId") String finalUserId) throws Exception {
+        return rpcMeetingUserService.queryVMUser(null, finalUserId);
     }
 
     /**

@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @Slf4j
-public class MeetingStopTask {
+public class MeetingStopNoticeTask {
     @Reference
     MessageService messageService;
 
@@ -47,7 +47,7 @@ public class MeetingStopTask {
     @Value("${live.pushcontent}")
     String pushContent;
 
-    @XxlJob("MeetingStopJobHandler")
+    @XxlJob("MeetingStopNoticeJobHandler")
     @Transactional(rollbackFor = Exception.class)
     public void jobHandler() throws Exception {
         //1、找到快结束的会议室，给主持人发送IM消息
