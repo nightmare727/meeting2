@@ -10,6 +10,7 @@ import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.dubboservice.job.AppointMeetingTask;
 import com.tiens.meeting.dubboservice.job.HWResourceTask;
+import com.tiens.meeting.dubboservice.job.MeetingStopTask;
 import common.enums.MeetingResourceHandleEnum;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,8 @@ class RpcMeetingRoomServiceImplTest {
     HWResourceTask hwResourceTask;
     @Autowired
     AppointMeetingTask appointMeetingTask;
+    @Autowired
+    MeetingStopTask meetingStopTask;
 
     @Test
     void getCredential() {
@@ -163,7 +166,11 @@ class RpcMeetingRoomServiceImplTest {
     void hwAPPointTask() {
         appointMeetingTask.jobHandler();
     }
-
+    @Test
+    @SneakyThrows
+    void hwStopTask() {
+        meetingStopTask.jobHandler();
+    }
 
     @Test
     @SneakyThrows
