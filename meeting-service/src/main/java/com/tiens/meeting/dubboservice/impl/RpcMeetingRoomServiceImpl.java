@@ -182,8 +182,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<Integer> lockedResourceIdList =
             lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
         //去除空闲资源中被锁定的资源
-        result =
-            result.stream().filter(t -> !lockedResourceIdList.contains(t.getId())).peek(t->t.setResourceType(freeResourceListDTO.getResourceType())).collect(Collectors.toList());
+        result = result.stream().filter(t -> !lockedResourceIdList.contains(t.getId()))
+            .peek(t -> t.setResourceType(freeResourceListDTO.getResourceType())).collect(Collectors.toList());
 
         return CommonResult.success(result);
     }
@@ -347,10 +347,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.LEVEL_NOT_ENOUGH);
         }
         Date startTime = meetingRoomContextDTO.getStartTime();
-        if (ObjectUtil.isNotNull(startTime) && startTime.before(DateUtil.date())) {
+        if (ObjectUtil.isNotNull(startTime)) {
             //开始时间小于当前时间
-            //资源不存在
-            return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR_ERROR);
+            if (startTime.before(DateUtil.date())) {
+                return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
+            }
+            //无法创建3个月后的会议
+            if (startTime.after(DateUtil.offsetMonth(new Date(), 3))) {
+                return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
+            }
         }
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
@@ -370,7 +375,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .eq(MeetingRoomInfoPO::getOwnerImUserId, meetingRoomContextDTO.getImUserId())
             //非结束的会议
             .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).count();
-        if (count > 2) {
+        if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && count > 2) {
             //每个用户只可同时存在2个预约的公用会议室，超出时，则主页创建入口，提示”只可以同时存在2个预约的会议室，不可再次预约“
             return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_MORE_THAN);
         }
@@ -394,10 +399,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.LEVEL_NOT_ENOUGH);
         }
         Date startTime = meetingRoomContextDTO.getStartTime();
-        if (ObjectUtil.isNotNull(startTime) && startTime.before(DateUtil.date())) {
+        if (ObjectUtil.isNotNull(startTime)) {
             //开始时间小于当前时间
-            //资源不存在
-            return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR_ERROR);
+            if (startTime.before(DateUtil.date())) {
+                return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
+            }
+            //无法创建3个月后的会议
+            if (startTime.after(DateUtil.offsetMonth(new Date(), 3))) {
+                return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
+            }
         }
         MeetingRoomInfoPO byId = meetingRoomInfoDaoService.getById(meetingRoomContextDTO.getMeetingRoomId());
         if (ObjectUtil.isNull(byId)) {

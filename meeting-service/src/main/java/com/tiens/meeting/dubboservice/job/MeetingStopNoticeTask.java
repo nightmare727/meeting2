@@ -56,6 +56,7 @@ public class MeetingStopNoticeTask {
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
             .eq(MeetingRoomInfoPO::getNotifyRoomStopStatus, 0)
+//            .le(MeetingRoomInfoPO::getLockEndTime, DateUtil.date()).list();
             .le(MeetingRoomInfoPO::getLockEndTime, DateUtil.offsetMinute(new Date(), 90)).list();
         if (CollectionUtil.isEmpty(list)) {
             log.info("【会议结束前30分钟前发送消息】:当前无需要通知的消息");
