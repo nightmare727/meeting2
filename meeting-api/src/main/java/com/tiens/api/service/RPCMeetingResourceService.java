@@ -3,6 +3,7 @@ package com.tiens.api.service;
 import com.tiens.api.dto.CancelResourceAllocateDTO;
 import com.tiens.api.dto.ResourceAllocateDTO;
 import com.tiens.api.vo.MeetingResourceVO;
+import com.tiens.api.vo.MeetingRoomDetailDTO;
 import common.exception.ServiceException;
 import common.pojo.CommonResult;
 
@@ -39,4 +40,11 @@ public interface RPCMeetingResourceService {
      */
     CommonResult cancelAllocate(CancelResourceAllocateDTO cancelResourceAllocateDTO);
 
+    /**
+     * 根据资源号查询会议列表
+     *
+     * @param resourceId
+     * @return
+     */
+    CommonResult<List<MeetingRoomDetailDTO>> queryMeetingRoomList(Integer resourceId);
 }

@@ -1,10 +1,13 @@
 package com.tiens.meeting.mgr.controller;
 
+import com.tiens.api.dto.CancelMeetingRoomDTO;
 import com.tiens.api.dto.CancelResourceAllocateDTO;
 import com.tiens.api.dto.ResourceAllocateDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RPCMeetingTimeZoneService;
+import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.MeetingResourceVO;
+import com.tiens.api.vo.MeetingRoomDetailDTO;
 import com.tiens.api.vo.MeetingTimeZoneConfigVO;
 import common.pojo.CommonResult;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,6 +34,9 @@ public class MeetingResourceController {
     @Reference
     RPCMeetingResourceService rpcMeetingResourceService;
 
+    @Reference
+    RpcMeetingRoomService rpcMeetingRoomService;
+
     /**
      * 获取时区列表
      *
@@ -52,6 +58,31 @@ public class MeetingResourceController {
     public CommonResult<List<MeetingResourceVO>> queryMeetingResoucePage() {
         CommonResult<List<MeetingResourceVO>> listCommonResult = rpcMeetingResourceService.queryMeetingResourceList();
         return listCommonResult;
+    }
+
+    /**
+     * 取消会议
+     *
+     * @param cancelMeetingRoomDTO
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/cancelMeetingRoom")
+    CommonResult cancelMeetingRoom(@RequestBody CancelMeetingRoomDTO cancelMeetingRoomDTO) {
+        return rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
+    }
+
+    /**
+     * 查询资源相关会议列表
+     *
+     * @param resourceId
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/queryMeetingRoomList/{resourceId}")
+    public CommonResult<List<MeetingRoomDetailDTO>> queryMeetingRoomList(
+        @PathVariable("resourceId") Integer resourceId) {
+        return rpcMeetingResourceService.queryMeetingRoomList(resourceId);
     }
 
     /**

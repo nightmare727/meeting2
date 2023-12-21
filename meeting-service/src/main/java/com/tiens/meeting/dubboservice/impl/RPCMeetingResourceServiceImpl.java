@@ -10,6 +10,7 @@ import com.tiens.api.dto.ResourceAllocateDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingResourceVO;
+import com.tiens.api.vo.MeetingRoomDetailDTO;
 import com.tiens.api.vo.VMUserVO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
@@ -148,5 +149,21 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
             .set(MeetingResourcePO::getStatus, emptyRoomFlag ? MeetingResourceStateEnum.PUBLIC_FREE.getState()
                 : MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState()).update();
         return CommonResult.success(null);
+    }
+
+    /**
+     * 根据资源号查询会议列表
+     *
+     * @param resourceId
+     * @return
+     */
+    @Override
+    public CommonResult<List<MeetingRoomDetailDTO>> queryMeetingRoomList(Integer resourceId) {
+        List<MeetingRoomInfoPO> list =
+            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, resourceId)
+                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
+                .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list();
+        List<MeetingRoomDetailDTO> meetingRoomDetailDTOS = BeanUtil.copyToList(list, MeetingRoomDetailDTO.class);
+        return CommonResult.success(meetingRoomDetailDTOS);
     }
 }
