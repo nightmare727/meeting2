@@ -22,6 +22,11 @@ public class ResourceTypeVO implements Serializable {
      *
      */
     private String code;
+
+    /**
+     * 词条key
+     */
+    private String wordKey;
     /**
      * 描述
      */

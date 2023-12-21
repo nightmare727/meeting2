@@ -182,7 +182,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<Integer> lockedResourceIdList =
             lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
         //去除空闲资源中被锁定的资源
-        result = result.stream().filter(t -> !lockedResourceIdList.contains(t.getId())).collect(Collectors.toList());
+        result =
+            result.stream().filter(t -> !lockedResourceIdList.contains(t.getId())).peek(t->t.setResourceType(freeResourceListDTO.getResourceType())).collect(Collectors.toList());
 
         return CommonResult.success(result);
     }
@@ -824,7 +825,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
                 .collect(Collectors.toList()).stream().map(
                     t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc())
-                        .size(t.getValue()).build()).collect(Collectors.toList());
+                        .size(t.getValue()).wordKey(t.getWordKey()).build()).collect(Collectors.toList());
         //查询私池
         List<MeetingResourcePO> privateResourceList =
             meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getOwnerImUserId, imUserId)
@@ -833,7 +834,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<ResourceTypeVO> collect = privateResourceList.stream().map(MeetingResourcePO::getSize).distinct().map(
             t -> ResourceTypeVO.builder().type(2)
                 .code(imUserId + "-" + t + "-" + MeetingResourceEnum.getBySize(t).getCode())
-                .desc(String.format(privateResourceTypeFormat, t)).size(t).build()).collect(Collectors.toList());
+                .desc(String.format(privateResourceTypeFormat, t)).size(t)
+                .wordKey(MeetingResourceEnum.specialResourceKey).build()).collect(Collectors.toList());
 
         collect.addAll(levelResourceTypeVOList);
         return CommonResult.success(collect);

@@ -22,12 +22,6 @@ public interface GlobalErrorCodeConstants {
     ErrorCode LOCKED = new ErrorCode("423", "请求失败，请稍后重试"); // 并发请求，不允许
     ErrorCode TOO_MANY_REQUESTS = new ErrorCode("429", "请求过于频繁，请稍后重试");
 
-    ErrorCode INVALID_ACC_ID = new ErrorCode("430", "无效的accId");
-
-    // ========== 服务端错误段 ==========
-
-    ErrorCode INTERNAL_SERVER_ERROR = new ErrorCode("500", "系统异常");
-    ErrorCode NOT_IMPLEMENTED = new ErrorCode("501", "功能未实现/未开启");
 
     // ========== 自定义错误段 ==========
     ErrorCode REPEATED_REQUESTS = new ErrorCode("900", "重复请求，请稍后重试"); // 重复请求
@@ -37,6 +31,13 @@ public interface GlobalErrorCodeConstants {
 
     ErrorCode OP_HW_CLIENT_ERROR = new ErrorCode("500", "操作华为云客户端异常");
 
+    ErrorCode NOT_IMPLEMENTED = new ErrorCode("501", "功能未实现/未开启");
+
+
+    // ========== 服务端错误段 ==========
+    ErrorCode INVALID_ACC_ID = new ErrorCode("430", "无效的accId");
+
+    ErrorCode INTERNAL_SERVER_ERROR = new ErrorCode("500", "系统异常");
     ErrorCode NOT_FOUND_HOST_INFO = new ErrorCode("2000001", "主持人信息不存在！");
     ErrorCode EXIST_HOST_INFO = new ErrorCode("2000002", "主持人信息已存在！");
     ErrorCode NOT_EXIST_ROOM_INFO = new ErrorCode("2000003", "会议号不存在或已结束！");
