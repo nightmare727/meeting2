@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @Author: 蔚文杰
@@ -76,7 +77,12 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     @Override
     public CommonResult<List<MeetingResourceVO>> queryMeetingResourceList() throws ServiceException {
         List<MeetingResourcePO> list = meetingResourceDaoService.list();
-        List<MeetingResourceVO> resourceVOS = BeanUtil.copyToList(list, MeetingResourceVO.class);
+        List<MeetingResourceVO> resourceVOS = list.stream().map(t -> {
+            MeetingResourceVO meetingResourceVO = BeanUtil.copyProperties(t, MeetingResourceVO.class);
+            meetingResourceVO.setResourceType(String.valueOf(t.getResourceType()));
+            return meetingResourceVO;
+        }).collect(Collectors.toList());
+
         return CommonResult.success(resourceVOS);
     }
 
