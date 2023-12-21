@@ -38,6 +38,7 @@ import common.util.cache.CacheKeyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RBucket;
@@ -104,7 +105,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         HomepageUserDTO data = dtoResult.getData();
         VMUserVO vmUserVO = BeanUtil.copyProperties(data, VMUserVO.class);
         vmUserVO.setJoyoCode(data.getJoyo_code());
-        bucket.set(vmUserVO);
+        if(StringUtils.isNotEmpty(accid)){
+            bucket.set(vmUserVO);
+        }
         return CommonResult.success(vmUserVO);
     }
 
