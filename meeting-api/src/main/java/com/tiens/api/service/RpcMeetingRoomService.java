@@ -44,7 +44,8 @@ public interface RpcMeetingRoomService {
      * @param meetingRoomContextDTO
      * @return
      */
-    CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO);
+    CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO)
+        throws Exception;
 
     /**
      * 编辑会议

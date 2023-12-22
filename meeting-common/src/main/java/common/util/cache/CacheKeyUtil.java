@@ -15,6 +15,8 @@ public class CacheKeyUtil {
     private static final String HW_USER_KEY_PREFIX = "im-hw-user-flag";
     private static final String HW_ROOM_EVENT_SYNC_PREFIX = "hw_room_event_count:";
 
+    private static final String HW_ROOM_RESOURCE_LOCK_PREFIX = "room_resource_lock:";
+
     public static String getUserInfoKey(String imUserId) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(IM_USER_KEY_PREFIX).append(imUserId).toString();
     }
@@ -27,6 +29,16 @@ public class CacheKeyUtil {
      */
     public static String getHwUserSyncKey() {
         return new StringBuilder(BASE_CACHE_PREFIX).append(HW_USER_KEY_PREFIX).toString();
+    }
+
+    /**
+     * 资源分布式锁
+     *
+     * @param
+     * @return
+     */
+    public static String getResourceLockKey(Integer resourceId) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(HW_ROOM_RESOURCE_LOCK_PREFIX).append(resourceId).toString();
     }
 
     /**

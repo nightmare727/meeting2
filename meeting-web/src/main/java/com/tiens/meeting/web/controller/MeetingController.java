@@ -91,7 +91,7 @@ public class MeetingController {
     @PostMapping("/createMeetingRoom")
     CommonResult<MeetingRoomDetailDTO> createMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
         @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
-        @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) {
+        @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) throws Exception {
         meetingRoomContextDTO.setImUserId(finalUserId);
         meetingRoomContextDTO.setLevelCode(levelCode);
         meetingRoomContextDTO.setImUserName(userName);
