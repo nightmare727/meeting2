@@ -116,8 +116,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //不存在会议
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
         }
+
         // 若为共有资源会议，需判断是否为开始时间 30min内，若在则直接进入会议，
         MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOpt.get();
+        String state = meetingRoomInfoPO.getState();
+        if (MeetingRoomStateEnum.Destroyed.getState().equals(state)) {
+            //会议已结束
+            return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
+        }
+
         Integer resourceId = meetingRoomInfoPO.getResourceId();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         if (ObjectUtil.isEmpty(meetingResourcePO.getOwnerImUserId())) {
