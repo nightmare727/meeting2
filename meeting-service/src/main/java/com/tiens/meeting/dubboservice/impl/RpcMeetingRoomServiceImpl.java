@@ -258,7 +258,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
         try {
-            lock.lockInterruptibly(5, TimeUnit.SECONDS);
+            lock.lock(5, TimeUnit.SECONDS);
             CommonResult checkResult = checkCreateMeetingRoom(meetingRoomContextDTO);
             if (!checkResult.isSuccess()) {
                 return checkResult;
