@@ -745,7 +745,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     /**
-     * 更新华为云会议室状态
+     * 更新华为云会议室状态 正常普通会议，一个会结束时结束和关闭事件都会推。 周期会议，或者开启会议结束保留预约记录开关的时候只会触发会议结束，不会触发会议关闭事件
      *
      * @param hwEventReq
      * @return
