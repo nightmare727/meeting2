@@ -759,6 +759,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         EventInfo eventInfo = hwEventReq.getEventInfo();
         //事件名
         String event = eventInfo.getEvent();
+
+        try {
+
+        } catch (Exception e) {
+
+        }
         if ("meeting.verify".equals(event)) {
             //验证事件
             String s = JSONUtil.createObj().set("event", "meeting.verify").set("nonce", nonce).toStringPretty();
@@ -797,16 +803,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
                 .set(MeetingRoomInfoPO::getRelStartTime, DateUtil.date(timestamp)).update();
             log.info("华为云会议事件开始会议id：{}，结果：{}", meetingID, update);
-        } else if ("meeting.end".equals(event)) {
-            //会议结束事件-当企业下的某个会议结束，服务端会推送会议结束事件消息的post请求到企业开发者回调URL。会议结束后，如果会议预定的结束时间还没到，可以再次加入该会议。
-        } else if ("meeting.conclude".equals(event) || (MeetingRoomHandlerEnum.SEMINAR.getVmrMode()
-            .equals(vmrMode) && "meeting.end".equals(event))) {
 
+        } else if ("meeting.end".equals(event) || "meeting.conclude".equals(event)) {
+            //会议结束是一场会开会结束时触发，会议关闭是预约记录删除的时候触发
+            //会议结束事件-当企业下的某个会议结束，服务端会推送会议结束事件消息的post请求到企业开发者回调URL。会议结束后，如果会议预定的结束时间还没到，可以再次加入该会议。
             //会议关闭事件
             boolean update = meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
                 .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
                 .set(MeetingRoomInfoPO::getRelEndTime, DateUtil.date(timestamp)).update();
-
             //回收资源
             publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_DOWN);
 

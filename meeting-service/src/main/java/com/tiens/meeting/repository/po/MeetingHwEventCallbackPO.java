@@ -4,21 +4,21 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
 import lombok.Data;
 
+import java.io.Serializable;
+import java.util.Date;
+
 /**
- * 
  * @TableName meeting_hw_event_callback
  */
-@TableName(value ="meeting_hw_event_callback")
+@TableName(value = "meeting_hw_event_callback")
 @Data
 public class MeetingHwEventCallbackPO implements Serializable {
     /**
      * 主键
      */
-    @TableId(value = "id")
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
     /**
@@ -35,7 +35,6 @@ public class MeetingHwEventCallbackPO implements Serializable {
 
     /**
      * 时间名
-
      */
     @TableField(value = "event")
     private String event;
@@ -47,7 +46,7 @@ public class MeetingHwEventCallbackPO implements Serializable {
     private String payload;
 
     /**
-     * 
+     *
      */
     @TableField(value = "create_time")
     private Date createTime;
