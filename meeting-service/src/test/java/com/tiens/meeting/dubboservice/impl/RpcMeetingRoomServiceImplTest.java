@@ -70,7 +70,7 @@ class RpcMeetingRoomServiceImplTest {
     }
 
     @Test
-    void createMeetingRoom() {
+    void createMeetingRoom() throws Exception {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
