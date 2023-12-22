@@ -143,4 +143,9 @@ public class MeetingRoomDetailDTO implements Serializable {
      */
     private String subject;
 
+    /**
+     * （需要传）是否免费 true: 免密 false: 需要密码
+     */
+    private Boolean guestPwdFlag;
+
 }

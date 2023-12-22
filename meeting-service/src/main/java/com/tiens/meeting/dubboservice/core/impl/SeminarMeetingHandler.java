@@ -221,6 +221,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
                 return;
             }
             OpenWebinarUpcomingInfo openWebinarUpcomingInfo = data.get(0);
+
             meetingRoomDetailDTO.setChairmanPwd(openWebinarUpcomingInfo.getChairPasswd());
 //        meetingRoomDetailDTO.setGeneralPwd(response);
             meetingRoomDetailDTO.setGuestPwd(openWebinarUpcomingInfo.getGuestPasswd());

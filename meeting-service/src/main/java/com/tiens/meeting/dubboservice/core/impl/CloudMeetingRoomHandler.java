@@ -152,7 +152,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
             confConfigInfobody.withCallInRestriction(2).withAllowGuestStartConf(false)
                 .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag()).withVmrIDType(1).withProlongLength(0)
-                .withEnableWaitingRoom(true);
+                .withEnableWaitingRoom(Boolean.FALSE);
             body.withVmrID(meetingRoomContextDTO.getVmrId());
             body.withVmrFlag(1);
             body.withRecordAuthType(1);
@@ -261,6 +261,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             }
 //        meetingRoomDetailDTO.setGuestPwd();
 //        meetingRoomDetailDTO.setAudiencePasswd();
+            meetingRoomDetailDTO.setGuestPwdFlag(conferenceData.getConfConfigInfo().getIsGuestFreePwd());
             meetingRoomDetailDTO.setChairJoinUri(conferenceData.getChairJoinUri());
             meetingRoomDetailDTO.setGuestJoinUri(conferenceData.getGuestJoinUri());
             //网络研讨会观众会议链接地址
