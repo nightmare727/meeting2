@@ -267,8 +267,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             //网络研讨会观众会议链接地址
             meetingRoomDetailDTO.setAudienceJoinUri(conferenceData.getAudienceJoinUri());
         } catch (Exception e) {
-            log.error("取消云会议异常，异常信息：{}", e);
-            throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
+            log.error("查询云会议详情异常，异常信息：{}", e);
+//            throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
         } finally {
 
         }

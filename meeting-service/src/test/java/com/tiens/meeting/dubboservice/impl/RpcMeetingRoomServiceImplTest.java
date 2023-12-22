@@ -113,7 +113,7 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getMeetingRoom() {
         System.out.println(
-            rpcMeetingRoomService.getMeetingRoom(1734014601566973954L, "48cd6848a5ca47c883bd38a5c64287dd"));
+            rpcMeetingRoomService.getMeetingRoom(1738031692086599682L, "48cd6848a5ca47c883bd38a5c64287dd"));
     }
 
     @Test
@@ -136,7 +136,7 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void getHistoryMeetingRoomList() {
-        System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList("48cd6848a5ca47c883bd38a5c64287dd", 12));
+        System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList("39b593338f584b128381170e4c480c6f", 12));
     }
 
     @Test
@@ -152,7 +152,7 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void getMeetingRoomRecordList() {
-        System.out.println(rpcMeetingRoomService.getMeetingRoomRecordList(1733506910402760706L));
+        System.out.println(rpcMeetingRoomService.getMeetingRoomRecordList(1738002691414646786L));
     }
 
     @Test

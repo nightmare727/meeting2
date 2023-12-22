@@ -28,7 +28,6 @@ public class DateUtils {
 
     public static final String FORMAT_HOUR_MINUTE_SECOND = "HH:mm:ss";
 
-
     /**
      * 将给定的时间四舍五入到最近的半点时间
      *
@@ -41,7 +40,7 @@ public class DateUtils {
         int newDay = dateTime.getField(DateField.DAY_OF_YEAR);
         int newHour = dateTime.getField(DateField.HOUR_OF_DAY);
         int newMinute = dateTime.getField(DateField.MINUTE);
-        if (newMinute < 30) {
+        if (newMinute <= 30) {
             newMinute = 30;
         } else {
             //大于30分钟

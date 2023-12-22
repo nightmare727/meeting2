@@ -143,7 +143,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         System.out.println("当前时间：" + now);
 //        DateUtil.round()
         // 四舍五入到最近的半点时间
-        DateTime roundedTime = DateUtils.roundToHalfHour(DateUtil.parse("2023-12-20 23:50:00"));
+        DateTime roundedTime = DateUtils.roundToHalfHour(DateUtil.parse("2023-12-22 10:30:00"));
         System.out.println("最近的半点时间：" + roundedTime);
 
     }
@@ -295,6 +295,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("创建、预约会议完成，参数为：{}", meetingRoomContextDTO);
         return CommonResult.success(result);
     }
+
 
     private MeetingRoomInfoPO packMeetingRoomInfoPO(MeetingRoomContextDTO meetingRoomContextDTO,
         MeetingRoomModel meetingRoom, MeetingResourcePO meetingResourcePO) {

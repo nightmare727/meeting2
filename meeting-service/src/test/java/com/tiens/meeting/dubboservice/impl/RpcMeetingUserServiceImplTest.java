@@ -90,7 +90,7 @@ class RpcMeetingUserServiceImplTest {
     }
     @Test
     void queryResourceTypes() {
-        CommonResult<List<MeetingResourceTypeVO>> listCommonResult = rpcMeetingUserService.queryResourceTypes();
+        CommonResult<List<MeetingResourceTypeVO>> listCommonResult = rpcMeetingUserService.queryResourceTypes(1);
         List<MeetingResourceTypeVO> data = listCommonResult.getData();
         data.forEach(meetingResourceTypeVO -> {
             System.out.println(meetingResourceTypeVO);
