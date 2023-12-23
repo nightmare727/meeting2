@@ -22,7 +22,6 @@ public interface GlobalErrorCodeConstants {
     ErrorCode LOCKED = new ErrorCode("423", "请求失败，请稍后重试"); // 并发请求，不允许
     ErrorCode TOO_MANY_REQUESTS = new ErrorCode("429", "请求过于频繁，请稍后重试");
 
-
     // ========== 自定义错误段 ==========
     ErrorCode REPEATED_REQUESTS = new ErrorCode("900", "重复请求，请稍后重试"); // 重复请求
     ErrorCode DEMO_DENY = new ErrorCode("901", "演示模式，禁止写操作");
@@ -32,7 +31,6 @@ public interface GlobalErrorCodeConstants {
     ErrorCode OP_HW_CLIENT_ERROR = new ErrorCode("500", "操作华为云客户端异常");
 
     ErrorCode NOT_IMPLEMENTED = new ErrorCode("501", "功能未实现/未开启");
-
 
     // ========== 服务端错误段 ==========
     ErrorCode INVALID_ACC_ID = new ErrorCode("430", "无效的accId");
@@ -55,8 +53,11 @@ public interface GlobalErrorCodeConstants {
     ErrorCode HW_CREATE_MEETING_ERROR = new ErrorCode("2000013", "创建会议错误，请稍后重试");
     ErrorCode HW_MOD_MEETING_ERROR = new ErrorCode("2000014", "编辑会议错误，请稍后重试");
     ErrorCode HW_CANCEL_MEETING_ERROR = new ErrorCode("2000015", "取消会议错误，请稍后重试");
-    ErrorCode HW_START_TIME_ERROR = new ErrorCode("2000016", "会议开始时间错误，无法小于当前时间或者选择3个月后，请重新填写");
+    ErrorCode HW_START_TIME_ERROR =
+        new ErrorCode("2000016", "会议开始时间错误，无法小于当前时间或者选择3个月后，请重新填写");
     ErrorCode NOT_ARRIVE_START_TIME_ERROR = new ErrorCode("2000017", "%s");
+    ErrorCode CAN_NOT_USE_PERSONAL_RESOURCE_ERROR = new ErrorCode("2000018", "无权使用专属会议资源");
+    ErrorCode RESOURCE_OPERATED_ERROR = new ErrorCode("2000019", "会议资源正被其他人操作中，请稍后再试");
 
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段

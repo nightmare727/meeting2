@@ -74,11 +74,11 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-//        meetingRoomContextDTO.setStartTime(DateUtil.parse("2023-12-22 12:00:00"));
-        meetingRoomContextDTO.setLength(200);
+        meetingRoomContextDTO.setStartTime(DateUtil.parse("2023-12-27 19:30:00"));
+        meetingRoomContextDTO.setLength(60);
         meetingRoomContextDTO.setSubject("网络研讨会-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setResourceId(229);
-        meetingRoomContextDTO.setResourceType("6");
+        meetingRoomContextDTO.setResourceId(228);
+        meetingRoomContextDTO.setResourceType("1");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
         meetingRoomContextDTO.setGuestPwdFlag(false);

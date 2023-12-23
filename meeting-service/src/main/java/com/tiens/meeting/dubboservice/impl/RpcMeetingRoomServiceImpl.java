@@ -145,17 +145,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         return CommonResult.success(meetingRoomInfoPO.getOwnerImUserId());
     }
 
-    public static void main(String[] args) {
-        // 获取当前时间
-        DateTime now = DateUtil.date();
-        System.out.println("当前时间：" + now);
-//        DateUtil.round()
-        // 四舍五入到最近的半点时间
-        DateTime roundedTime = DateUtils.roundToHalfHour(DateUtil.parse("2023-12-22 10:30:00"));
-        System.out.println("最近的半点时间：" + roundedTime);
-
-    }
-
     /**
      * 获取空闲资源列表
      *
@@ -164,6 +153,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     @Override
     public CommonResult<List<MeetingResourceVO>> getFreeResourceList(FreeResourceListDTO freeResourceListDTO) {
+
+        log.info("空闲资源列表【0】入参：{}", freeResourceListDTO);
         //前端用户能看到的资源列表=【公池该用户等级相关空闲子资源与主持人绑定公池空闲资源 的【并集】】+用户私池
         List<MeetingResourceVO> result;
         if (NumberUtil.isNumber(freeResourceListDTO.getResourceType())) {
@@ -173,9 +164,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //1、查询用户私池资源
             result = getPrivateResourceList(freeResourceListDTO);
         }
+        log.info("空闲资源列表【1】初始过滤资源池结果：{}", result);
+        List<Integer> originResourceIds = result.stream().map(MeetingResourceVO::getId).collect(Collectors.toList());
+
         DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), -30);
-        DateTime endTime = DateUtil.date(freeResourceListDTO.getStartTime())
-            .offset(DateField.MINUTE, freeResourceListDTO.getLength() + 30);
+        DateTime endTime =
+            DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), freeResourceListDTO.getLength() + 30);
         Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
             wrapper -> wrapper.ge(MeetingRoomInfoPO::getLockStartTime, startTime)
                 .le(MeetingRoomInfoPO::getLockStartTime, endTime)
@@ -184,16 +178,30 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, startTime)
                     .ge(MeetingRoomInfoPO::getLockEndTime, endTime));
         //该段时间正在锁定的会议
-        List<MeetingRoomInfoPO> lockedMeetingRoomList = meetingRoomInfoDaoService.lambdaQuery()
-            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
+        List<MeetingRoomInfoPO> lockedMeetingRoomList =
+            meetingRoomInfoDaoService.lambdaQuery().in(MeetingRoomInfoPO::getResourceId, originResourceIds)
+                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
+        log.info("空闲资源列表【2】，开始时间：{}，结束时间：{}，查询锁定会议结果：{}", startTime, endTime, result);
+
         //该段时间正在锁定的资源
         List<Integer> lockedResourceIdList =
             lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
         //去除空闲资源中被锁定的资源
         result = result.stream().filter(t -> !lockedResourceIdList.contains(t.getId()))
             .peek(t -> t.setResourceType(freeResourceListDTO.getResourceType())).collect(Collectors.toList());
-
+        log.info("空闲资源列表结果：{}", result);
         return CommonResult.success(result);
+    }
+
+    public static void main(String[] args) {
+        DateTime date = DateUtil.date();
+        System.out.println("当前时间" + date);
+        DateTime startTime = DateUtil.offsetMinute(date, -30);
+        System.out.println(date);
+        DateTime endTime = DateUtil.date(date).offset(DateField.MINUTE, 60 + 30);
+        System.out.println(date);
+        System.out.println(startTime);
+        System.out.println(endTime);
     }
 
     private List<MeetingResourceVO> getPrivateResourceList(FreeResourceListDTO freeResourceListDTO) {
@@ -265,7 +273,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
         try {
-            lock.lock(5, TimeUnit.SECONDS);
+            if (!lock.tryLock(3, 10, TimeUnit.SECONDS)) {
+                //3秒内没获取到锁，及返回错误
+                //资源锁定中
+                return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_OPERATED_ERROR);
+            }
+
             CommonResult checkResult = checkCreateMeetingRoom(meetingRoomContextDTO);
             if (!checkResult.isSuccess()) {
                 return checkResult;
@@ -385,13 +398,16 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
         }
         FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
-        if (!getFreeResourceList(freeResourceListDTO).getData().stream().anyMatch(
-            t -> t.getId().equals(resourceId) || (meetingResourcePO.getStatus()
-                .equals(MeetingResourceStateEnum.PRIVATE.getState()) && !ObjectUtil.equals(
-                meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId())))) {
+        if (!getFreeResourceList(freeResourceListDTO).getData().stream().anyMatch(t -> t.getId().equals(resourceId))) {
             //判断资源是否已被使用
             return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_USED);
         }
+        //判断私有资源，是否有权使用
+        if ((meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && !ObjectUtil.equals(
+            meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId()))) {
+            return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_USE_PERSONAL_RESOURCE_ERROR);
+        }
+
         Long count = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getOwnerImUserId, meetingRoomContextDTO.getImUserId())
             //非结束的会议
@@ -451,11 +467,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
         //判断新资源是否已被使用
-        if (!oldResourceId.equals(resourceId) && !getFreeResourceList(freeResourceListDTO).getData().stream().anyMatch(
-            t -> t.getId().equals(resourceId) || (meetingResourcePO.getStatus()
-                .equals(MeetingResourceStateEnum.PRIVATE.getState()) && !ObjectUtil.equals(
-                meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId())))) {
+        if (!oldResourceId.equals(resourceId) && !getFreeResourceList(freeResourceListDTO).getData().stream()
+            .anyMatch(t -> t.getId().equals(resourceId))) {
             return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_USED);
+        }
+
+        //判断私有资源，是否有权使用
+        if ((meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && !ObjectUtil.equals(
+            meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId()))) {
+            return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_USE_PERSONAL_RESOURCE_ERROR);
         }
         Tuple2<MeetingRoomInfoPO, MeetingResourcePO> of = Tuples.of(byId, meetingResourcePO);
         return CommonResult.success(of);
