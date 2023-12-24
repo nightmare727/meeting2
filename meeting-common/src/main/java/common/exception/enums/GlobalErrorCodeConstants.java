@@ -59,6 +59,9 @@ public interface GlobalErrorCodeConstants {
     ErrorCode CAN_NOT_USE_PERSONAL_RESOURCE_ERROR = new ErrorCode("2000018", "无权使用专属会议资源");
     ErrorCode RESOURCE_OPERATED_ERROR = new ErrorCode("2000019", "会议资源正被其他人操作中，请稍后再试");
 
+    ErrorCode RESOURCE_REDISTRIBUTION_OPERATED_ERROR =
+        new ErrorCode("2000020", "会议资源处于预分配状态中，无法操作，请稍后再试");
+
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段
      *

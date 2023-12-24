@@ -34,10 +34,22 @@ public class MeetingHwEventCallbackPO implements Serializable {
     private Date timestamp;
 
     /**
-     * 时间名
+     * 事件名
      */
     @TableField(value = "event")
     private String event;
+    /**
+     * 会议号
+     */
+    @TableField(value = "meeting_code")
+    private String meetingCode;
+
+    /**
+     * 会议uuid
+     */
+    @TableField(value = "meeting_id")
+    private String meetingId;
+
 
     /**
      * 回调数据

@@ -30,6 +30,7 @@ import org.apache.dubbo.config.annotation.Service;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -113,9 +114,15 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceAllocateDTO.getResourceId())
             .set(MeetingResourcePO::getStatus, freeFlag ? MeetingResourceStateEnum.PRIVATE.getState()
                 : MeetingResourceStateEnum.REDISTRIBUTION.getState())
+            .set(freeFlag, MeetingResourcePO::getCurrentUseImUserId, vmUserVO.getAccid())
             .set(MeetingResourcePO::getOwnerImUserId, vmUserVO.getAccid())
             .set(MeetingResourcePO::getOwnerImUserJoyoCode, vmUserVO.getJoyoCode())
             .set(MeetingResourcePO::getOwnerImUserName, vmUserVO.getNickName()).update();
+        if (freeFlag) {
+            //当前是空闲状态，则直接分配资源
+            hwMeetingCommonService.associateVmr(vmUserVO.getAccid(),
+                Collections.singletonList(meetingResourcePO.getVmrId()));
+        }
         return CommonResult.success(null);
     }
 
@@ -135,19 +142,26 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
             .equals(status) || MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState().equals(status)) {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_ALLOCATE_RESOURCE);
         }
-
+        Boolean privateFlag = MeetingResourceStateEnum.PRIVATE.getState().equals(status);
         //查询是否有进行中或者预约中的会议
-        List<MeetingRoomInfoPO> meetingRoomInfoPOList =
-            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, resourceId)
-                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).list();
-        Boolean emptyRoomFlag = CollectionUtil.isEmpty(meetingRoomInfoPOList);
-
+        if (privateFlag) {
+            List<MeetingRoomInfoPO> meetingRoomInfoPOList =
+                meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, resourceId)
+                    .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).list();
+            Boolean emptyRoomFlag = CollectionUtil.isEmpty(meetingRoomInfoPOList);
+            if (privateFlag && !emptyRoomFlag) {
+                //存在会议，无法取消分配，需要先处理会议
+                log.error("私有资源存在进行中或者预约中的会议，无法取消分配");
+                return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_ALLOCATE_RESOURCE);
+            }
+        }
+        //可以取消分配
         meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
             .set(MeetingResourcePO::getOwnerImUserId, null).set(MeetingResourcePO::getOwnerImUserJoyoCode, null)
             .set(MeetingResourcePO::getOwnerImUserName, null)
-            //没会议情况，变成公有空闲，否则变成公有预约
-            .set(MeetingResourcePO::getStatus, emptyRoomFlag ? MeetingResourceStateEnum.PUBLIC_FREE.getState()
-                : MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState()).update();
+            .set(privateFlag, MeetingResourcePO::getCurrentUseImUserId, null).set(MeetingResourcePO::getStatus,
+                privateFlag ? MeetingResourceStateEnum.PUBLIC_FREE.getState()
+                    : MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState()).update();
         return CommonResult.success(null);
     }
 

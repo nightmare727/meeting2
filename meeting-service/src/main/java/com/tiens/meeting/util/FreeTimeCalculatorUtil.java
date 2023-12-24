@@ -1,6 +1,7 @@
 package com.tiens.meeting.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.google.common.collect.Lists;
@@ -8,10 +9,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FreeTimeCalculatorUtil {
@@ -24,7 +22,7 @@ public class FreeTimeCalculatorUtil {
         knownTimeRanges.add(new TimeRange(LocalTime.of(20, 0), LocalTime.of(21, 0))); // 下午工作
 
         // 计算空闲时间段
-        List<TimeRange> freeTimeRanges = calculateFreeTimeRanges(knownTimeRanges, 6);
+        List<TimeRange> freeTimeRanges = calculateFreeTimeRanges(knownTimeRanges, 6, true);
 
         // 输出空闲时间段
         for (TimeRange range : freeTimeRanges) {
@@ -33,21 +31,32 @@ public class FreeTimeCalculatorUtil {
 
     }
 
-    public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges, int intervalInHours) {
-        List<TimeRange> rangeList = calculateFreeTimeRanges(knownTimeRanges);
+    public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges, int intervalInHours,
+        boolean isToday) {
+        List<TimeRange> rangeList = calculateFreeTimeRanges(knownTimeRanges, isToday);
         return rangeList.stream().map(s -> splitTimeInterval(s, intervalInHours)).flatMap(Collection::stream)
             .collect(Collectors.toList());
     }
 
-    public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges) {
+    public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges, boolean isToday) {
         List<TimeRange> freeTimeRanges = new ArrayList<>();
-        // 假设一天从0点开始，到23点59分结束
+        DateTime now = DateUtil.date();
+        LocalTime nowLocalTime =
+            LocalTime.of(DateUtil.date().getField(DateField.HOUR_OF_DAY), now.getField(DateField.MINUTE));
+
+        // 当前时间，则取当前时间时分，否则假设一天从0点开始，到23点59分结束
         LocalTime startOfDay = LocalTime.of(0, 0);
+
         LocalTime endOfDay = LocalTime.of(23, 59);
         if (CollectionUtil.isEmpty(knownTimeRanges)) {
             freeTimeRanges.add(new TimeRange(startOfDay, endOfDay));
             return freeTimeRanges;
         }
+       /* if (isToday) {
+            //查询今天，则排除调无效的时间段
+            knownTimeRanges.stream().filter(t -> t.getStart().isAfter(nowLocalTime))
+                .sorted(Comparator.comparing(TimeRange::getStart))
+        }*/
 
         // 初始化空闲时间段列表
         freeTimeRanges.add(new TimeRange(startOfDay, knownTimeRanges.get(0).start));

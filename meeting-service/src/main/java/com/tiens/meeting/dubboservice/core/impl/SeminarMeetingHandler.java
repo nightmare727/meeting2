@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.*;
@@ -43,7 +44,8 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
      */
     @Override
     public MeetingRoomModel createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
-        //将开始时间转化成UTC时间
+        //资源是否公有
+        boolean publicFlag = NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
 
         Date startTime = meetingRoomContextDTO.getStartTime();
 
@@ -58,9 +60,11 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         String startTimeStr = dateTimeFormatter.format(of);
         try {
-            //分配云会议资源
-            hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
-                Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+            if (publicFlag) {
+                //分配云会议资源
+                hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
+                    Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+            }
 
             MeetingClient userMeetingClient =
                 hwMeetingCommonService.getUserMeetingClient(meetingRoomContextDTO.getImUserId());
@@ -94,7 +98,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             log.error("创建网络研讨会会议、预约会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);
         } finally {
-            if (subsCribeFlag) {
+            if (publicFlag && subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
                 hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                     Collections.singletonList(meetingRoomContextDTO.getVmrId()));
@@ -111,6 +115,8 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
      */
     @Override
     public void updateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
+        boolean publicFlag = NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
+
         Date startTime = meetingRoomContextDTO.getStartTime();
         //是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
@@ -123,8 +129,10 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         String startTimeStr = dateTimeFormatter.format(of);
         try {
             //分配云会议资源
-            hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
-                Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+            if (publicFlag) {
+                hwMeetingCommonService.associateVmr(meetingRoomContextDTO.getImUserId(),
+                    Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+            }
 
             MeetingClient userMeetingClient =
                 hwMeetingCommonService.getUserMeetingClient(meetingRoomContextDTO.getImUserId());
@@ -151,7 +159,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             log.error("编辑网络研讨会会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_MOD_MEETING_ERROR);
         } finally {
-            if (subsCribeFlag) {
+            if (publicFlag & subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
                 hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                     Collections.singletonList(meetingRoomContextDTO.getVmrId()));
@@ -168,10 +176,13 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
      */
     @Override
     public void cancelMeetingRoom(CancelMeetingRoomModel cancelMeetingRoomModel) {
+        Boolean publicFlag = cancelMeetingRoomModel.getPublicFlag();
         try {
-            //分配云会议资源
-            hwMeetingCommonService.associateVmr(cancelMeetingRoomModel.getImUserId(),
-                Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+            if (publicFlag) {
+                //分配云会议资源
+                hwMeetingCommonService.associateVmr(cancelMeetingRoomModel.getImUserId(),
+                    Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+            }
             MeetingClient userMeetingClient =
                 hwMeetingCommonService.getUserMeetingClient(cancelMeetingRoomModel.getImUserId());
             //取消会议
@@ -185,8 +196,10 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
         } finally {
             //回收资源
-            hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
-                Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+            if (publicFlag) {
+                hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
+                    Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+            }
         }
 
     }

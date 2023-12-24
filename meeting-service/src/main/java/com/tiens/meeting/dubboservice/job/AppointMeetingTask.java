@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * @Author: 蔚文杰
  * @Date: 2023/12/5
  * @Version 1.0
- * @Company: tiens 预约提前30分钟锁定资源
+ * @Company: tiens 公有预约提前30分钟锁定资源
  */
 @Component
 @Slf4j

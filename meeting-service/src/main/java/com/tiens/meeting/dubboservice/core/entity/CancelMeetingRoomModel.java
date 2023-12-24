@@ -18,4 +18,6 @@ public class CancelMeetingRoomModel implements Serializable {
     private String imUserId;
     private String conferenceID;
     private String vmrId;
+
+    private Boolean publicFlag;
 }

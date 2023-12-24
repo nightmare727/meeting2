@@ -71,6 +71,7 @@ public class MeetingStopTask {
         }
         //会议已经结束，修改会议状态
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
+            //手动结束会议
             meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getId, meetingRoomInfoPO.getId())
                 .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).update();
             //释放资源状态
@@ -78,6 +79,7 @@ public class MeetingStopTask {
                 MeetingResourceHandleEnum.HOLD_DOWN);
             //回收资源
             MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
+
             if (meetingRoomInfoPO.getOwnerImUserId()
                 .equals(meetingResourcePO.getCurrentUseImUserId()) && !meetingResourcePO.getStatus()
                 .equals(MeetingResourceStateEnum.PRIVATE.getState())) {

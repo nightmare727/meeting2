@@ -1,5 +1,6 @@
 package common.exception;
 
+import common.exception.enums.GlobalErrorCodeConstants;
 import lombok.Data;
 
 import java.io.Serializable;

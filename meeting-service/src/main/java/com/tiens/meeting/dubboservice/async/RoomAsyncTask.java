@@ -4,10 +4,10 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.tiens.api.dto.hwevent.EventInfo;
 import com.tiens.api.dto.hwevent.HwEventReq;
+import com.tiens.api.dto.hwevent.Payload;
 import com.tiens.meeting.repository.po.MeetingHwEventCallbackPO;
 import com.tiens.meeting.repository.service.MeetingHwEventCallbackDaoService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class RoomAsyncTask implements RoomAsyncTaskService{
+public class RoomAsyncTask implements RoomAsyncTaskService {
 
     private final MeetingHwEventCallbackDaoService meetingHwEventCallbackDaoService;
 
@@ -30,11 +30,15 @@ public class RoomAsyncTask implements RoomAsyncTaskService{
     @Override
     public void saveHwEventLog(HwEventReq hwEventReq) {
         EventInfo eventInfo = hwEventReq.getEventInfo();
+        Payload payload = eventInfo.getPayload();
         MeetingHwEventCallbackPO meetingHwEventCallbackPO = new MeetingHwEventCallbackPO();
         meetingHwEventCallbackPO.setAppId(hwEventReq.getAppID());
         meetingHwEventCallbackPO.setTimestamp(DateUtil.date(hwEventReq.getTimestamp()));
         meetingHwEventCallbackPO.setEvent(eventInfo.getEvent());
-        meetingHwEventCallbackPO.setPayload(JSON.toJSONString(eventInfo));
+        meetingHwEventCallbackPO.setPayload(JSON.toJSONString(payload));
+        meetingHwEventCallbackPO.setMeetingCode(payload.getMeetingInfo().getMeetingID());
+        meetingHwEventCallbackPO.setMeetingId(payload.getMeetingInfo().getMeetingUUID());
+
         meetingHwEventCallbackDaoService.save(meetingHwEventCallbackPO);
     }
 }
