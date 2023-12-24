@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -95,6 +96,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      * @param resourceAllocateDTO
      * @return
      */
+    @Transactional
     @Override
     public CommonResult allocate(ResourceAllocateDTO resourceAllocateDTO) {
         CommonResult<VMUserVO> vmUserVOCommonResult =
@@ -134,6 +136,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      * @return
      */
     @Override
+    @Transactional
     public CommonResult cancelAllocate(CancelResourceAllocateDTO cancelResourceAllocateDTO) {
         //共有空闲、共有预约可分配，其他状态都不可分配
         Integer resourceId = cancelResourceAllocateDTO.getResourceId();
