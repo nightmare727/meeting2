@@ -105,6 +105,9 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         if (ObjectUtil.isEmpty(vmUserVO)) {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_HOST_INFO);
         }
+        //添加华为用户
+        rpcMeetingUserService.addMeetingCommonUser(vmUserVO.getAccid());
+
         //共有空闲、共有预约可分配，其他状态都不可分配
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceAllocateDTO.getResourceId());
         Integer status = meetingResourcePO.getStatus();
