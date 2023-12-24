@@ -82,9 +82,12 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult<VMUserVO> queryVMUser(String joyoCode, String accid) {
-
+        if (StringUtils.isAnyBlank(joyoCode, accid)) {
+            return CommonResult.success(null);
+        }
+        String cacheKey = StringUtils.isBlank(joyoCode) ? joyoCode : accid;
         //查询缓存
-        RBucket<VMUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(accid));
+        RBucket<VMUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(cacheKey));
         VMUserVO vmUserCacheVO = bucket.get();
         if (ObjectUtil.isNotNull(vmUserCacheVO)) {
             return CommonResult.success(vmUserCacheVO);
@@ -105,9 +108,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         HomepageUserDTO data = dtoResult.getData();
         VMUserVO vmUserVO = BeanUtil.copyProperties(data, VMUserVO.class);
         vmUserVO.setJoyoCode(data.getJoyo_code());
-        if(StringUtils.isNotEmpty(accid)){
-            bucket.set(vmUserVO);
-        }
+        //设置缓存
+        bucket.set(vmUserVO);
         return CommonResult.success(vmUserVO);
     }
 
@@ -294,11 +296,11 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     public CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes(Integer level) {
         QueryWrapper<MeetingLevelResourceConfigPO> queryWrapper = new QueryWrapper<>();
         queryWrapper.ne("resource_type", 0);
-        if (level==9){
-            queryWrapper.eq("vm_user_level",level);
+        if (level == 9) {
+            queryWrapper.eq("vm_user_level", level);
         }
-        if (level>=3&&level!=9){
-            queryWrapper.gt("vm_user_level",level);
+        if (level >= 3 && level != 9) {
+            queryWrapper.gt("vm_user_level", level);
         }
         List<MeetingLevelResourceConfigPO> list = meetingLevelResourceConfigDaoService.list(queryWrapper);
         if (!ObjectUtil.isNotEmpty(list)) {
