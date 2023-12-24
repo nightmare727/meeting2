@@ -78,7 +78,8 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      */
     @Override
     public CommonResult<List<MeetingResourceVO>> queryMeetingResourceList() throws ServiceException {
-        List<MeetingResourcePO> list = meetingResourceDaoService.list();
+        List<MeetingResourcePO> list =
+            meetingResourceDaoService.lambdaQuery().orderByDesc(MeetingResourcePO::getSize).list();
         List<MeetingResourceVO> resourceVOS = list.stream().map(t -> {
             MeetingResourceVO meetingResourceVO = BeanUtil.copyProperties(t, MeetingResourceVO.class);
             meetingResourceVO.setResourceType(String.valueOf(t.getResourceType()));
