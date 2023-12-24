@@ -85,7 +85,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         if (StringUtils.isAnyBlank(joyoCode, accid)) {
             return CommonResult.success(null);
         }
-        String cacheKey = StringUtils.isBlank(joyoCode) ? joyoCode : accid;
+        String cacheKey = StringUtils.isNotBlank(joyoCode) ? joyoCode : accid;
         //查询缓存
         RBucket<VMUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(cacheKey));
         VMUserVO vmUserCacheVO = bucket.get();
