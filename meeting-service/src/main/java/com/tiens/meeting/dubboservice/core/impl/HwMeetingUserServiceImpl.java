@@ -73,7 +73,7 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
         try {
             AddUserResponse response = meetingClient.addUser(request);
             RMap<String, String> hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
-            hwUserFlagMap.fastPut(vmUserVO.getAccid(),"ok");
+            hwUserFlagMap.fastPut(vmUserVO.getAccid(), "ok");
             log.info("华为云添加用户结果：{}", JSON.toJSONString(response));
         } catch (ConnectionException e) {
             e.printStackTrace();
@@ -82,7 +82,7 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
         } catch (ServiceResponseException e) {
             if (e.getErrorCode().equals("USG.201040001")) {
                 //账号已经存在
-                log.info("账号已存在，无需添加");
+                log.error("账号已存在，无需添加,账号：{},异常：{}", vmUserVO.getAccid(),e);
                 return true;
             }
             e.printStackTrace();

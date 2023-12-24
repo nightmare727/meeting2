@@ -1,7 +1,11 @@
 package com.tiens.meeting.dubboservice.impl;
 
+import com.tiens.api.dto.ResourceAllocateDTO;
+import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.meeting.ServiceApplication;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -11,6 +15,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ActiveProfiles("local")
 class RpcMeetingResourceServiceImplTest {
 
+    @Autowired
+    RPCMeetingResourceService rpcMeetingResourceService;
 
     /*@Test
     void getClient() {
@@ -102,4 +108,15 @@ class RpcMeetingResourceServiceImplTest {
     void updateMeetingResourceStatusPrivate() {
         meetingResourceMapper.updateMeetingResourceStatusPrivate("2bca6344aedc444598cdc76a4adc8f22");
     }*/
+
+    @Test
+    void allocate() {
+        ResourceAllocateDTO resourceAllocateDTO = new ResourceAllocateDTO();
+        resourceAllocateDTO.setJoyoCode("67891676");
+        resourceAllocateDTO.setResourceId(227);
+
+        System.out.println(rpcMeetingResourceService.allocate(resourceAllocateDTO));
+
+    }
+
 }
