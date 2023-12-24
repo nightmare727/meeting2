@@ -82,7 +82,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult<VMUserVO> queryVMUser(String joyoCode, String accid) {
-        if (StringUtils.isAnyBlank(joyoCode, accid)) {
+        if (StringUtils.isAllBlank(joyoCode, accid)) {
             return CommonResult.success(null);
         }
         String cacheKey = StringUtils.isNotBlank(joyoCode) ? joyoCode : accid;
