@@ -353,7 +353,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             resourceTypeDesc = MeetingResourceEnum.getByCode(Integer.parseInt(resourceType)).getDesc();
         } else {
             //私有资源
-            String size = resourceType.split("-")[1];
+            int size = Integer.valueOf(resourceType.split("-")[1]);
             resourceTypeDesc = String.format(privateResourceTypeFormat, size);
 
         }

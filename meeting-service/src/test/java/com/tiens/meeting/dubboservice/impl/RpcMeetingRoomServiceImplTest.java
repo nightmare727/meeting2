@@ -74,16 +74,16 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-        meetingRoomContextDTO.setStartTime(DateUtil.parse("2023-12-27 19:30:00"));
-        meetingRoomContextDTO.setLength(60);
+        meetingRoomContextDTO.setStartTime(DateUtil.parse("2023-12-25 11:30:00"));
+        meetingRoomContextDTO.setLength(240);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setResourceId(226);
-        meetingRoomContextDTO.setResourceType("2");
+        meetingRoomContextDTO.setResourceId(240);
+        meetingRoomContextDTO.setResourceType("7a4037c1a8234ba286647f31aadfc4f1-50-2");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
         meetingRoomContextDTO.setGuestPwdFlag(false);
         meetingRoomContextDTO.setLevelCode(9);
-        meetingRoomContextDTO.setImUserId("0bae35214bae4b7d8e58378cb5a6a3b1");
+        meetingRoomContextDTO.setImUserId("7a4037c1a8234ba286647f31aadfc4f1");
         meetingRoomContextDTO.setImUserName("文杰昵称");
 
         System.out.println(rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO));
