@@ -171,7 +171,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (ObjectUtil.isEmpty(originResourceIds)) {
             return CommonResult.success(Collections.emptyList());
         }
-        DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), -29);
+        DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), 30);
         DateTime endTime =
             DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), freeResourceListDTO.getLength() + 29);
         Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
@@ -339,7 +339,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         DateTime showEndTime = DateUtil.offsetMinute(showStartTime, length);
 
         //锁定开始时间
-        DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -29);
+        DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, 30);
         //锁定结束时间
         DateTime lockEndTime = DateUtil.offsetMinute(showEndTime, 29);
 
