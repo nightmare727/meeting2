@@ -156,6 +156,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult<List<MeetingResourceVO>> getFreeResourceList(FreeResourceListDTO freeResourceListDTO) {
 
         log.info("空闲资源列表【0】入参：{}", freeResourceListDTO);
+
+        Date startTime1 = freeResourceListDTO.getStartTime();
+
+        if (ObjectUtil.isEmpty(startTime1)) {
+            startTime1 =
+                DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime1), DateUtil.date()));
+        }
         //前端用户能看到的资源列表=【公池该用户等级相关空闲子资源与主持人绑定公池空闲资源 的【并集】】+用户私池
         List<MeetingResourceVO> result;
         if (NumberUtil.isNumber(freeResourceListDTO.getResourceType())) {
@@ -167,14 +174,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
         log.info("空闲资源列表【1】初始过滤资源池结果：{}", result);
 
+        Date finalStartTime = startTime1;
         List<Integer> originResourceIds =
-            result.stream().filter(t -> t.getExpireDate().before(freeResourceListDTO.getStartTime()))
-                .map(MeetingResourceVO::getId).collect(Collectors.toList());
+            result.stream().filter(t -> t.getExpireDate().before(finalStartTime)).map(MeetingResourceVO::getId)
+                .collect(Collectors.toList());
 
         if (ObjectUtil.isEmpty(originResourceIds)) {
             return CommonResult.success(Collections.emptyList());
         }
-        DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), 30);
+        DateTime startTime = DateUtil.offsetMinute(startTime1, 30);
         DateTime endTime =
             DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), freeResourceListDTO.getLength() + 29);
         Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
