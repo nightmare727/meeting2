@@ -40,9 +40,10 @@ public class DateUtils {
         int newDay = dateTime.getField(DateField.DAY_OF_YEAR);
         int newHour = dateTime.getField(DateField.HOUR_OF_DAY);
         int newMinute = dateTime.getField(DateField.MINUTE);
-        if (newMinute <= 30) {
+        int newSecond= dateTime.getField(DateField.SECOND);
+        if (newMinute <= 30&&(newMinute!=0||newSecond!=0)) {
             newMinute = 30;
-        } else {
+        }else {
             //大于30分钟
             if (newHour == 23) {
                 //取当天最后一分
