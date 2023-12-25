@@ -41,9 +41,21 @@ public class DateUtils {
         int newHour = dateTime.getField(DateField.HOUR_OF_DAY);
         int newMinute = dateTime.getField(DateField.MINUTE);
         int newSecond= dateTime.getField(DateField.SECOND);
-        if (newMinute <= 30&&(newMinute!=0||newSecond!=0)) {
+        if (newMinute==0&&newSecond==0){
+            //正点不做处理
+        }else if (newMinute <30) {
             newMinute = 30;
-        }else {
+        }else if (newMinute == 30&&newSecond!=0) {
+            //等于30分钟并且秒不为0
+            if (newHour == 23) {
+                //取当天最后一分
+                newMinute = 59;
+            } else {
+                //需要跨小时
+                newHour++;
+                newMinute = 0;
+            }
+        }else if(newMinute >30){
             //大于30分钟
             if (newHour == 23) {
                 //取当天最后一分
