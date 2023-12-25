@@ -166,7 +166,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             result = getPrivateResourceList(freeResourceListDTO);
         }
         log.info("空闲资源列表【1】初始过滤资源池结果：{}", result);
-        List<Integer> originResourceIds = result.stream().map(MeetingResourceVO::getId).collect(Collectors.toList());
+
+        List<Integer> originResourceIds =
+            result.stream().filter(t -> t.getExpireDate().before(freeResourceListDTO.getStartTime()))
+                .map(MeetingResourceVO::getId).collect(Collectors.toList());
 
         if (ObjectUtil.isEmpty(originResourceIds)) {
             return CommonResult.success(Collections.emptyList());
@@ -311,6 +314,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
             //返回创建后得详情
             MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO);
+            result.setResourceExpireTime(meetingResourcePO.getExpireDate());
 //        hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail
 //        (result);
             log.info("创建、预约会议完成，参数为：{}", meetingRoomContextDTO);
@@ -383,9 +387,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     private CommonResult checkCreateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         //判断用户等级，您的Vmo星球等级至少Lv3才可以使用此功能
-        if (meetingRoomContextDTO.getLevelCode() <= 2) {
-            return CommonResult.error(GlobalErrorCodeConstants.LEVEL_NOT_ENOUGH);
-        }
+        Integer resourceId = meetingRoomContextDTO.getResourceId();
+        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         Date startTime = meetingRoomContextDTO.getStartTime();
         if (ObjectUtil.isNotNull(startTime)) {
             //开始时间小于当前时间
@@ -396,9 +399,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             if (startTime.after(DateUtil.offsetMonth(new Date(), 3))) {
                 return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
             }
+            //超出资源过期时间
+            if (meetingResourcePO.getExpireDate().before(startTime)) {
+                return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR);
+            }
+
         }
-        Integer resourceId = meetingRoomContextDTO.getResourceId();
-        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         if (ObjectUtil.isNull(meetingResourcePO)) {
             //资源不存在
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
@@ -438,9 +444,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     private CommonResult checkUpdateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         //判断用户等级，您的Vmo星球等级至少Lv3才可以使用此功能
-        if (meetingRoomContextDTO.getLevelCode() <= 2) {
-            return CommonResult.error(GlobalErrorCodeConstants.LEVEL_NOT_ENOUGH);
-        }
+        Integer resourceId = meetingRoomContextDTO.getResourceId();
+        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         Date startTime = meetingRoomContextDTO.getStartTime();
         if (ObjectUtil.isNotNull(startTime)) {
             //开始时间小于当前时间
@@ -450,6 +455,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //无法创建3个月后的会议
             if (startTime.after(DateUtil.offsetMonth(new Date(), 3))) {
                 return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
+            }
+            //超出资源过期时间
+            if (meetingResourcePO.getExpireDate().before(startTime)) {
+                return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR);
             }
         }
         MeetingRoomInfoPO byId = meetingRoomInfoDaoService.getById(meetingRoomContextDTO.getMeetingRoomId());
@@ -463,8 +472,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_MOD_MEETING_ROOM);
         }
 
-        Integer resourceId = meetingRoomContextDTO.getResourceId();
-        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         if (ObjectUtil.isNull(meetingResourcePO)) {
             //资源不存在
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
