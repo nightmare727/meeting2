@@ -185,7 +185,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<MeetingRoomInfoPO> lockedMeetingRoomList =
             meetingRoomInfoDaoService.lambdaQuery().in(MeetingRoomInfoPO::getResourceId, originResourceIds)
                 .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
-        log.info("空闲资源列表【2】，开始时间：{}，结束时间：{}，查询锁定会议结果：{}", startTime, endTime, result);
+        log.info("空闲资源列表【2】，开始时间：{}，结束时间：{}，查询锁定会议结果：{}", startTime, endTime, lockedMeetingRoomList);
 
         //该段时间正在锁定的资源
         List<Integer> lockedResourceIdList =
