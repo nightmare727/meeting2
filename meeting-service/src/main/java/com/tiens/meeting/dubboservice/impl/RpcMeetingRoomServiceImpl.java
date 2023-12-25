@@ -188,7 +188,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<MeetingRoomInfoPO> lockedMeetingRoomList =
             meetingRoomInfoDaoService.lambdaQuery().in(MeetingRoomInfoPO::getResourceId, originResourceIds)
                 .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
-        log.info("空闲资源列表【2】，开始时间：{}，结束时间：{}，查询锁定会议结果：{}", startTime, endTime, lockedMeetingRoomList);
+        log.info("空闲资源列表【2】，开始时间：{}，结束时间：{}，查询锁定会议结果：{}", startTime, endTime,
+            lockedMeetingRoomList);
 
         //该段时间正在锁定的资源
         List<Integer> lockedResourceIdList =
@@ -400,7 +401,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
             }
             //超出资源过期时间
-            if (meetingResourcePO.getExpireDate().before(startTime)) {
+            if (ObjectUtil.isEmpty(startTime) && meetingResourcePO.getExpireDate().before(DateUtil.date())) {
                 return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR);
             }
 
@@ -457,7 +458,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
             }
             //超出资源过期时间
-            if (meetingResourcePO.getExpireDate().before(startTime)) {
+            if (ObjectUtil.isEmpty(startTime) && meetingResourcePO.getExpireDate().before(DateUtil.date())) {
                 return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR);
             }
         }
@@ -842,7 +843,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_DOWN);
             if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
                 hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
-                        Collections.singletonList(meetingResourcePO.getVmrId()));
+                    Collections.singletonList(meetingResourcePO.getVmrId()));
             }
             log.info("华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
         } else if ("record.finish".equals(event)) {
