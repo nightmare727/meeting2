@@ -168,6 +168,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("空闲资源列表【1】初始过滤资源池结果：{}", result);
         List<Integer> originResourceIds = result.stream().map(MeetingResourceVO::getId).collect(Collectors.toList());
 
+        if (ObjectUtil.isEmpty(originResourceIds)) {
+            return CommonResult.success(Collections.emptyList());
+        }
         DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), -30);
         DateTime endTime =
             DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), freeResourceListDTO.getLength() + 30);
