@@ -171,16 +171,16 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (ObjectUtil.isEmpty(originResourceIds)) {
             return CommonResult.success(Collections.emptyList());
         }
-        DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), -30);
+        DateTime startTime = DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), -29);
         DateTime endTime =
-            DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), freeResourceListDTO.getLength() + 30);
+            DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), freeResourceListDTO.getLength() + 29);
         Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
-            wrapper -> wrapper.gt(MeetingRoomInfoPO::getLockStartTime, startTime)
-                .lt(MeetingRoomInfoPO::getLockStartTime, endTime)
-                .or(wrapper1 -> wrapper1.gt(MeetingRoomInfoPO::getLockEndTime, startTime)
-                    .lt(MeetingRoomInfoPO::getLockEndTime, endTime))
-                .or(wrapper2 -> wrapper2.lt(MeetingRoomInfoPO::getLockStartTime, startTime)
-                    .gt(MeetingRoomInfoPO::getLockEndTime, endTime));
+            wrapper -> wrapper.ge(MeetingRoomInfoPO::getLockStartTime, startTime)
+                .le(MeetingRoomInfoPO::getLockStartTime, endTime)
+                .or(wrapper1 -> wrapper1.ge(MeetingRoomInfoPO::getLockEndTime, startTime)
+                    .le(MeetingRoomInfoPO::getLockEndTime, endTime))
+                .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, startTime)
+                    .ge(MeetingRoomInfoPO::getLockEndTime, endTime));
         //该段时间正在锁定的会议
         List<MeetingRoomInfoPO> lockedMeetingRoomList =
             meetingRoomInfoDaoService.lambdaQuery().in(MeetingRoomInfoPO::getResourceId, originResourceIds)
@@ -339,9 +339,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         DateTime showEndTime = DateUtil.offsetMinute(showStartTime, length);
 
         //锁定开始时间
-        DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
+        DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -29);
         //锁定结束时间
-        DateTime lockEndTime = DateUtil.offsetMinute(showEndTime, 30);
+        DateTime lockEndTime = DateUtil.offsetMinute(showEndTime, 29);
 
         //查询时区配置
         MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = meetingTimeZoneConfigDaoService.lambdaQuery()
