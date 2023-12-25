@@ -762,7 +762,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 .collect(Collectors.toList());
         //最大6小时切割
         List<FreeTimeCalculatorUtil.TimeRange> timeRanges =
-            FreeTimeCalculatorUtil.calculateFreeTimeRanges(collect, 2, 6,
+            FreeTimeCalculatorUtil.calculateFreeTimeRanges(collect, 2, 7,
                 DatePattern.NORM_DATE_FORMAT.format(date).equals(DateUtil.today()));
         List<AvailableResourcePeriodVO> result =
             timeRanges.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
@@ -833,8 +833,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //回收资源
             Boolean operateResult =
                 publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_DOWN);
-            hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
-                Collections.singletonList(meetingResourcePO.getVmrId()));
+            if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
+                hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
+                        Collections.singletonList(meetingResourcePO.getVmrId()));
+            }
             log.info("华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
         } else if ("record.finish".equals(event)) {
             //录制结束事件-当企业下的某个会议结束，服务端会推送录制结束事件消息的post请求到企业开发者回调URL
