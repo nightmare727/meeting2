@@ -496,7 +496,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
         //判断新资源是否已被使用
-        if (!oldResourceId.equals(resourceId) || !byId.getShowStartTime().equals(showStartTime) || byId.getLockEndTime()
+        if (!oldResourceId.equals(resourceId) || !byId.getShowStartTime().equals(showStartTime) || !byId.getLockEndTime()
             .equals(showEndTime)) {
             if (!getFreeResourceList(freeResourceListDTO).getData().stream()
                 .anyMatch(t -> t.getId().equals(resourceId))) {
