@@ -149,6 +149,12 @@ public class MeetingRoomInfoPO implements Serializable {
     @TableField(value = "notify_room_stop_status")
     private Integer notifyRoomStopStatus;
 
+
+    /**
+     * 会议开始通知状态 0：未通知 1：已通知
+     */
+    @TableField(value = "notify_room_start_status")
+    private Integer notifyRoomStartStatus;
     /**
      * 创建时间
      */

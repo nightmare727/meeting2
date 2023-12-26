@@ -45,7 +45,7 @@ public class MeetingStopNoticeTask {
 
     @Value("${live.fromAccid}")
     String fromAccid;
-    @Value("${live.pushcontent}")
+    @Value("${live.stopPushContent}")
     String pushContent;
 
     @XxlJob("MeetingStopNoticeJobHandler")
@@ -75,9 +75,9 @@ public class MeetingStopNoticeTask {
         batchMessageVo.setAttach(
             JSONUtil.createObj().set("pushContent", pushContent).set("push_type", "room_stop_notice").toString());
 //        batchMessageVo.setPayload("");//不传ios收不到
-        log.info("定时推送会议30分钟前发送消息入参：{}", batchMessageVo);
+        log.info("【会议结束前30分钟前发送消息】发送消息入参：{}", batchMessageVo);
         Result<?> result = messageService.batchSendAttachMessage(batchMessageVo);
-        log.info("定时推送会议30分钟前发送消息结果：{}", result);
+        log.info("【会议结束前30分钟前发送消息】发送消息结果：{}", result);
 
         meetingRoomInfoDaoService.lambdaUpdate().set(MeetingRoomInfoPO::getNotifyRoomStopStatus, 1)
             .in(MeetingRoomInfoPO::getId, ids).update();
