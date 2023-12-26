@@ -48,6 +48,7 @@ public class HeaderFilter implements Filter {
 
     static {
         whiteListSet.add("/vmeeting/web/room/openapi/meetingevent");
+        whiteListSet.add("/vmeeting/web/mtuser/queryLiveVMUser");
         whiteListSet.add("/vmeeting/web/ping");
 
         //临时增加白名单，注意后期删除

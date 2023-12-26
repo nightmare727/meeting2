@@ -217,6 +217,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String relType = split[2];
         List<MeetingResourcePO> list = meetingResourceDaoService.lambdaQuery()
             .eq(MeetingResourcePO::getOwnerImUserId, freeResourceListDTO.getImUserId())
+            .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState())
             .eq(MeetingResourcePO::getResourceType, relType).list();
         return BeanUtil.copyToList(list, MeetingResourceVO.class);
     }

@@ -59,11 +59,11 @@ class RpcMeetingRoomServiceImplTest {
     void getFreeResourceList() {
 
         FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
-        freeResourceListDTO.setImUserId("7a4037c1a8234ba286647f31aadfc4f1");
+        freeResourceListDTO.setImUserId("9f450708cf794c3889cc06d2e6ec1029");
         freeResourceListDTO.setLevelCode(9);
         freeResourceListDTO.setStartTime(DateUtil.parse("2023-12-25 11:30:00"));
         freeResourceListDTO.setLength(60);
-        freeResourceListDTO.setResourceType("5");
+        freeResourceListDTO.setResourceType("9f450708cf794c3889cc06d2e6ec1029-50-2");
 
         System.out.println(rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO));
 

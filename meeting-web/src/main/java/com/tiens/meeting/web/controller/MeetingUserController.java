@@ -1,10 +1,13 @@
 package com.tiens.meeting.web.controller;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingHostUserVO;
 import com.tiens.api.vo.VMMeetingCredentialVO;
 import com.tiens.api.vo.VMUserVO;
+import com.tiens.meeting.web.entity.req.QueryUserRequest;
+import com.tiens.meeting.web.entity.resp.QueryUserResponse;
 import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -52,6 +55,25 @@ public class MeetingUserController {
     @GetMapping("/queryVMUser")
     public CommonResult<VMUserVO> queryVMUser(@RequestHeader("finalUserId") String finalUserId) throws Exception {
         return rpcMeetingUserService.queryVMUser(null, finalUserId);
+    }
+
+    @ResponseBody
+    @PostMapping("/queryLiveVMUser")
+    public CommonResult<QueryUserResponse> queryLiveVMUser(@RequestBody QueryUserRequest queryUserRequest)
+        throws Exception {
+        CommonResult<VMUserVO> vmUserVOCommonResult =
+            rpcMeetingUserService.queryVMUser(queryUserRequest.getUniqueSign(), "");
+        VMUserVO data = vmUserVOCommonResult.getData();
+        if (ObjectUtil.isEmpty(data)) {
+            return CommonResult.success(null);
+        }
+        QueryUserResponse queryUserResponse = new QueryUserResponse();
+        queryUserResponse.setUserId(data.getAccid());
+        queryUserResponse.setNickName(data.getNickName());
+        queryUserResponse.setUserPhone(data.getMobile());
+        queryUserResponse.setUserPhoto(data.getHeadImg());
+//        queryUserResponse.setInviteCode();
+        return CommonResult.success(queryUserResponse);
     }
 
     /**
