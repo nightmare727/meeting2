@@ -457,18 +457,21 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //判断用户等级，您的Vmo星球等级至少Lv3才可以使用此功能
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
-        Date startTime = meetingRoomContextDTO.getStartTime();
-        if (ObjectUtil.isNotNull(startTime)) {
+        Date showStartTime = DateUtils.roundToHalfHour(
+            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), DateUtil.date()));
+        DateTime showEndTime = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength());
+
+        if (ObjectUtil.isNotNull(showStartTime)) {
             //开始时间小于当前时间
-            if (startTime.before(DateUtil.date())) {
+            if (showStartTime.before(DateUtil.date())) {
                 return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
             }
             //无法创建3个月后的会议
-            if (startTime.after(DateUtil.offsetMonth(new Date(), 3))) {
+            if (showStartTime.after(DateUtil.offsetMonth(new Date(), 3))) {
                 return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
             }
             //超出资源过期时间
-            if (ObjectUtil.isEmpty(startTime) && meetingResourcePO.getExpireDate().before(DateUtil.date())) {
+            if (meetingResourcePO.getExpireDate().before(showStartTime)) {
                 return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR);
             }
         }
@@ -491,11 +494,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
         //判断新资源是否已被使用
-        if (!oldResourceId.equals(resourceId) && !getFreeResourceList(freeResourceListDTO).getData().stream()
-            .anyMatch(t -> t.getId().equals(resourceId))) {
-            return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_USED);
-        }
+        if (!oldResourceId.equals(resourceId) || !byId.getShowStartTime().equals(showStartTime) || byId.getLockEndTime()
+            .equals(showEndTime)) {
+            if (!getFreeResourceList(freeResourceListDTO).getData().stream()
+                .anyMatch(t -> t.getId().equals(resourceId))) {
+                return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_USED);
+            }
 
+        }
         //判断私有资源，是否有权使用
         if ((meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && !ObjectUtil.equals(
             meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId()))) {
@@ -729,9 +735,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         TreeMap<String, List<MeetingRoomDetailDTO>> sortMap = new TreeMap<>(Comparator.comparing(DateUtil::parse));
         Map<String, List<MeetingRoomDetailDTO>> collect = meetingRoomDetailDTOS.stream().collect(
             Collectors.groupingBy(f -> DateUtil.format(f.getLockStartTime(), DatePattern.NORM_DATE_PATTERN),
-                () -> sortMap, Collectors.collectingAndThen(Collectors.toCollection(
-                        () -> new TreeSet<>(Comparator.comparing(MeetingRoomDetailDTO::getLockStartTime).thenComparing(MeetingRoomDetailDTO::getHwMeetingCode))),
-                    Lists::newArrayList)));
+                () -> sortMap, Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(
+                    Comparator.comparing(MeetingRoomDetailDTO::getLockStartTime)
+                        .thenComparing(MeetingRoomDetailDTO::getHwMeetingCode))), Lists::newArrayList)));
         futureAndRunningMeetingRoomListVO.setRooms(collect);
         return futureAndRunningMeetingRoomListVO;
     }
