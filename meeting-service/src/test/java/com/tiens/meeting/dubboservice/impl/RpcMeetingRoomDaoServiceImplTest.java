@@ -5,13 +5,11 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tiens.api.service.RpcMeetingRoomService;
-import com.tiens.api.vo.VMMeetingCredentialVO;
 import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import common.enums.MeetingRoomStateEnum;
-import common.pojo.CommonResult;
 import common.util.cache.CacheKeyUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +17,7 @@ import org.redisson.api.RAtomicLong;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -49,6 +48,9 @@ class RpcMeetingRoomDaoServiceImplTest {
 
     @Autowired
     RedissonClient redissonClient;
+
+    @Autowired
+    RedisTemplate redisTemplate;
 
     @Test
     void getCredential() {
@@ -81,4 +83,26 @@ class RpcMeetingRoomDaoServiceImplTest {
         System.out.println(hwMeetingRoomHandlers);
     }
 
+    @Test
+    public void testHyperLogLogUnion() {
+        String pfKey2 = "test:hll:02";
+        String pfKey3 = "test:hll:05";
+        String pfKey4 = "test:hll:06";
+        for (int i = 0; i < 10; i++) {
+            redisTemplate.opsForHyperLogLog().add(pfKey2, i);
+        }
+      /*  for (int i = 0; i < 20; i++) {
+            redisTemplate.opsForHyperLogLog().add(pfKey3, i);
+        }
+        for (int i = 0; i < 30; i++) {
+            redisTemplate.opsForHyperLogLog().add(pfKey4, i);
+        }*/
+        // 合并三组数
+        String unionKey = "test:hll:union";
+        redisTemplate.opsForHyperLogLog().union(unionKey, pfKey2, pfKey3, pfKey4);
+
+        // 统计合并后的基数
+        long size = redisTemplate.opsForHyperLogLog().size(unionKey);
+        System.out.println(size);
+    }
 }
