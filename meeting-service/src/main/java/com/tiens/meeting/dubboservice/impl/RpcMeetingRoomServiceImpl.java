@@ -1,6 +1,7 @@
 package com.tiens.meeting.dubboservice.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.*;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -163,12 +164,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         log.info("空闲资源列表【0】入参：{}", freeResourceListDTO);
 
-        Date startTime1 = freeResourceListDTO.getStartTime();
+        Date showStartTime = DateUtils.roundToHalfHour(
+            ObjectUtil.defaultIfNull(DateUtil.date(freeResourceListDTO.getStartTime()), DateUtil.date()));
 
-        if (ObjectUtil.isEmpty(startTime1)) {
-            startTime1 =
-                DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime1), DateUtil.date()));
-        }
+        DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
+        DateTime lockEndTime = DateUtil.offsetMinute(showStartTime, freeResourceListDTO.getLength() + 29);
         //前端用户能看到的资源列表=【公池该用户等级相关空闲子资源与主持人绑定公池空闲资源 的【并集】】+用户私池
         List<MeetingResourceVO> result;
         if (NumberUtil.isNumber(freeResourceListDTO.getResourceType())) {
@@ -180,7 +180,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
         log.info("空闲资源列表【1】初始过滤资源池结果：{}", result);
 
-        Date finalStartTime = startTime1;
+        Date finalStartTime = showStartTime;
         List<Integer> originResourceIds =
             result.stream().filter(t -> t.getExpireDate().after(finalStartTime)).map(MeetingResourceVO::getId)
                 .collect(Collectors.toList());
@@ -188,21 +188,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (ObjectUtil.isEmpty(originResourceIds)) {
             return CommonResult.success(Collections.emptyList());
         }
-        DateTime startTime = DateUtil.offsetMinute(startTime1, -30);
-        DateTime endTime =
-            DateUtil.offsetMinute(freeResourceListDTO.getStartTime(), freeResourceListDTO.getLength() + 29);
-        Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
-            wrapper -> wrapper.ge(MeetingRoomInfoPO::getLockStartTime, startTime)
-                .le(MeetingRoomInfoPO::getLockStartTime, endTime)
-                .or(wrapper1 -> wrapper1.ge(MeetingRoomInfoPO::getLockEndTime, startTime)
-                    .le(MeetingRoomInfoPO::getLockEndTime, endTime))
-                .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, startTime)
-                    .ge(MeetingRoomInfoPO::getLockEndTime, endTime));
-        //该段时间正在锁定的会议
+
         List<MeetingRoomInfoPO> lockedMeetingRoomList =
-            meetingRoomInfoDaoService.lambdaQuery().in(MeetingRoomInfoPO::getResourceId, originResourceIds)
-                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer).list();
-        log.info("空闲资源列表【2】，开始时间：{}，结束时间：{}，查询锁定会议结果：{}", startTime, endTime,
+            getOccupiedMeetingRoom(originResourceIds, lockStartTime, lockEndTime);
+        log.info("空闲资源列表【2】，锁定开始时间：{}，锁定结束时间：{}，查询锁定会议结果：{}", lockStartTime, lockEndTime,
             lockedMeetingRoomList);
 
         //该段时间正在锁定的资源
@@ -213,6 +202,26 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .peek(t -> t.setResourceType(freeResourceListDTO.getResourceType())).collect(Collectors.toList());
         log.info("空闲资源列表结果：{}", result);
         return CommonResult.success(result);
+    }
+
+    List<MeetingRoomInfoPO> getOccupiedMeetingRoom(List<Integer> resourceIdList, DateTime lockStartTime,
+        DateTime lockEndTime) {
+        if (CollectionUtil.isEmpty(resourceIdList)) {
+            return Collections.emptyList();
+        }
+        Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
+            wrapper -> wrapper.ge(MeetingRoomInfoPO::getLockStartTime, lockStartTime)
+                .le(MeetingRoomInfoPO::getLockStartTime, lockEndTime)
+                .or(wrapper1 -> wrapper1.ge(MeetingRoomInfoPO::getLockEndTime, lockStartTime)
+                    .le(MeetingRoomInfoPO::getLockEndTime, lockEndTime))
+                .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, lockStartTime)
+                    .ge(MeetingRoomInfoPO::getLockEndTime, lockEndTime));
+        //该段时间正在锁定的会议
+        List<MeetingRoomInfoPO> lockedMeetingRoomList =
+            meetingRoomInfoDaoService.lambdaQuery().in(MeetingRoomInfoPO::getResourceId, resourceIdList)
+                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer)
+                .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list();
+        return lockedMeetingRoomList;
     }
 
     private List<MeetingResourceVO> getPrivateResourceList(FreeResourceListDTO freeResourceListDTO) {
@@ -467,8 +476,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         Date showStartTime = DateUtils.roundToHalfHour(
             ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), DateUtil.date()));
-        DateTime showEndTime1 = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength());
-        DateTime showEndTime = DateUtil.offsetMinute(showEndTime1, 29);
+        DateTime showEndTime = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength());
+        //锁定开始时间
+        DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
+        //锁定结束时间
+        DateTime lockEndTime = DateUtil.offsetMinute(showEndTime, 29);
         if (ObjectUtil.isNotNull(showStartTime)) {
             //开始时间小于当前时间
             if (showStartTime.before(DateUtil.date())) {
@@ -500,12 +512,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
         Integer oldResourceId = byId.getResourceId();
 
-        FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
         //判断新资源是否已被使用
-        if (!oldResourceId.equals(resourceId) || !byId.getShowStartTime().equals(showStartTime) || !byId.getLockEndTime()
-            .equals(showEndTime)) {
-            if (!getFreeResourceList(freeResourceListDTO).getData().stream()
-                .anyMatch(t -> t.getId().equals(resourceId))) {
+        if (!oldResourceId.equals(resourceId) || !byId.getShowStartTime()
+            .equals(showStartTime) || !byId.getLockEndTime().equals(showEndTime)) {
+
+            List<MeetingRoomInfoPO> occupiedMeetingRoom =
+                getOccupiedMeetingRoom(Collections.singletonList(resourceId), lockStartTime, lockEndTime);
+            if (occupiedMeetingRoom.stream().filter(t -> !t.getId().equals(meetingRoomContextDTO.getMeetingRoomId()))
+                .count() > 0) {
+                //资源存在被占用的相关会议
                 return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_USED);
             }
 
@@ -515,6 +530,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId()))) {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_USE_PERSONAL_RESOURCE_ERROR);
         }
+        Long count = meetingRoomInfoDaoService.lambdaQuery()
+            .eq(MeetingRoomInfoPO::getOwnerImUserId, meetingRoomContextDTO.getImUserId())
+            //非结束的会议
+            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).count();
+        if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && count > 2) {
+            //每个用户只可同时存在2个预约的公用会议室，超出时，则主页创建入口，提示”只可以同时存在2个预约的会议室，不可再次预约“
+            return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_MORE_THAN);
+        }
+
         Tuple2<MeetingRoomInfoPO, MeetingResourcePO> of = Tuples.of(byId, meetingResourcePO);
         return CommonResult.success(of);
     }
@@ -783,21 +807,50 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
 
         Integer resourceId = availableResourcePeriodGetDTO.getResourceId();
+        DateTime beginOfDay = DateUtil.beginOfDay(date);
+        DateTime endOfDay = DateUtil.endOfDay(date);
+
+        //查询与当日有交叉的会议
+        List<MeetingRoomInfoPO> occupiedMeetingRoom =
+            getOccupiedMeetingRoom(Collections.singletonList(resourceId), beginOfDay, endOfDay);
+        ArrayList<FreeTimeCalculatorUtil.TimeRange> timeRanges = Lists.newArrayList();
+        //如果存在有交叉上一天或者下一天的会议，则掐头去尾，重设置临界值时间
+        for (MeetingRoomInfoPO meetingRoomInfoPO : occupiedMeetingRoom) {
+            DateTime lockStartTime = DateUtil.date(meetingRoomInfoPO.getLockStartTime());
+            DateTime lockEndTime = DateUtil.date(meetingRoomInfoPO.getLockEndTime());
+            //设置开始时间
+            if (lockStartTime.before(beginOfDay)) {
+                lockStartTime = beginOfDay;
+            } else {
+                lockStartTime = DateUtil.offsetMinute(lockStartTime, -30);
+            }
+
+            //设置结束时间
+            if (lockEndTime.after(endOfDay)) {
+                lockEndTime = endOfDay;
+            } else {
+                lockEndTime = DateUtil.offsetMinute(lockEndTime, 30);
+            }
+
+            //将占用时间段左右各扩展30分钟
+            timeRanges.add(new FreeTimeCalculatorUtil.TimeRange(lockStartTime, lockEndTime));
+        }
 
         //查询该资源当日占用情况
-        List<FreeTimeCalculatorUtil.TimeRange> collect =
+       /* List<FreeTimeCalculatorUtil.TimeRange> collect =
             meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, resourceId)
                 .between(MeetingRoomInfoPO::getLockStartTime, DateUtil.beginOfDay(date), DateUtil.endOfDay(date))
                 .between(MeetingRoomInfoPO::getLockEndTime, DateUtil.beginOfDay(date), DateUtil.endOfDay(date))
                 .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list().stream()
                 .map(t -> new FreeTimeCalculatorUtil.TimeRange(t.getLockStartTime(), t.getLockEndTime()))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());*/
         //最大6小时切割
-        List<FreeTimeCalculatorUtil.TimeRange> timeRanges =
-            FreeTimeCalculatorUtil.calculateFreeTimeRanges(collect, 2, 7,
+
+        List<FreeTimeCalculatorUtil.TimeRange> rangeList =
+            FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 2, 6,
                 DatePattern.NORM_DATE_FORMAT.format(date).equals(DateUtil.today()));
         List<AvailableResourcePeriodVO> result =
-            timeRanges.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
+            rangeList.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
                 .collect(Collectors.toList());
         return CommonResult.success(result);
     }
