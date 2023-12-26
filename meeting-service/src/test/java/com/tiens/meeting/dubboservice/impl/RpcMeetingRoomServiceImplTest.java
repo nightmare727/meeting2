@@ -74,11 +74,11 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-        meetingRoomContextDTO.setStartTime(DateUtil.parse("2023-12-25 11:30:00"));
+        meetingRoomContextDTO.setStartTime(DateUtil.parse("2023-12-30 11:30:00"));
         meetingRoomContextDTO.setLength(240);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setResourceId(240);
-        meetingRoomContextDTO.setResourceType("7a4037c1a8234ba286647f31aadfc4f1-50-2");
+        meetingRoomContextDTO.setResourceId(260);
+        meetingRoomContextDTO.setResourceType("1");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
         meetingRoomContextDTO.setGuestPwdFlag(false);
@@ -131,7 +131,7 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getFutureAndRunningMeetingRoomList() {
         System.out.println(
-            rpcMeetingRoomService.getFutureAndRunningMeetingRoomList("48cd6848a5ca47c883bd38a5c64287dd"));
+            rpcMeetingRoomService.getFutureAndRunningMeetingRoomList("9f450708cf794c3889cc06d2e6ec1029"));
     }
 
     @Test

@@ -730,7 +730,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Map<String, List<MeetingRoomDetailDTO>> collect = meetingRoomDetailDTOS.stream().collect(
             Collectors.groupingBy(f -> DateUtil.format(f.getLockStartTime(), DatePattern.NORM_DATE_PATTERN),
                 () -> sortMap, Collectors.collectingAndThen(Collectors.toCollection(
-                        () -> new TreeSet<>(Comparator.comparing(MeetingRoomDetailDTO::getLockStartTime))),
+                        () -> new TreeSet<>(Comparator.comparing(MeetingRoomDetailDTO::getLockStartTime).thenComparing(MeetingRoomDetailDTO::getHwMeetingCode))),
                     Lists::newArrayList)));
         futureAndRunningMeetingRoomListVO.setRooms(collect);
         return futureAndRunningMeetingRoomListVO;
