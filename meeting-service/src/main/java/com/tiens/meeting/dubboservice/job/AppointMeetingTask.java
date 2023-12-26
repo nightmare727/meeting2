@@ -13,6 +13,7 @@ import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import common.enums.MeetingResourceStateEnum;
 import common.enums.MeetingRoomStateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AppointMeetingTask {
 
-    @Reference
+    @Reference(version = "1.0")
     MessageService messageService;
 
     @Autowired
@@ -59,7 +60,7 @@ public class AppointMeetingTask {
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
             .eq(MeetingRoomInfoPO::getNotifyRoomStartStatus, 0).le(MeetingRoomInfoPO::getLockStartTime, DateUtil.date())
-            .eq(MeetingRoomInfoPO::getAssignResourceStatus, 0).list();
+            .list();
         if (CollectionUtil.isEmpty(list)) {
             log.info("【会议开始前30分钟前发送消息】:当前无需要通知的消息");
             return;
@@ -71,7 +72,9 @@ public class AppointMeetingTask {
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
             String ownerImUserId = meetingRoomInfoPO.getOwnerImUserId();
             MeetingResourcePO byId = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
-            hwMeetingCommonService.associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
+            if (!byId.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
+                hwMeetingCommonService.associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
+            }
         }
 
         List<Long> ids = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
@@ -79,13 +82,12 @@ public class AppointMeetingTask {
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
             BatchAttachMessageVo batchMessageVo = new BatchAttachMessageVo();
             batchMessageVo.setFromAccid(fromAccid);
-            batchMessageVo.setToAccids(JSON.toJSONString(Collections.singletonList(meetingRoomInfoPO.getOwnerImUserId())));
+            batchMessageVo.setToAccids(
+                JSON.toJSONString(Collections.singletonList(meetingRoomInfoPO.getOwnerImUserId())));
             batchMessageVo.setPushcontent(pushContent);
             batchMessageVo.setAttach(
-                JSONUtil.createObj().set("pushContent", pushContent)
-                    .set("push_type", "room_start_notice")
-                    .set("meetingCode", meetingRoomInfoPO.getHwMeetingCode())
-                    .toString());
+                JSONUtil.createObj().set("pushContent", pushContent).set("push_type", "room_start_notice")
+                    .set("meetingCode", meetingRoomInfoPO.getHwMeetingCode()).toString());
 //        batchMessageVo.setPayload("");//不传ios收不到
             log.info("【会议开始前30分钟前发送消息】发送消息入参：{}", batchMessageVo);
             Result<?> result = messageService.batchSendAttachMessage(batchMessageVo);
