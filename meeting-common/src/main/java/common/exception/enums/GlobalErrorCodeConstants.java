@@ -55,7 +55,7 @@ public interface GlobalErrorCodeConstants {
     ErrorCode HW_CANCEL_MEETING_ERROR = new ErrorCode("moment_meeting_back_017", "取消会议错误，请稍后重试");
     ErrorCode HW_START_TIME_ERROR =
         new ErrorCode("moment_meeting_back_018", "会议开始时间错误，无法小于当前时间或者选择3个月后，请重新填写");
-    ErrorCode NOT_ARRIVE_START_TIME_ERROR = new ErrorCode("moment_meeting_back_019", "%s");
+    ErrorCode NOT_ARRIVE_START_TIME_ERROR = new ErrorCode("2000017", "%s");
     ErrorCode CAN_NOT_USE_PERSONAL_RESOURCE_ERROR = new ErrorCode("moment_meeting_back_028", "无权使用专属会议资源");
     ErrorCode RESOURCE_OPERATED_ERROR = new ErrorCode("moment_meeting_back_029", "会议资源正被其他人操作中，请稍后再试");
 
