@@ -398,7 +398,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //判断用户等级，您的Vmo星球等级至少Lv3才可以使用此功能
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
-        Date startTime = meetingRoomContextDTO.getStartTime();
+        Date startTime = DateUtils.roundToHalfHour(
+                ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), DateUtil.date()));
         if (ObjectUtil.isNotNull(startTime)) {
             //开始时间小于当前时间
             if (startTime.before(DateUtil.date())) {
