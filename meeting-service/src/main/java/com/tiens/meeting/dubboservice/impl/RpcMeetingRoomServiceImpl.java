@@ -176,7 +176,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         Date finalStartTime = startTime1;
         List<Integer> originResourceIds =
-            result.stream().filter(t -> t.getExpireDate().before(finalStartTime)).map(MeetingResourceVO::getId)
+            result.stream().filter(t -> t.getExpireDate().after(finalStartTime)).map(MeetingResourceVO::getId)
                 .collect(Collectors.toList());
 
         if (ObjectUtil.isEmpty(originResourceIds)) {
