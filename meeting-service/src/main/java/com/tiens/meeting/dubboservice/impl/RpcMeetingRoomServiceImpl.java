@@ -461,8 +461,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         Date showStartTime = DateUtils.roundToHalfHour(
             ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), DateUtil.date()));
-        DateTime showEndTime = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength());
-
+        DateTime showEndTime1 = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength());
+        DateTime showEndTime = DateUtil.offsetMinute(showEndTime1, 29);
         if (ObjectUtil.isNotNull(showStartTime)) {
             //开始时间小于当前时间
             if (showStartTime.before(DateUtil.date())) {
