@@ -52,10 +52,6 @@ public class MeetingStopTask {
     @Autowired
     RetryTemplate retryTemplate;
 
-    @Value("${live.fromAccid}")
-    String fromAccid;
-    @Value("${live.pushcontent}")
-    String pushContent;
 
     @XxlJob("MeetingStopJobHandler")
     @Transactional(rollbackFor = Exception.class)

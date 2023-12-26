@@ -1,6 +1,7 @@
 package common.exception;
 
 import common.exception.enums.GlobalErrorCodeConstants;
+import common.exception.enums.ServiceErrorCodeRange;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -23,11 +24,14 @@ public class ErrorCode implements Serializable {
     /**
      * 错误提示
      */
-    private final String msg;
+    private final String chinesMsg;
 
-    public ErrorCode(String code, String message) {
+    private final String wordKey;
+
+    public ErrorCode(String code, String chinesMsg, String wordKey) {
         this.code = code;
-        this.msg = message;
+        this.chinesMsg = chinesMsg;
+        this.wordKey = wordKey;
     }
 
 }

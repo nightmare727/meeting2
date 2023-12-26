@@ -137,7 +137,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 String betweenDate = DateUtil.formatBetween(now, lockStartTime, BetweenFormatter.Level.MINUTE);
                 //未到开会开始时间
                 return CommonResult.error(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getCode(),
-                    String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getMsg(),
+                    String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getChinesMsg(),
                         lockStartTime.getTime()));
 //                return CommonResult.errorMsg(String.format("请在 %s后进入会议", betweenDate));
             }
@@ -409,8 +409,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
             }
             //超出资源过期时间
-            if (ObjectUtil.isEmpty(startTime) && meetingResourcePO.getExpireDate().before(DateUtil.date())) {
-                return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR);
+            if (meetingResourcePO.getExpireDate().before(DateUtils.roundToHalfHour(
+                ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), DateUtil.date())))) {
+                return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR,
+                    Collections.singletonList(meetingResourcePO.getExpireDate()));
             }
 
         }

@@ -59,7 +59,15 @@ public class CommonResult<T> implements Serializable {
     }
 
     public static <T> CommonResult<T> error(ErrorCode errorCode) {
-        return error(errorCode.getCode(), errorCode.getMsg());
+        return error(errorCode.getCode(), errorCode.getWordKey());
+    }
+
+    public static <T> CommonResult<T> error(ErrorCode errorCode, T data) {
+        CommonResult<T> result = new CommonResult<>();
+        result.code = errorCode.getCode();
+        result.msg = errorCode.getWordKey();
+        result.data = data;
+        return result;
     }
 
     public static <T> CommonResult<T> success(T data) {
@@ -70,7 +78,7 @@ public class CommonResult<T> implements Serializable {
         return result;
     }
 
-    public static <T> CommonResult<T> success(String code,T data, String message) {
+    public static <T> CommonResult<T> success(String code, T data, String message) {
         //Assert.isTrue(!GlobalErrorCodeConstants.SUCCESS.getCode().equals(code), "code 必须是错误的！");
         CommonResult<T> result = new CommonResult<>();
         result.code = code;
@@ -132,7 +140,6 @@ public class CommonResult<T> implements Serializable {
         checkError();
         return data;
     }*/
-
     public static <T> CommonResult<T> error(ServiceException serviceException) {
         return error(serviceException.getCode(), serviceException.getMessage());
     }
