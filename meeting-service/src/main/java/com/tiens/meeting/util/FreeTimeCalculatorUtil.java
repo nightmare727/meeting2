@@ -173,7 +173,7 @@ public class FreeTimeCalculatorUtil {
             minute++;
         }
         if (minute == 59) {
-            minute++;
+            minute = 0;
             hour++;
         }
 
