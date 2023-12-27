@@ -85,12 +85,14 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         if (StringUtils.isAllBlank(joyoCode, accid)) {
             return CommonResult.success(null);
         }
-        String cacheKey = StringUtils.isNotBlank(joyoCode) ? joyoCode : accid;
-        //查询缓存
-        RBucket<VMUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(cacheKey));
-        VMUserVO vmUserCacheVO = bucket.get();
-        if (ObjectUtil.isNotNull(vmUserCacheVO)) {
-            return CommonResult.success(vmUserCacheVO);
+        RBucket<VMUserVO> bucket = null;
+        if (StringUtils.isNotBlank(accid)) {
+            //查询缓存
+            bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(accid));
+            VMUserVO vmUserCacheVO = bucket.get();
+            if (ObjectUtil.isNotNull(vmUserCacheVO)) {
+                return CommonResult.success(vmUserCacheVO);
+            }
         }
         HomepageBo homepageBo = new HomepageBo();
         homepageBo.setJoyoCode(joyoCode);
@@ -109,7 +111,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         VMUserVO vmUserVO = BeanUtil.copyProperties(data, VMUserVO.class);
         vmUserVO.setJoyoCode(data.getJoyo_code());
         //设置缓存
-        bucket.set(vmUserVO);
+        if (StringUtils.isNotBlank(accid)) {
+            bucket.set(vmUserVO);
+        }
         return CommonResult.success(vmUserVO);
     }
 
