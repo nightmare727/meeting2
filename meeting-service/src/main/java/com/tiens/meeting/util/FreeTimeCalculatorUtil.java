@@ -106,8 +106,8 @@ public class FreeTimeCalculatorUtil {
                 intervalEnd = end;
             }
             if ((getSeconds(intervalEnd) - getSeconds(intervalStart)) >= minIntervalInHours * 60 * 60) {
-                intervalStart = intervalStart.plusMinutes(30);
-                intervalEnd = intervalEnd.minusMinutes(30);
+              /*  intervalStart = intervalStart.plusMinutes(30);
+                intervalEnd = intervalEnd.minusMinutes(30);*/
                 rangeList.add(new TimeRange(intervalStart, intervalEnd));
             }
         }
