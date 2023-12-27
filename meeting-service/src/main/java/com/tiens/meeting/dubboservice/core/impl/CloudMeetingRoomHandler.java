@@ -117,6 +117,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         } finally {
             if (publicFlag && subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
+                log.info("编辑资源回收达成条件是 新增 publicFlag:{},subsCribeFlag:{}",publicFlag,subsCribeFlag);
                 hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                     Collections.singletonList(meetingRoomContextDTO.getVmrId()));
             }
@@ -192,6 +193,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         } finally {
             if (publicFlag && subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
+                log.info("编辑资源回收达成条件是 publicFlag:{},subsCribeFlag:{}",publicFlag,subsCribeFlag);
                 hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                     Collections.singletonList(meetingRoomContextDTO.getVmrId()));
             }

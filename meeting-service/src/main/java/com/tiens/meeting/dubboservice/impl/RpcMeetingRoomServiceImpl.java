@@ -451,6 +451,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         Long count = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getOwnerImUserId, meetingRoomContextDTO.getImUserId())
+                .notLike(MeetingRoomInfoPO::getResourceType,"-")
             //非结束的会议
             .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).count();
         if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && count >= 2) {
@@ -552,6 +553,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (!checkResult.isSuccess()) {
             return checkResult;
         }
+        Boolean publicFlag = NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
         Tuple2<MeetingRoomInfoPO, MeetingResourcePO> tuple2 =
             (Tuple2<MeetingRoomInfoPO, MeetingResourcePO>)checkResult.getData();
         MeetingRoomInfoPO oldMeetingRoomInfoPO = tuple2.getT1();
@@ -563,8 +565,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Integer vmrMode = meetingResourcePO.getVmrMode();
         //查询是否该资源已分配，
         String currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
-        if (StringUtils.isNotBlank(currentUseImUserId)) {
+        if (publicFlag&&StringUtils.isNotBlank(currentUseImUserId)) {
             //如果已分配，则执行 回收-分配-再回收
+            log.info("编辑资源回收达成条件是1 currentUseImUserId:{}",currentUseImUserId);
             hwMeetingCommonService.disassociateVmr(currentUseImUserId,
                 Collections.singletonList(meetingResourcePO.getVmrId()));
         }
@@ -584,7 +587,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         }
         //查询是否该资源已分配，
-        if (StringUtils.isNotBlank(currentUseImUserId)) {
+        if (publicFlag&&StringUtils.isNotBlank(currentUseImUserId)) {
             //如果已分配，则执行 回收-分配-再回收
             hwMeetingCommonService.associateVmr(currentUseImUserId,
                 Collections.singletonList(meetingResourcePO.getVmrId()));
@@ -718,7 +721,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                         //当前状态为共有预约。释放资源后，如果
                         .set(MeetingResourcePO::getStatus,
                             subscribeFlag ? MeetingResourceStateEnum.PUBLIC_FREE.getState()
-                                : MeetingResourceStateEnum.PRIVATE.getState()).update();
+                                : MeetingResourceStateEnum.PRIVATE.getState())
+                            .set(!subscribeFlag,MeetingResourcePO::getCurrentUseImUserId,meetingResourcePO.getOwnerImUserId())
+                            .update();
+                    //如果私有，则分配资源
+                    if(MeetingResourceStateEnum.REDISTRIBUTION.getState().equals(status)){
+                        log.info("【资源挂起释放】将预分配资源分配给私人，resourceId:{},oenweId：{}",meetingResourcePO.getId(),meetingResourcePO.getOwnerImUserId());
+                        hwMeetingCommonService.associateVmr(meetingResourcePO.getOwnerImUserId(),Collections.singletonList(meetingResourcePO.getVmrId()));
+                    }
+
                     log.info("【资源挂起释放】修改资源状态为公有空闲状态结果：{}", update1);
                     return Boolean.TRUE;
                 } else {
