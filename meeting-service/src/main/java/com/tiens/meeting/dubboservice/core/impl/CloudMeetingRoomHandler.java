@@ -95,7 +95,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withEncryptMode(2);
             body.withMediaTypes("HDVideo");
             body.withSubject(meetingRoomContextDTO.getSubject());
-            body.withLength(meetingRoomContextDTO.getLength() + 30);
+            body.withLength(meetingRoomContextDTO.getLength() + 60);
             //会议开始时间（UTC时间）。格式：yyyy-MM-dd HH:mm。 > * 创建预约会议时，如果没有指定开始时间或填空串，则表示会议马上开始 > * 时间是UTC时间，即0时区的时间
             body.withStartTime(startTimeStr);
             request.withBody(body);
@@ -182,7 +182,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withIsAutoRecord(0);
             body.withMediaTypes("HDVideo");
             body.withSubject(meetingRoomContextDTO.getSubject());
-            body.withLength(meetingRoomContextDTO.getLength() + 30);
+            body.withLength(meetingRoomContextDTO.getLength() + 60);
             body.withStartTime(startTimeStr);
             request.withBody(body);
             UpdateMeetingResponse response = userMeetingClient.updateMeeting(request);

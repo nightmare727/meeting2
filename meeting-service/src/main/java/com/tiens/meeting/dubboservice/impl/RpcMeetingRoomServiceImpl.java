@@ -122,11 +122,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         // 若为共有资源会议，需判断是否为开始时间 30min内，若在则直接进入会议，
         MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOpt.get();
 
-        String resourceType = meetingRoomInfoPO.getResourceType();
+      /*  String resourceType = meetingRoomInfoPO.getResourceType();
 
         if (!NumberUtil.isNumber(resourceType)) {
             return CommonResult.success(null);
-        }
+        }*/
         String state = meetingRoomInfoPO.getState();
         if (MeetingRoomStateEnum.Destroyed.getState().equals(state)) {
             //会议已结束
