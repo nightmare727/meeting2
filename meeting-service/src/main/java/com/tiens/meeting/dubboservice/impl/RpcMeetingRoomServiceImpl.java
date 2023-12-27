@@ -197,7 +197,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<Integer> lockedResourceIdList =
             lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
         //去除空闲资源中被锁定的资源
-        result = result.stream().filter(t -> !lockedResourceIdList.contains(t.getId()))
+        result = result.stream()
+            .filter(t -> originResourceIds.contains(t.getId()) && !lockedResourceIdList.contains(t.getId()))
             .peek(t -> t.setResourceType(freeResourceListDTO.getResourceType())).collect(Collectors.toList());
         log.info("空闲资源列表结果：{}", result);
         return CommonResult.success(result);
