@@ -18,13 +18,13 @@ public class FreeTimeCalculatorUtil {
     public static void main(String[] args) {
         // 已知时间段
         List<TimeRange> knownTimeRanges = new ArrayList<>();
-        knownTimeRanges.add(new TimeRange(LocalTime.of(13, 30), LocalTime.of(15, 29))); // 上午工作
-        knownTimeRanges.add(new TimeRange(LocalTime.of(22, 30), LocalTime.of(23, 59))); // 下午工作
+//        knownTimeRanges.add(new TimeRange(LocalTime.of(13, 30), LocalTime.of(15, 29))); // 上午工作
+        knownTimeRanges.add(new TimeRange(LocalTime.of(23, 30), LocalTime.of(23, 59))); // 下午工作
 //        knownTimeRanges.add(new TimeRange(LocalTime.of(23, 30), LocalTime.of(23, 59))); // 下午工作
 
         // 计算空闲时间段
         List<TimeRange> freeTimeRanges =
-            calculateFreeTimeRanges(knownTimeRanges, 1, 6, DateUtil.parse("2023-12-28 11:00:00"),
+            calculateFreeTimeRanges(knownTimeRanges, 1, 6, DateUtil.parse("2023-12-27 11:00:00"),
                 DateUtil.parse("2024-01-04 23:59:59"));
 
         // 输出空闲时间段
@@ -48,7 +48,7 @@ public class FreeTimeCalculatorUtil {
         //查询空闲时间段
         List<TimeRange> rangeList = calculateFreeTimeRanges(knownTimeRanges, targetDate, expireDate);
         //
-        return rangeList.stream().map(s -> splitTimeInterval(s, minIntervalInHours, maxIntervalInHours))
+        return rangeList.stream().map(s -> splitTimeInterval(s, targetDate, minIntervalInHours, maxIntervalInHours))
             .flatMap(Collection::stream).collect(Collectors.toList());
     }
 
@@ -100,12 +100,13 @@ public class FreeTimeCalculatorUtil {
         return freeTimeRanges;
     }
 
-    public static List<TimeRange> splitTimeInterval(TimeRange timeRange, int minIntervalInHours,
+    public static List<TimeRange> splitTimeInterval(TimeRange timeRange, Date targetDate, int minIntervalInHours,
         int maxIntervalInHours) {
         //计算开始时间和结束时间之间的小时数差。
         //将小时数差除以6，得到需要切割的时间段数量。
         //使用循环遍历每个时间段，计算每个时间段的开始和结束时间。
         //将每个时间段的开始和结束时间转换为分钟。
+        boolean isToday = DatePattern.NORM_DATE_FORMAT.format(targetDate).equals(DateUtil.today());
 
         LocalTime beginDay = LocalTime.of(0, 0);
         LocalTime endDay = LocalTime.of(23, 59);
@@ -113,6 +114,9 @@ public class FreeTimeCalculatorUtil {
         LocalTime end = null;
         if (timeRange.getStart().equals(beginDay)) {
             start = beginDay;
+        } else if (isToday) {
+            DateTime now = DateUtils.roundToHalfHour(DateUtil.date());
+            start = LocalTime.of(now.getHours(), now.getMinutes());
         } else {
             start = timeRange.getStart().plusMinutes(30);
         }
