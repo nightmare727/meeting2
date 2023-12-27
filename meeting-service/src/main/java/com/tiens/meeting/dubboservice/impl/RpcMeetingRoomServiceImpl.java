@@ -493,7 +493,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             }
             //超出资源过期时间
             if (meetingResourcePO.getExpireDate().before(lockEndTime)) {
-                return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR);
+                return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR,
+                    Collections.singletonList(meetingResourcePO.getExpireDate()));
             }
         }
         MeetingRoomInfoPO byId = meetingRoomInfoDaoService.getById(meetingRoomContextDTO.getMeetingRoomId());
@@ -798,8 +799,19 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (date.before(DateUtil.beginOfDay(DateUtil.date()))) {
             return CommonResult.success(Collections.emptyList());
         }
-
         Integer resourceId = availableResourcePeriodGetDTO.getResourceId();
+        MeetingResourcePO byId = meetingResourceDaoService.getById(resourceId);
+
+        if (ObjectUtil.isEmpty(byId)) {
+            //资源不存在
+            return CommonResult.success(null);
+        }
+
+        if (date.after(byId.getExpireDate())) {
+            //已过期
+            return CommonResult.success(Collections.emptyList());
+        }
+
         DateTime beginOfDay = DateUtil.beginOfDay(date);
         DateTime endOfDay = DateUtil.endOfDay(date);
 
@@ -814,18 +826,19 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //设置开始时间
             if (lockStartTime.before(beginOfDay)) {
                 lockStartTime = beginOfDay;
-            } else {
-                lockStartTime = DateUtil.offsetMinute(lockStartTime, -30);
             }
+
+         /*   else {
+                lockStartTime = DateUtil.offsetMinute(lockStartTime, -30);
+            }*/
 
             //设置结束时间
             if (lockEndTime.after(endOfDay)) {
                 lockEndTime = endOfDay;
-            } else {
-                lockEndTime = DateUtil.offsetMinute(lockEndTime, 30);
             }
-
-            //将占用时间段左右各扩展30分钟
+           /* else {
+                lockEndTime = DateUtil.offsetMinute(lockEndTime, 30);
+            }*/
             timeRanges.add(new FreeTimeCalculatorUtil.TimeRange(lockStartTime, lockEndTime));
         }
 
@@ -840,8 +853,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //最大6小时切割
 
         List<FreeTimeCalculatorUtil.TimeRange> rangeList =
-            FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 2, 6,
-                DatePattern.NORM_DATE_FORMAT.format(date).equals(DateUtil.today()));
+            FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 1, 7, date, byId.getExpireDate());
         List<AvailableResourcePeriodVO> result =
             rangeList.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
                 .collect(Collectors.toList());

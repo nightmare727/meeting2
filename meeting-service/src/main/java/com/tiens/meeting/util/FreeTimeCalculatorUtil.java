@@ -1,6 +1,7 @@
 package com.tiens.meeting.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -17,12 +18,14 @@ public class FreeTimeCalculatorUtil {
     public static void main(String[] args) {
         // 已知时间段
         List<TimeRange> knownTimeRanges = new ArrayList<>();
-        knownTimeRanges.add(new TimeRange(LocalTime.of(9, 0), LocalTime.of(12, 0))); // 上午工作
-        knownTimeRanges.add(new TimeRange(LocalTime.of(13, 0), LocalTime.of(17, 0))); // 下午工作
-        knownTimeRanges.add(new TimeRange(LocalTime.of(18, 0), LocalTime.of(21, 0))); // 下午工作
+        knownTimeRanges.add(new TimeRange(LocalTime.of(12, 30), LocalTime.of(14, 29))); // 上午工作
+        knownTimeRanges.add(new TimeRange(LocalTime.of(14, 30), LocalTime.of(16, 29))); // 下午工作
+        knownTimeRanges.add(new TimeRange(LocalTime.of(23, 30), LocalTime.of(23, 59))); // 下午工作
 
         // 计算空闲时间段
-        List<TimeRange> freeTimeRanges = calculateFreeTimeRanges(knownTimeRanges, 2, 6, true);
+        List<TimeRange> freeTimeRanges =
+            calculateFreeTimeRanges(knownTimeRanges, 2, 6, DateUtil.parse("2023-12-27 11:00:00"), DateUtil.parse(
+                "2024-01-04 23:59:59"));
 
         // 输出空闲时间段
         for (TimeRange range : freeTimeRanges) {
@@ -32,7 +35,7 @@ public class FreeTimeCalculatorUtil {
     }
 
     public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges, int minIntervalInHours,
-        int maxIntervalInHours, boolean isToday) {
+        int maxIntervalInHours, Date targetDate, Date expireDate) {
 //        1、列出所有已知的占用时间段：首先，我们需要知道哪些时间段是忙碌的。这可以通过查看时间表或数据库中的记录来完成。
 
 //        2、计算每个时间段的长度：对于每个占用的时间段，计算出它的结束时间和开始时间，从而得到它的长度。长度是结束时间减去开始时间。
@@ -43,7 +46,7 @@ public class FreeTimeCalculatorUtil {
 
 //        5、获取所有空闲时间段集合：最后，我们将所有的空闲时间段合并起来，形成一个完整的集合。
         //查询空闲时间段
-        List<TimeRange> rangeList = calculateFreeTimeRanges(knownTimeRanges, isToday);
+        List<TimeRange> rangeList = calculateFreeTimeRanges(knownTimeRanges, targetDate, expireDate);
         //
         return rangeList.stream().map(s -> splitTimeInterval(s, minIntervalInHours, maxIntervalInHours))
             .flatMap(Collection::stream).collect(Collectors.toList());
@@ -53,37 +56,46 @@ public class FreeTimeCalculatorUtil {
      * 计算一天中的空闲时间段
      *
      * @param knownTimeRanges
-     * @param isToday
      * @return
      */
-    public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges, boolean isToday) {
+    public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges, Date targetDate,
+        Date expireDate) {
         //重排序，防止出问题
         knownTimeRanges.sort(Comparator.comparing(TimeRange::getStart));
 
         List<TimeRange> freeTimeRanges = new ArrayList<>();
-        DateTime now = DateUtils.roundToHalfHour(DateUtil.date());
 
+        boolean isToday = DatePattern.NORM_DATE_FORMAT.format(targetDate).equals(DateUtil.today());
+        DateTime now = DateUtils.roundToHalfHour(DateUtil.date());
         // 当前时间，则取当前时间时分，否则假设一天从0点开始，到23点59分结束
         LocalTime startOfDay = isToday ? LocalTime.of(now.getHours(), now.getMinutes()) : LocalTime.of(0, 0);
+        boolean isExpireDay =
+            DatePattern.NORM_DATE_FORMAT.format(targetDate).equals(DatePattern.NORM_DATE_FORMAT.format(expireDate));
 
-        LocalTime endOfDay = LocalTime.of(23, 59);
+        //结束时间需要计算资源过期时间
+        LocalTime endOfDay =
+            isExpireDay ? LocalTime.of(targetDate.getHours(), targetDate.getMinutes()) : LocalTime.of(23, 59);
         if (CollectionUtil.isEmpty(knownTimeRanges)) {
             freeTimeRanges.add(new TimeRange(startOfDay, endOfDay));
             return freeTimeRanges;
         }
 
         // 初始化空闲时间段列表
-        freeTimeRanges.add(new TimeRange(startOfDay, knownTimeRanges.get(0).start));
+        if(startOfDay.isBefore(knownTimeRanges.get(0).start)){
+            freeTimeRanges.add(new TimeRange(getAround(startOfDay), getAround(knownTimeRanges.get(0).start)));
+        }
         for (int i = 0; i < knownTimeRanges.size() - 1; i++) {
             TimeRange currentRange = knownTimeRanges.get(i);
             if (startOfDay.isAfter(currentRange.getStart())) {
                 continue;
             }
             TimeRange nextRange = knownTimeRanges.get(i + 1);
-            freeTimeRanges.add(new TimeRange(currentRange.end.plusMinutes(1), nextRange.start));
+            freeTimeRanges.add(new TimeRange(getAround(currentRange.end), getAround(nextRange.start)));
         }
         //最后的空闲时间段列表
-        freeTimeRanges.add(new TimeRange(knownTimeRanges.get(knownTimeRanges.size() - 1).end.plusMinutes(1), endOfDay));
+        if(!knownTimeRanges.get(knownTimeRanges.size() - 1).end.equals(endOfDay)){
+            freeTimeRanges.add(new TimeRange(getAround(knownTimeRanges.get(knownTimeRanges.size() - 1).end), endOfDay));
+        }
 
         return freeTimeRanges;
     }
@@ -107,12 +119,15 @@ public class FreeTimeCalculatorUtil {
                 //最后一个，结束时间取最后一个
                 intervalEnd = end;
             }
+            //设置返回的展示时间
+            intervalStart = intervalStart.plusMinutes(30);
+            intervalEnd = intervalEnd.minusMinutes(30);
             if ((getSeconds(intervalEnd) - getSeconds(intervalStart)) >= minIntervalInHours * 60 * 60) {
-              /*  intervalStart = intervalStart.plusMinutes(30);
-                intervalEnd = intervalEnd.minusMinutes(30);*/
                 rangeList.add(new TimeRange(intervalStart, intervalEnd));
             }
         }
+        //排序
+        rangeList.sort(Comparator.comparing(TimeRange::getStart));
         return rangeList;
     }
 
@@ -121,6 +136,28 @@ public class FreeTimeCalculatorUtil {
             return 0;
         }
         return localTime.getHour() * 60 * 60 + localTime.getMinute() * 60 + localTime.getSecond();
+    }
+
+    static LocalTime getAround(LocalTime localTime) {
+        if (ObjectUtil.isNull(localTime)) {
+            return localTime;
+        }
+
+        int minute = localTime.getMinute();
+        int hour = localTime.getHour();
+        if (minute == 59 && hour == 23) {
+            return localTime;
+        }
+
+        if (minute == 29) {
+            minute++;
+        }
+        if (minute == 59) {
+            minute++;
+            hour++;
+        }
+
+        return LocalTime.of(hour, minute);
     }
 
     @Data

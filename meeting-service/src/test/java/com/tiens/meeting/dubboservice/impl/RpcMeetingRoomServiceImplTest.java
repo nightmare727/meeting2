@@ -61,7 +61,7 @@ class RpcMeetingRoomServiceImplTest {
         FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
         freeResourceListDTO.setImUserId("9f450708cf794c3889cc06d2e6ec1029");
         freeResourceListDTO.setLevelCode(9);
-        freeResourceListDTO.setStartTime(DateUtil.parse("2023-12-27 18:00:00"));
+        freeResourceListDTO.setStartTime(DateUtil.parse("2023-12-27 17:00:00"));
         freeResourceListDTO.setLength(60);
         freeResourceListDTO.setResourceType("2");
 
@@ -142,9 +142,9 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getAvailableResourcePeriod() {
         AvailableResourcePeriodGetDTO availableResourcePeriodGetDTO = new AvailableResourcePeriodGetDTO();
-        availableResourcePeriodGetDTO.setResourceId(289);
+        availableResourcePeriodGetDTO.setResourceId(297);
         availableResourcePeriodGetDTO.setImUserId("48cd6848a5ca47c883bd38a5c64287dd");
-        availableResourcePeriodGetDTO.setDate(DateUtil.parse("2023-12-28 11:00:00"));
+        availableResourcePeriodGetDTO.setDate(DateUtil.parse("2023-12-27 11:00:00"));
 
         System.out.println(rpcMeetingRoomService.getAvailableResourcePeriod(availableResourcePeriodGetDTO));
 
