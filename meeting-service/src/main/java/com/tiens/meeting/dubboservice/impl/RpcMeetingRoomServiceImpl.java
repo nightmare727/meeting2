@@ -180,9 +180,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
         log.info("空闲资源列表【1】初始过滤资源池结果：{}", result);
 
-        Date finalStartTime = showStartTime;
         List<Integer> originResourceIds =
-            result.stream().filter(t -> t.getExpireDate().after(finalStartTime)).map(MeetingResourceVO::getId)
+            result.stream().filter(t -> t.getExpireDate().after(lockEndTime)).map(MeetingResourceVO::getId)
                 .collect(Collectors.toList());
 
         if (ObjectUtil.isEmpty(originResourceIds)) {
@@ -414,25 +413,26 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //判断用户等级，您的Vmo星球等级至少Lv3才可以使用此功能
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
-        Date startTime = DateUtils.roundToHalfHour(
+        Date showStartTime = DateUtils.roundToHalfHour(
             ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), DateUtil.date()));
-        if (ObjectUtil.isNotNull(startTime)) {
-            //开始时间小于当前时间
-            if (startTime.before(DateUtil.date())) {
-                return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
-            }
-            //无法创建3个月后的会议
-            if (startTime.after(DateUtil.offsetMonth(new Date(), 3))) {
-                return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
-            }
-            //超出资源过期时间
-            if (meetingResourcePO.getExpireDate().before(DateUtils.roundToHalfHour(
-                ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), DateUtil.date())))) {
-                return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR,
-                    Collections.singletonList(meetingResourcePO.getExpireDate()));
-            }
 
+        DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
+        DateTime lockEndTime = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength() + 29);
+
+        //开始时间小于当前时间
+        if (showStartTime.before(DateUtil.date())) {
+            return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
         }
+        //无法创建3个月后的会议
+        if (showStartTime.after(DateUtil.offsetMonth(new Date(), 3))) {
+            return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
+        }
+        //超出资源过期时间
+        if (meetingResourcePO.getExpireDate().before(lockEndTime)) {
+            return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR,
+                Collections.singletonList(meetingResourcePO.getExpireDate()));
+        }
+
         if (ObjectUtil.isNull(meetingResourcePO)) {
             //资源不存在
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
@@ -491,7 +491,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
             }
             //超出资源过期时间
-            if (meetingResourcePO.getExpireDate().before(showStartTime)) {
+            if (meetingResourcePO.getExpireDate().before(lockEndTime)) {
                 return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR);
             }
         }
