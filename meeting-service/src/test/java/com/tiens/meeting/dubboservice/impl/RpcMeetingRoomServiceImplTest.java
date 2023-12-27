@@ -2,6 +2,7 @@ package com.tiens.meeting.dubboservice.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
+import com.alibaba.fastjson.JSON;
 import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
 import com.tiens.api.dto.CancelMeetingRoomDTO;
 import com.tiens.api.dto.FreeResourceListDTO;
@@ -74,7 +75,7 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-        meetingRoomContextDTO.setStartTime(DateUtil.parse("2023-12-30 11:30:00"));
+        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-01-03 11:30:00"));
         meetingRoomContextDTO.setLength(240);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
         meetingRoomContextDTO.setResourceId(260);
@@ -142,11 +143,11 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getAvailableResourcePeriod() {
         AvailableResourcePeriodGetDTO availableResourcePeriodGetDTO = new AvailableResourcePeriodGetDTO();
-        availableResourcePeriodGetDTO.setResourceId(297);
+        availableResourcePeriodGetDTO.setResourceId(310);
         availableResourcePeriodGetDTO.setImUserId("48cd6848a5ca47c883bd38a5c64287dd");
-        availableResourcePeriodGetDTO.setDate(DateUtil.parse("2023-12-27 11:00:00"));
+        availableResourcePeriodGetDTO.setDate(DateUtil.parse("2023-12-27 17:00:00"));
 
-        System.out.println(rpcMeetingRoomService.getAvailableResourcePeriod(availableResourcePeriodGetDTO));
+        System.out.println(JSON.toJSONString(rpcMeetingRoomService.getAvailableResourcePeriod(availableResourcePeriodGetDTO)));
 
     }
 
