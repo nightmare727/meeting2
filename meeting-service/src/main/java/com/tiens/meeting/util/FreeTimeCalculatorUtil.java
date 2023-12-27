@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.google.common.collect.Lists;
+import common.util.date.DateUtils;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -60,7 +61,7 @@ public class FreeTimeCalculatorUtil {
         knownTimeRanges.sort(Comparator.comparing(TimeRange::getStart));
 
         List<TimeRange> freeTimeRanges = new ArrayList<>();
-        DateTime now = DateUtil.date();
+        DateTime now = DateUtils.roundToHalfHour(DateUtil.date());
 
         // 当前时间，则取当前时间时分，否则假设一天从0点开始，到23点59分结束
         LocalTime startOfDay = isToday ? LocalTime.of(now.getHours(), now.getMinutes()) : LocalTime.of(0, 0);
