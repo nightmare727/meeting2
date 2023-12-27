@@ -853,7 +853,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //最大6小时切割
 
         List<FreeTimeCalculatorUtil.TimeRange> rangeList =
-            FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 1, 7, date, byId.getExpireDate());
+            FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 1, 6, date, byId.getExpireDate());
         List<AvailableResourcePeriodVO> result =
             rangeList.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
                 .collect(Collectors.toList());

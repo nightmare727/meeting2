@@ -18,14 +18,14 @@ public class FreeTimeCalculatorUtil {
     public static void main(String[] args) {
         // 已知时间段
         List<TimeRange> knownTimeRanges = new ArrayList<>();
-        knownTimeRanges.add(new TimeRange(LocalTime.of(12, 30), LocalTime.of(14, 29))); // 上午工作
-        knownTimeRanges.add(new TimeRange(LocalTime.of(14, 30), LocalTime.of(16, 29))); // 下午工作
-        knownTimeRanges.add(new TimeRange(LocalTime.of(23, 30), LocalTime.of(23, 59))); // 下午工作
+        knownTimeRanges.add(new TimeRange(LocalTime.of(13, 30), LocalTime.of(15, 29))); // 上午工作
+        knownTimeRanges.add(new TimeRange(LocalTime.of(22, 30), LocalTime.of(23, 59))); // 下午工作
+//        knownTimeRanges.add(new TimeRange(LocalTime.of(23, 30), LocalTime.of(23, 59))); // 下午工作
 
         // 计算空闲时间段
         List<TimeRange> freeTimeRanges =
-            calculateFreeTimeRanges(knownTimeRanges, 2, 6, DateUtil.parse("2023-12-27 11:00:00"), DateUtil.parse(
-                "2024-01-04 23:59:59"));
+            calculateFreeTimeRanges(knownTimeRanges, 1, 6, DateUtil.parse("2023-12-28 11:00:00"),
+                DateUtil.parse("2024-01-04 23:59:59"));
 
         // 输出空闲时间段
         for (TimeRange range : freeTimeRanges) {
@@ -74,14 +74,14 @@ public class FreeTimeCalculatorUtil {
 
         //结束时间需要计算资源过期时间
         LocalTime endOfDay =
-            isExpireDay ? LocalTime.of(targetDate.getHours(), targetDate.getMinutes()) : LocalTime.of(23, 59);
+            isExpireDay ? LocalTime.of(expireDate.getHours(), expireDate.getMinutes()) : LocalTime.of(23, 59);
         if (CollectionUtil.isEmpty(knownTimeRanges)) {
             freeTimeRanges.add(new TimeRange(startOfDay, endOfDay));
             return freeTimeRanges;
         }
 
         // 初始化空闲时间段列表
-        if(startOfDay.isBefore(knownTimeRanges.get(0).start)){
+        if (startOfDay.isBefore(knownTimeRanges.get(0).start)) {
             freeTimeRanges.add(new TimeRange(getAround(startOfDay), getAround(knownTimeRanges.get(0).start)));
         }
         for (int i = 0; i < knownTimeRanges.size() - 1; i++) {
@@ -93,7 +93,7 @@ public class FreeTimeCalculatorUtil {
             freeTimeRanges.add(new TimeRange(getAround(currentRange.end), getAround(nextRange.start)));
         }
         //最后的空闲时间段列表
-        if(!knownTimeRanges.get(knownTimeRanges.size() - 1).end.equals(endOfDay)){
+        if (!knownTimeRanges.get(knownTimeRanges.size() - 1).end.equals(endOfDay)) {
             freeTimeRanges.add(new TimeRange(getAround(knownTimeRanges.get(knownTimeRanges.size() - 1).end), endOfDay));
         }
 
@@ -107,8 +107,28 @@ public class FreeTimeCalculatorUtil {
         //使用循环遍历每个时间段，计算每个时间段的开始和结束时间。
         //将每个时间段的开始和结束时间转换为分钟。
 
-        LocalTime start = timeRange.getStart();
-        LocalTime end = timeRange.getEnd();
+        LocalTime beginDay = LocalTime.of(0, 0);
+        LocalTime endDay = LocalTime.of(23, 59);
+        LocalTime start = null;
+        LocalTime end = null;
+        if (timeRange.getStart().equals(beginDay)) {
+            start = beginDay;
+        } else {
+            start = timeRange.getStart().plusMinutes(30);
+        }
+        if (timeRange.getEnd().equals(endDay)) {
+            end = endDay;
+        } else {
+            end = timeRange.getEnd().minusMinutes(30);
+
+        }
+
+        if (start.isAfter(endDay)) {
+            return Collections.emptyList();
+        }
+        if (end.isBefore(beginDay)) {
+            return Collections.emptyList();
+        }
         int hoursDifference = end.toSecondOfDay() - start.toSecondOfDay();
         int numberOfIntervals = hoursDifference / (maxIntervalInHours * 3600);
         List<TimeRange> rangeList = Lists.newArrayList();
@@ -120,8 +140,8 @@ public class FreeTimeCalculatorUtil {
                 intervalEnd = end;
             }
             //设置返回的展示时间
-            intervalStart = intervalStart.plusMinutes(30);
-            intervalEnd = intervalEnd.minusMinutes(30);
+          /*  intervalStart = intervalStart.plusMinutes(30);
+            intervalEnd = intervalEnd.minusMinutes(30);*/
             if ((getSeconds(intervalEnd) - getSeconds(intervalStart)) >= minIntervalInHours * 60 * 60) {
                 rangeList.add(new TimeRange(intervalStart, intervalEnd));
             }
