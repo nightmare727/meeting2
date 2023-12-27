@@ -565,6 +565,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
         if (StringUtils.isNotBlank(currentUseImUserId)) {
             //如果已分配，则执行 回收-分配-再回收
+            log.info("编辑资源回收达成条件是1 currentUseImUserId:{}",currentUseImUserId);
             hwMeetingCommonService.disassociateVmr(currentUseImUserId,
                 Collections.singletonList(meetingResourcePO.getVmrId()));
         }
