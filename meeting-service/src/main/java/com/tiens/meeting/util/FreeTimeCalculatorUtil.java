@@ -80,9 +80,10 @@ public class FreeTimeCalculatorUtil {
                 continue;
             }
             TimeRange nextRange = knownTimeRanges.get(i + 1);
-            freeTimeRanges.add(new TimeRange(currentRange.end, nextRange.start));
+            freeTimeRanges.add(new TimeRange(currentRange.end.plusMinutes(1), nextRange.start));
         }
-        freeTimeRanges.add(new TimeRange(knownTimeRanges.get(knownTimeRanges.size() - 1).end, endOfDay));
+        //最后的空闲时间段列表
+        freeTimeRanges.add(new TimeRange(knownTimeRanges.get(knownTimeRanges.size() - 1).end.plusMinutes(1), endOfDay));
 
         return freeTimeRanges;
     }
