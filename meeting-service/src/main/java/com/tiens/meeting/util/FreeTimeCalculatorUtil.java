@@ -209,7 +209,7 @@ public class FreeTimeCalculatorUtil {
             long remainingSeconds = seconds % 60;
 
             // 使用这些值创建一个LocalTime对象
-            return LocalTime.of((int)hours, (int)minutes, (int)remainingSeconds);
+            return LocalTime.of((int)hours, (int)minutes, 0);
         }
 
         @Override
