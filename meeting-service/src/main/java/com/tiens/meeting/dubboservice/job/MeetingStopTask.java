@@ -77,8 +77,9 @@ public class MeetingStopTask {
                 MeetingResourceHandleEnum.HOLD_DOWN);
             //回收资源
             MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
-
-            hwMeetingCommonService.stopMeeting(meetingRoomInfoPO.getHwMeetingCode(), meetingRoomInfoPO.getHostPwd());
+            if(meetingRoomInfoPO.getState().equals(MeetingRoomStateEnum.Created.getState())){
+                hwMeetingCommonService.stopMeeting(meetingRoomInfoPO.getHwMeetingCode(), meetingRoomInfoPO.getHostPwd());
+            }
 
             if (meetingRoomInfoPO.getOwnerImUserId()
                 .equals(meetingResourcePO.getCurrentUseImUserId()) && !meetingResourcePO.getStatus()

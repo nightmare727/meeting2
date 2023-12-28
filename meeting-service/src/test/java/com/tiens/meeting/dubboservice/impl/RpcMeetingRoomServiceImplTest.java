@@ -78,7 +78,7 @@ class RpcMeetingRoomServiceImplTest {
         meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-01-03 11:30:00"));
         meetingRoomContextDTO.setLength(240);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setResourceId(260);
+        meetingRoomContextDTO.setResourceId(304);
         meetingRoomContextDTO.setResourceType("1");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
