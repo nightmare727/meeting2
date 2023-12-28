@@ -133,9 +133,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
         }
 
-        Integer resourceId = meetingRoomInfoPO.getResourceId();
-        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
-        if (ObjectUtil.isEmpty(meetingResourcePO.getOwnerImUserId())) {
+//        Integer resourceId = meetingRoomInfoPO.getResourceId();
+//        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
+//        if (ObjectUtil.isEmpty(meetingResourcePO.getOwnerImUserId())) {
             //此资源为共有资源
             Date lockStartTime = meetingRoomInfoPO.getLockStartTime();
             DateTime now = DateUtil.date();
@@ -148,7 +148,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                         lockStartTime.getTime()));
 //                return CommonResult.errorMsg(String.format("请在 %s后进入会议", betweenDate));
             }
-        }
+//        }
         //返回主持人的id
         return CommonResult.success(meetingRoomInfoPO.getOwnerImUserId());
     }
