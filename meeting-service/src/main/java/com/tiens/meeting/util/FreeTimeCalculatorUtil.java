@@ -19,12 +19,12 @@ public class FreeTimeCalculatorUtil {
         // 已知时间段
         List<TimeRange> knownTimeRanges = new ArrayList<>();
 //        knownTimeRanges.add(new TimeRange(LocalTime.of(13, 30), LocalTime.of(15, 29))); // 上午工作
-        knownTimeRanges.add(new TimeRange(LocalTime.of(23, 30), LocalTime.of(23, 59))); // 下午工作
+        knownTimeRanges.add(new TimeRange(LocalTime.of(12, 00), LocalTime.of(14, 29))); // 下午工作
 //        knownTimeRanges.add(new TimeRange(LocalTime.of(23, 30), LocalTime.of(23, 59))); // 下午工作
 
         // 计算空闲时间段
         List<TimeRange> freeTimeRanges =
-            calculateFreeTimeRanges(knownTimeRanges, 1, 6, DateUtil.parse("2023-12-27 11:00:00"),
+            calculateFreeTimeRanges(knownTimeRanges, 1, 6, DateUtil.parse("2023-12-28 11:00:00"),
                 DateUtil.parse("2024-01-04 23:59:59"));
 
         // 输出空闲时间段
