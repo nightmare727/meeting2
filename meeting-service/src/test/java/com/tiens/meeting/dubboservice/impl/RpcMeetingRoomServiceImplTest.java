@@ -181,7 +181,7 @@ class RpcMeetingRoomServiceImplTest {
     @SneakyThrows
     void getMeetingResourceTypeList() {
 
-        System.out.println(rpcMeetingRoomService.getMeetingResourceTypeList("123", 7));
+        System.out.println(rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff", 2));
 
     }
 }
