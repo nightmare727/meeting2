@@ -3,7 +3,6 @@ package com.tiens.meeting.dubboservice.core.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
 import com.huaweicloud.sdk.core.exception.ConnectionException;
 import com.huaweicloud.sdk.core.exception.RequestTimeoutException;
@@ -70,11 +69,12 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
         //华为账号为卓越卡号拼接
         body.withAccount(buildHWAccount(vmUserVO));
         request.withBody(body);
+        RMap<String, String> hwUserFlagMap = null;
         //userId
         try {
             MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
             AddUserResponse response = mgrMeetingClient.addUser(request);
-            RMap<String, String> hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
+            hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
             hwUserFlagMap.fastPut(vmUserVO.getAccid(), "ok");
             log.info("华为云添加用户结果：{}", JSON.toJSONString(response));
         } catch (ConnectionException e) {
@@ -85,6 +85,7 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
             if (e.getErrorCode().equals("USG.201040001")) {
                 //账号已经存在
                 log.error("账号已存在，无需添加,账号：{},异常：{}", vmUserVO.getAccid(), e);
+                hwUserFlagMap.fastPut(vmUserVO.getAccid(), "ok");
                 return true;
             }
             e.printStackTrace();
