@@ -112,14 +112,24 @@ public class FreeTimeCalculatorUtil {
         LocalTime endDay = LocalTime.of(23, 59);
         LocalTime start = null;
         LocalTime end = null;
-        if (timeRange.getStart().equals(beginDay)) {
-            start = beginDay;
-        } else if (isToday) {
-            DateTime now = DateUtils.roundToHalfHour(DateUtil.date());
-            start = LocalTime.of(now.getHours(), now.getMinutes());
+        //是今天，开始时间取当前时间
+        if (isToday) {
+            DateTime dateTime = DateUtils.roundToHalfHour(DateUtil.date());
+            LocalTime now = LocalTime.of(dateTime.getHours(), dateTime.getMinutes());
+            if (now.compareTo(timeRange.getStart()) >= 0) {
+                start = now;
+            }else {
+                start = timeRange.getStart().plusMinutes(30);
+            }
         } else {
-            start = timeRange.getStart().plusMinutes(30);
+            //不是今天
+            if (timeRange.getStart().equals(beginDay)) {
+                start = beginDay;
+            } else {
+                start = timeRange.getStart().plusMinutes(30);
+            }
         }
+
         if (timeRange.getEnd().equals(endDay)) {
             end = endDay;
         } else {
