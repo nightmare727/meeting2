@@ -69,12 +69,12 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
         //华为账号为卓越卡号拼接
         body.withAccount(buildHWAccount(vmUserVO));
         request.withBody(body);
-        RMap<String, String> hwUserFlagMap = null;
+        RMap<String, String> hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
+
         //userId
         try {
             MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
             AddUserResponse response = mgrMeetingClient.addUser(request);
-            hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
             hwUserFlagMap.fastPut(vmUserVO.getAccid(), "ok");
             log.info("华为云添加用户结果：{}", JSON.toJSONString(response));
         } catch (ConnectionException e) {
