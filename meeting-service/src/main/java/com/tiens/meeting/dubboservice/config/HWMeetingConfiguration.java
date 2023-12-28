@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Scope;
 @Configuration
 public class HWMeetingConfiguration {
 
-    @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
+/*    @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
     @Bean
     public MeetingClient meetingClient(MeetingConfig meetingConfig) {
         MeetingCredentials auth =
@@ -26,6 +26,6 @@ public class HWMeetingConfiguration {
         MeetingClient client =
             MeetingClient.newBuilder().withCredential(auth).withEndpoints(meetingConfig.getEndpoints()).build();
         return client;
-    }
+    }*/
 
 }

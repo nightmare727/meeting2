@@ -52,8 +52,6 @@ public class MeetingStopTask {
     @Autowired
     RetryTemplate retryTemplate;
 
-    @Autowired
-    public MeetingClient meetingClient;
 
     @XxlJob("MeetingStopJobHandler")
     @Transactional(rollbackFor = Exception.class)

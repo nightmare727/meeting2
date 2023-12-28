@@ -11,6 +11,7 @@ import com.huaweicloud.sdk.core.exception.ServiceResponseException;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.*;
 import com.tiens.api.vo.VMUserVO;
+import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.core.HwMeetingUserService;
 import common.enums.VmUserSourceEnum;
 import common.exception.ServiceException;
@@ -32,7 +33,7 @@ import org.springframework.stereotype.Service;
 public class HwMeetingUserServiceImpl implements HwMeetingUserService {
 
     @Autowired
-    MeetingClient meetingClient;
+    HwMeetingCommonService hwMeetingCommonService;
 
     @Autowired
     RedissonClient redissonClient;
@@ -71,7 +72,8 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
         request.withBody(body);
         //userId
         try {
-            AddUserResponse response = meetingClient.addUser(request);
+            MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
+            AddUserResponse response = mgrMeetingClient.addUser(request);
             RMap<String, String> hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
             hwUserFlagMap.fastPut(vmUserVO.getAccid(), "ok");
             log.info("华为云添加用户结果：{}", JSON.toJSONString(response));
@@ -82,7 +84,7 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
         } catch (ServiceResponseException e) {
             if (e.getErrorCode().equals("USG.201040001")) {
                 //账号已经存在
-                log.error("账号已存在，无需添加,账号：{},异常：{}", vmUserVO.getAccid(),e);
+                log.error("账号已存在，无需添加,账号：{},异常：{}", vmUserVO.getAccid(), e);
                 return true;
             }
             e.printStackTrace();

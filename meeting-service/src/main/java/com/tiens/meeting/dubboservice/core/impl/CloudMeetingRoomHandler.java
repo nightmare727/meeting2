@@ -34,6 +34,7 @@ import java.util.List;
 @Service
 @Slf4j
 public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
+
     /**
      * 创建华为会议
      *
@@ -262,6 +263,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         ShowMeetingDetailRequest request = new ShowMeetingDetailRequest();
         request.withConferenceID(meetingRoomDetailDTO.getHwMeetingCode());
         try {
+            MeetingClient meetingClient = hwMeetingCommonService.getMgrMeetingClient();
             ShowMeetingDetailResponse response = meetingClient.showMeetingDetail(request);
             //会议信息
             ConferenceInfo conferenceData = response.getConferenceData();
@@ -304,6 +306,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         SearchMeetingsRequest request = new SearchMeetingsRequest();
         request.withQueryAll(true);
         request.withSearchKey(meetingCode);
+        MeetingClient meetingClient = hwMeetingCommonService.getMgrMeetingClient();
         SearchMeetingsResponse response = meetingClient.searchMeetings(request);
         return response.getCount() > 0;
 
