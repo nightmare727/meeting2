@@ -2,7 +2,6 @@ package com.tiens.meeting.dubboservice.job;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
-import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.impl.RpcMeetingRoomServiceImpl;
