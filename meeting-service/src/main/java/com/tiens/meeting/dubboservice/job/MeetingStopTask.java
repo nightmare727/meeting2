@@ -2,7 +2,6 @@ package com.tiens.meeting.dubboservice.job;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
-import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.impl.RpcMeetingRoomServiceImpl;
@@ -52,7 +51,6 @@ public class MeetingStopTask {
     @Autowired
     RetryTemplate retryTemplate;
 
-
     @XxlJob("MeetingStopJobHandler")
     @Transactional(rollbackFor = Exception.class)
     public void jobHandler() throws Exception {
@@ -75,8 +73,13 @@ public class MeetingStopTask {
                 MeetingResourceHandleEnum.HOLD_DOWN);
             //回收资源
             MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
-            if(meetingRoomInfoPO.getState().equals(MeetingRoomStateEnum.Created.getState())){
-                hwMeetingCommonService.stopMeeting(meetingRoomInfoPO.getHwMeetingCode(), meetingRoomInfoPO.getHostPwd());
+            if (meetingRoomInfoPO.getState().equals(MeetingRoomStateEnum.Created.getState())) {
+                try {
+                    hwMeetingCommonService.stopMeeting(meetingRoomInfoPO.getHwMeetingCode(),
+                        meetingRoomInfoPO.getHostPwd());
+                } catch (Exception e) {
+                    log.error("停止华为云会议失败，异常", e);
+                }
             }
 
             if (meetingRoomInfoPO.getOwnerImUserId()
