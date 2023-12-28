@@ -95,7 +95,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withEncryptMode(2);
             body.withMediaTypes("HDVideo");
             body.withSubject(meetingRoomContextDTO.getSubject());
-            body.withLength(meetingRoomContextDTO.getLength() + 60);
+            body.withLength(meetingRoomContextDTO.getLength() + 30);
             //会议开始时间（UTC时间）。格式：yyyy-MM-dd HH:mm。 > * 创建预约会议时，如果没有指定开始时间或填空串，则表示会议马上开始 > * 时间是UTC时间，即0时区的时间
             body.withStartTime(startTimeStr);
             request.withBody(body);
@@ -110,14 +110,18 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             //会议的UUID-只有创建立即开始的会议才返回UUID，如果是预约未来的会议，不会返回UUID
             String confUUID = conferenceInfo.getConfUUID();
             String conferenceState = conferenceInfo.getConferenceState();
-            return new MeetingRoomModel(confUUID, conferenceID, conferenceState);
+            String chairPwd =
+                conferenceInfo.getPasswordEntry().stream().filter(t -> t.getConferenceRole().equals("chair"))
+                    .findFirst().get().getPassword();
+
+            return new MeetingRoomModel(confUUID, conferenceID, conferenceState, chairPwd);
         } catch (Exception e) {
             log.error("创建云会议、预约会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);
         } finally {
             if (publicFlag && subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
-                log.info("编辑资源回收达成条件是 新增 publicFlag:{},subsCribeFlag:{}",publicFlag,subsCribeFlag);
+                log.info("编辑资源回收达成条件是 新增 publicFlag:{},subsCribeFlag:{}", publicFlag, subsCribeFlag);
                 hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                     Collections.singletonList(meetingRoomContextDTO.getVmrId()));
             }
@@ -182,7 +186,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withIsAutoRecord(0);
             body.withMediaTypes("HDVideo");
             body.withSubject(meetingRoomContextDTO.getSubject());
-            body.withLength(meetingRoomContextDTO.getLength() + 60);
+            body.withLength(meetingRoomContextDTO.getLength() + 30);
             body.withStartTime(startTimeStr);
             request.withBody(body);
             UpdateMeetingResponse response = userMeetingClient.updateMeeting(request);
@@ -193,7 +197,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         } finally {
             if (publicFlag && subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
-                log.info("编辑资源回收达成条件是 publicFlag:{},subsCribeFlag:{}",publicFlag,subsCribeFlag);
+                log.info("编辑资源回收达成条件是 publicFlag:{},subsCribeFlag:{}", publicFlag, subsCribeFlag);
                 hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                     Collections.singletonList(meetingRoomContextDTO.getVmrId()));
             }

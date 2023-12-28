@@ -2,6 +2,7 @@ package com.tiens.meeting.dubboservice.job;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
+import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.impl.RpcMeetingRoomServiceImpl;
@@ -16,7 +17,6 @@ import common.enums.MeetingRoomStateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +52,8 @@ public class MeetingStopTask {
     @Autowired
     RetryTemplate retryTemplate;
 
+    @Autowired
+    public MeetingClient meetingClient;
 
     @XxlJob("MeetingStopJobHandler")
     @Transactional(rollbackFor = Exception.class)
@@ -75,6 +77,8 @@ public class MeetingStopTask {
                 MeetingResourceHandleEnum.HOLD_DOWN);
             //回收资源
             MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
+
+            hwMeetingCommonService.stopMeeting(meetingRoomInfoPO.getHwMeetingCode(), meetingRoomInfoPO.getHostPwd());
 
             if (meetingRoomInfoPO.getOwnerImUserId()
                 .equals(meetingResourcePO.getCurrentUseImUserId()) && !meetingResourcePO.getStatus()

@@ -1,6 +1,8 @@
 package com.tiens.meeting.dubboservice.core;
 
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
+import com.huaweicloud.sdk.meeting.v1.model.CreateConfTokenResponse;
+import com.huaweicloud.sdk.meeting.v1.model.StopMeetingResponse;
 import com.tiens.api.vo.RecordVO;
 
 import java.util.List;
@@ -37,4 +39,10 @@ public interface HwMeetingCommonService {
      * @param confUUID
      */
     public List<RecordVO> queryRecordFiles(String confUUID);
+
+
+
+    public CreateConfTokenResponse getCreateConfToken(String meetingCode, String hostPwd);
+
+    public StopMeetingResponse stopMeeting(String meetingCode, String hostPwd);
 }

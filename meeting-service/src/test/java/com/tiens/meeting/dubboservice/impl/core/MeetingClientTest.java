@@ -110,4 +110,19 @@ public class MeetingClientTest {
 
     }
 
+    @Test
+    @DisplayName("华为云SDK停止会议")
+    public void stopMeeting() {
+        CreateConfTokenRequest request = new CreateConfTokenRequest();
+        request.withConferenceID("969644626");
+        request.withXPassword("877574");
+        request.withXLoginType(1);
+        CreateConfTokenResponse response = managerClient.createConfToken(request);
+        StopMeetingRequest stopMeetingRequest = new StopMeetingRequest();
+        stopMeetingRequest.withConferenceID("969644626");
+        stopMeetingRequest.withXConferenceAuthorization(response.getData().getToken());
+        StopMeetingResponse stopMeeting = managerClient.stopMeeting(stopMeetingRequest);
+        System.out.println(stopMeeting);
+    }
+
 }

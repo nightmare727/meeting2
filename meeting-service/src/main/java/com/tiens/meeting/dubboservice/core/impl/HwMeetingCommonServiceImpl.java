@@ -112,4 +112,26 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         return recordVOS;
 
     }
+
+    @Override
+    public CreateConfTokenResponse getCreateConfToken(String meetingCode, String hostPwd) {
+        CreateConfTokenRequest request = new CreateConfTokenRequest();
+        request.withConferenceID(meetingCode);
+        request.withXPassword(hostPwd);
+        request.withXLoginType(1);
+        CreateConfTokenResponse response = meetingClient.createConfToken(request);
+        return response;
+    }
+
+    @Override
+    public StopMeetingResponse stopMeeting(String meetingCode, String hostPwd) {
+        CreateConfTokenResponse createConfToken = getCreateConfToken(meetingCode, hostPwd);
+        StopMeetingRequest stopMeetingRequest = new StopMeetingRequest();
+        stopMeetingRequest.withConferenceID(meetingCode);
+        stopMeetingRequest.withXConferenceAuthorization(createConfToken.getData().getToken());
+        log.info("停止会议入参：{}", stopMeetingRequest);
+        StopMeetingResponse stopMeeting = meetingClient.stopMeeting(stopMeetingRequest);
+        log.info("停止会议返回：{}", stopMeetingRequest);
+        return stopMeeting;
+    }
 }

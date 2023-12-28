@@ -1,6 +1,5 @@
 package com.tiens.meeting.dubboservice.core.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -27,5 +26,9 @@ public class MeetingRoomModel implements Serializable {
      *
      */
     private String state;
+    /**
+     * 主持人密码
+     */
+    private String hostPwd;
 
 }

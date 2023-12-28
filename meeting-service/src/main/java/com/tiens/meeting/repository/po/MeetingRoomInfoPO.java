@@ -122,6 +122,13 @@ public class MeetingRoomInfoPO implements Serializable {
      */
     @TableField(value = "owner_user_name")
     private String ownerUserName;
+
+    /**
+     * 主持人密码
+     */
+    @TableField(value = "host_pwd")
+    private String hostPwd;
+
     /**
      * 会议状态。 ● “Schedule”：预定状 态 ● “Creating”：正在创 建状态 ● “Created”：会议已 经被创建，并正在召开 ● “Destroyed”：会议 已经关闭
      */
@@ -148,7 +155,6 @@ public class MeetingRoomInfoPO implements Serializable {
      */
     @TableField(value = "notify_room_stop_status")
     private Integer notifyRoomStopStatus;
-
 
     /**
      * 会议开始通知状态 0：未通知 1：已通知
