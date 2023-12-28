@@ -225,6 +225,8 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
     @Override
     public void setMeetingRoomDetail(MeetingRoomDetailDTO meetingRoomDetailDTO) {
         String state = meetingRoomDetailDTO.getState();
+        MeetingClient meetingClient = hwMeetingCommonService.getMgrMeetingClient();
+
         if (MeetingRoomStateEnum.Schedule.getState().equals(state)) {
             ListUpComingWebinarsRequest request = new ListUpComingWebinarsRequest();
             request.withSearchKey(meetingRoomDetailDTO.getHwMeetingCode());
@@ -286,6 +288,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
      */
     @Override
     public Boolean existMeetingRoom(String meetingCode) {
+        MeetingClient meetingClient = hwMeetingCommonService.getMgrMeetingClient();
 
         //判断是否又即将召开的会议
         ListUpComingWebinarsRequest request = new ListUpComingWebinarsRequest();

@@ -31,8 +31,14 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
     @Autowired
     MeetingConfig meetingConfig;
 
-    @Autowired
-    public MeetingClient meetingClient;
+    public MeetingClient getMgrMeetingClient() {
+        MeetingCredentials auth =
+            new MeetingCredentials().withAuthType(AuthTypeEnum.APP_ID).withAppId(meetingConfig.getAppId())
+                .withAppKey(meetingConfig.getAppKey());
+        MeetingClient client =
+            MeetingClient.newBuilder().withCredential(auth).withEndpoints(meetingConfig.getEndpoints()).build();
+        return client;
+    }
 
     @Autowired
     MeetingResourceDaoService meetingResourceDaoService;
@@ -57,6 +63,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         request.withAccount(imUserId);
         request.withBody(vmrIds);
         request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
+        MeetingClient meetingClient = getMgrMeetingClient();
         AssociateVmrResponse response = meetingClient.associateVmr(request);
         log.info("分配云会议室结果：{}", response);
         for (String vmrId : vmrIds) {
@@ -79,6 +86,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         request.withBody(vmrIds);
         request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         try {
+            MeetingClient meetingClient = getMgrMeetingClient();
             DisassociateVmrResponse response = meetingClient.disassociateVmr(request);
             log.info("回收云会议室结果：{}", response);
             for (String vmrId : vmrIds) {
@@ -104,6 +112,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         ShowRecordingFileDownloadUrlsRequest request = new ShowRecordingFileDownloadUrlsRequest();
         request.withConfUUID(confUUID);
         request.withLimit(500);
+        MeetingClient meetingClient = getMgrMeetingClient();
         ShowRecordingFileDownloadUrlsResponse response = meetingClient.showRecordingFileDownloadUrls(request);
         List<RecordDownloadInfoBO> recordUrls = response.getRecordUrls();
         RecordDownloadInfoBO recordDownloadInfoBO = recordUrls.get(0);
@@ -119,6 +128,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         request.withConferenceID(meetingCode);
         request.withXPassword(hostPwd);
         request.withXLoginType(1);
+        MeetingClient meetingClient = getMgrMeetingClient();
         CreateConfTokenResponse response = meetingClient.createConfToken(request);
         return response;
     }
@@ -130,6 +140,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         stopMeetingRequest.withConferenceID(meetingCode);
         stopMeetingRequest.withXConferenceAuthorization(createConfToken.getData().getToken());
         log.info("停止会议入参：{}", stopMeetingRequest);
+        MeetingClient meetingClient = getMgrMeetingClient();
         StopMeetingResponse stopMeeting = meetingClient.stopMeeting(stopMeetingRequest);
         log.info("停止会议返回：{}", stopMeetingRequest);
         return stopMeeting;

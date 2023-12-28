@@ -14,6 +14,11 @@ import java.util.List;
  * @Company: tiens
  */
 public interface HwMeetingCommonService {
+    /**
+     * 获取管理员client
+     * @return
+     */
+    public MeetingClient getMgrMeetingClient();
 
     public MeetingClient getUserMeetingClient(String imUserId);
 
@@ -39,8 +44,6 @@ public interface HwMeetingCommonService {
      * @param confUUID
      */
     public List<RecordVO> queryRecordFiles(String confUUID);
-
-
 
     public CreateConfTokenResponse getCreateConfToken(String meetingCode, String hostPwd);
 

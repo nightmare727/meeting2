@@ -9,6 +9,7 @@ import com.huaweicloud.sdk.meeting.v1.model.QueryOrgVmrResultDTO;
 import com.huaweicloud.sdk.meeting.v1.model.SearchCorpVmrRequest;
 import com.huaweicloud.sdk.meeting.v1.model.SearchCorpVmrResponse;
 import com.tiens.api.service.RPCMeetingResourceService;
+import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -42,7 +43,7 @@ public class HWResourceTask {
     MeetingResourceDaoService meetingResourceDaoService;
 
     @Autowired
-    MeetingClient meetingClient;
+    HwMeetingCommonService hwMeetingCommonService;
 
     @XxlJob("HWResourceJobHandler")
     public void jobHandler() throws Exception {
@@ -73,7 +74,8 @@ public class HWResourceTask {
         //1:云会议室资源列表
         request.withVmrMode(MeetingRoomHandlerEnum.CLOUD.getVmrMode());
         request.withLimit(100);
-        SearchCorpVmrResponse response1 = meetingClient.searchCorpVmr(request);
+        MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
+        SearchCorpVmrResponse response1 = mgrMeetingClient.searchCorpVmr(request);
         List<QueryOrgVmrResultDTO> data1 = response1.getData();
         if (CollectionUtil.isNotEmpty(data1)) {
             results.addAll(
@@ -82,7 +84,7 @@ public class HWResourceTask {
 
         //2、研讨会资源
         request.withVmrMode(MeetingRoomHandlerEnum.SEMINAR.getVmrMode());
-        SearchCorpVmrResponse response2 = meetingClient.searchCorpVmr(request);
+        SearchCorpVmrResponse response2 = mgrMeetingClient.searchCorpVmr(request);
         List<QueryOrgVmrResultDTO> data2 = response2.getData();
         if (CollectionUtil.isNotEmpty(data2)) {
             results.addAll(

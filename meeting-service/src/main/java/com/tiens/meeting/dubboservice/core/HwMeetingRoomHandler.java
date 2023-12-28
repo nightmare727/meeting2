@@ -24,9 +24,6 @@ public abstract class HwMeetingRoomHandler {
     MeetingConfig meetingConfig;
 
     @Autowired
-    public MeetingClient meetingClient;
-
-    @Autowired
     public HwMeetingCommonService hwMeetingCommonService;
 
     /**
