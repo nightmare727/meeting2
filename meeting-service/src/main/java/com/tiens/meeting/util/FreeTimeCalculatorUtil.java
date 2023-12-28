@@ -19,8 +19,8 @@ public class FreeTimeCalculatorUtil {
         // 已知时间段
         List<TimeRange> knownTimeRanges = new ArrayList<>();
 //        knownTimeRanges.add(new TimeRange(LocalTime.of(13, 30), LocalTime.of(15, 29))); // 上午工作
-        knownTimeRanges.add(new TimeRange(LocalTime.of(12, 00), LocalTime.of(14, 29))); // 下午工作
-//        knownTimeRanges.add(new TimeRange(LocalTime.of(23, 30), LocalTime.of(23, 59))); // 下午工作
+        knownTimeRanges.add(new TimeRange(LocalTime.of(11, 00), LocalTime.of(12, 59))); // 下午工作
+        knownTimeRanges.add(new TimeRange(LocalTime.of(21, 30), LocalTime.of(23, 29))); // 下午工作
 
         // 计算空闲时间段
         List<TimeRange> freeTimeRanges =
@@ -110,16 +110,19 @@ public class FreeTimeCalculatorUtil {
 
         LocalTime beginDay = LocalTime.of(0, 0);
         LocalTime endDay = LocalTime.of(23, 59);
-        LocalTime start = null;
-        LocalTime end = null;
+        LocalTime start = timeRange.getStart();
+        LocalTime end = timeRange.getEnd();
         //是今天，开始时间取当前时间
         if (isToday) {
             DateTime dateTime = DateUtils.roundToHalfHour(DateUtil.date());
             LocalTime now = LocalTime.of(dateTime.getHours(), dateTime.getMinutes());
             if (now.compareTo(timeRange.getStart()) >= 0) {
                 start = now;
-            }else {
-                start = timeRange.getStart().plusMinutes(30);
+            } else {
+                LocalTime localTime = timeRange.getStart().plusMinutes(30);
+                if (localTime.getHour() != 0) {
+                    start = localTime;
+                }
             }
         } else {
             //不是今天
