@@ -45,4 +45,16 @@ public class MeetingHostUserVO implements Serializable {
     @Schema(description = "经销商编号")
     private String joyoCode;
 
+    /**
+     * 会议资源配置类型
+     */
+    @Schema(description = "会议资源配置类型")
+    private Integer resourceType;
+
+    /**
+     * 会议资源配置类型
+     */
+    @Schema(description = "会议资源配置上限")
+    private Integer resourceNum;
+
 }

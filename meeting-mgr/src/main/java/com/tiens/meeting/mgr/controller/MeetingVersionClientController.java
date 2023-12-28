@@ -27,6 +27,12 @@ public class MeetingVersionClientController {
     @Reference
     RpcMeetingVersionService rpcMeetingVersionService;
 
+    /**
+     * 查询客户端版版本列表
+     *
+     * @return
+     * @throws Exception
+     */
     @ResponseBody
     @GetMapping("/queryList")
     public CommonResult<List<MeetingClientVersionVO>> queryList() throws Exception {
@@ -34,6 +40,13 @@ public class MeetingVersionClientController {
         return listCommonResult;
     }
 
+    /**
+     * 保存客户端版本
+     *
+     * @param meetingClientVersionDTO
+     * @return
+     * @throws Exception
+     */
     @ResponseBody
     @PostMapping("/save")
     public CommonResult saveMeetingClientVersion(@RequestBody @Valid MeetingClientVersionDTO meetingClientVersionDTO)

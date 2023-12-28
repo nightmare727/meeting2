@@ -11,81 +11,45 @@ public class CacheKeyUtil {
      * 分隔符
      */
     private static final String SPIT = ":";
+    private static final String IM_USER_KEY_PREFIX = "im-meeting-user:";
+    private static final String HW_USER_KEY_PREFIX = "im-hw-user-flag";
+    private static final String HW_ROOM_EVENT_SYNC_PREFIX = "hw_room_event_count:";
 
-    /**
-     * 单课学习pv
-     */
-    public static final String SUB_COURSE_LEARN_COUNT_PREFIX = "sub-course-learn-count:";
-    /**
-     * 单课课程详情
-     */
-    public static final String SUB_COURSE_DETAIL_PREFIX = "course-detail:";
-    /**
-     * 系列单课列表
-     */
-    public static final String SERIES_SUB_COURSE_LIST_PREFIX = "series-sub-course-list:";
-    /**
-     * 系列课简介
-     */
-    public static final String SERIES_KEY_PREFIX = "series-brief:";
-
-    /**
-     * im 用户缓存
-     */
-    public static final String IM_USER_KEY_PREFIX = "im-meeting-user:";
-
-    /**
-     * 获取学习次数
-     *
-     * @param courseId
-     * @param courseType
-     * @return
-     */
-    public static String getLearnCountKey(Long courseId, Integer courseType) {
-        return new StringBuilder(BASE_CACHE_PREFIX).append(SUB_COURSE_LEARN_COUNT_PREFIX).append(courseType)
-            .append(SPIT)
-            .append(courseId).toString();
-    }
-
-    /**
-     * 获取单课详情
-     *
-     * @param courseId
-     * @param courseType
-     * @return
-     */
-    public static String getSubCourseDetailKey(Long courseId, Integer courseType) {
-
-        return new StringBuilder(BASE_CACHE_PREFIX).append(SUB_COURSE_DETAIL_PREFIX).append(courseType).append(SPIT)
-            .append(courseId).toString();
-    }
-
-    /**
-     * 获取序列单课列表
-     *
-     * @param courseId
-     * @return
-     */
-    public static String getSeriesSubCoursesListKey(Long courseId) {
-        return new StringBuilder(BASE_CACHE_PREFIX).append(SERIES_SUB_COURSE_LIST_PREFIX)
-            .append(courseId).toString();
-
-    }
-
-    /**
-     * 获取序列课简介key
-     *
-     * @param courseId
-     * @return
-     */
-    public static String getSeriesBriefKey(Long courseId) {
-        return new StringBuilder(BASE_CACHE_PREFIX).append(SERIES_KEY_PREFIX)
-            .append(courseId).toString();
-
-    }
+    private static final String HW_ROOM_RESOURCE_LOCK_PREFIX = "room_resource_lock:";
 
     public static String getUserInfoKey(String imUserId) {
-        return new StringBuilder(BASE_CACHE_PREFIX).append(IM_USER_KEY_PREFIX)
-            .append(imUserId).toString();
+        return new StringBuilder(BASE_CACHE_PREFIX).append(IM_USER_KEY_PREFIX).append(imUserId).toString();
     }
+
+    /**
+     * 华为用户同步
+     *
+     * @param
+     * @return
+     */
+    public static String getHwUserSyncKey() {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(HW_USER_KEY_PREFIX).toString();
+    }
+
+    /**
+     * 资源分布式锁
+     *
+     * @param
+     * @return
+     */
+    public static String getResourceLockKey(Integer resourceId) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(HW_ROOM_RESOURCE_LOCK_PREFIX).append(resourceId).toString();
+    }
+
+    /**
+     * 华为会议事件同步异常次数记录
+     *
+     * @param meetingRoomCode
+     * @return
+     */
+    public static String getHwMeetingRoomMaxSyncKey(String meetingRoomCode) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(HW_ROOM_EVENT_SYNC_PREFIX).append(meetingRoomCode)
+            .toString();
+    }
+
 }

@@ -6,7 +6,6 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 
  * @TableName meeting_client_version
  */
 @Data
@@ -35,7 +34,9 @@ public class MeetingClientVersionVO implements Serializable {
      * 更新时间
      */
     private Date updateTime;
-
+    /**
+     * 下载地址
+     */
     private String downloadUrl;
 
     private static final long serialVersionUID = 1L;

@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 /**
  * 
@@ -15,26 +14,24 @@ import lombok.EqualsAndHashCode;
  */
 @TableName(value ="meeting_host_user")
 @Data
-@EqualsAndHashCode
 public class MeetingHostUserPO implements Serializable {
     /**
      * 主键
      */
-    @TableId(value = "id",type = IdType.ASSIGN_ID)
+    @TableId(value = "id")
     private Long id;
-
-
-    /**
-     * 经销商编号
-     */
-    @TableField(value = "joyo_code")
-    private String joyoCode;
 
     /**
      * 云信userId
      */
     @TableField(value = "acc_id")
     private String accId;
+
+    /**
+     * 经销商编号
+     */
+    @TableField(value = "joyo_code")
+    private String joyoCode;
 
     /**
      * 手机号
@@ -55,6 +52,18 @@ public class MeetingHostUserPO implements Serializable {
     private String name;
 
     /**
+     * 级别
+     */
+    @TableField(value = "level")
+    private Integer level;
+
+    /**
+     * 会议权限类型
+     */
+    @TableField(value = "resource_type")
+    private Integer resourceType;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time")
@@ -68,6 +77,4 @@ public class MeetingHostUserPO implements Serializable {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
-
-
 }

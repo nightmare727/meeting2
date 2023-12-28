@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiens.meeting.repository.mapper.MeetingResourceMapper">
+
+
+
+
+
+
+    <!--在预分配4状态资源下,可操作设为公有空闲1,操作后此资源变为公有空闲1,可被预约操作。-->
+    <update id="updateMeetingResourceStatusPublicFree">
+        update meeting_resource
+        set status='1'
+        where vmr_id = #{vmrId}
+    </update>
+
+    <!--通过joyocode查询accid-->
+    <select id="seleceAccIdByJoyoCode" resultType="java.lang.String">
+        select acc_id
+        from meeting_host_user
+        where joyo_code = #{joyoCode}
+    </select>
+
+    <!--根据经销商id查询是否存在-->
+    <select id="select" resultMap="selectHostUserByJoyoCodeMap">
+        select id, acc_id, joyo_code, phone, email, name
+        from meeting_host_user
+        where joyo_code = #{joyoCode}
+    </select>
+
+    <!--根据userid查询是否存在-->
+    <select id="selectByOwnerUserId" resultType="com.tiens.api.vo.MeetingHostUserVO">
+        select id, acc_id, joyo_code, phone, email, name
+        from meeting_host_user
+        where id = #{ownerUserId}
+    </select>
+
+    <!--通过vmrid查询accid-->
+    <select id="selectAccIdByVmrId" resultType="java.lang.String">
+        select owner_im_user_id
+        from meeting_resource
+        where vmr_id = #{vmr_id};
+    </select>
+    <select id="selectVOByVMR" resultType="com.tiens.api.vo.MeetingResourceSelectVO">
+        select vmr_id
+        from meeting_resource
+        where vmr_id = #{vmr_id};
+    </select>
+
+    <resultMap id="selectHostUserByJoyoCodeMap"
+               type="com.tiens.api.vo.MeetingHostUserVO">
+        <id column="id" property="id"/>
+        <result column="acc_id" property="accId"/>
+        <result column="joyo_code" property="joyoCode"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="name" property="name"/>
+    </resultMap>
+</mapper>

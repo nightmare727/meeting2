@@ -1,12 +1,23 @@
 package com.tiens.meeting.web.filter;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
+import com.tiens.api.service.RpcMeetingUserService;
+import com.tiens.api.vo.VMUserVO;
+import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.config.annotation.Reference;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+
+import static common.exception.enums.GlobalErrorCodeConstants.INVALID_ACC_ID;
 
 /**
  * @Description: 过滤器
@@ -15,7 +26,11 @@ import java.util.Set;
  */
 @Slf4j
 public class HeaderFilter implements Filter {
+    @Reference
+    RpcMeetingUserService rpcMeetingUserService;
 
+    @Autowired
+    RedissonClient redissonClient;
 
     @Override
     public void init(FilterConfig filterConfig) {
@@ -32,9 +47,9 @@ public class HeaderFilter implements Filter {
     private static final Set<String> whiteListSet = new HashSet<>();
 
     static {
-        whiteListSet.add("/meeting/web/callback/receive/image");
-        whiteListSet.add("/meeting/web/callback/receive/videoSolution");
-        whiteListSet.add("/meeting/web/ping");
+        whiteListSet.add("/vmeeting/web/room/openapi/meetingevent");
+        whiteListSet.add("/vmeeting/web/mtuser/queryLiveVMUser");
+        whiteListSet.add("/vmeeting/web/ping");
 
         //临时增加白名单，注意后期删除
 //        whiteListSet.add("/meeting/web/courses/increCoursePv");
@@ -54,7 +69,26 @@ public class HeaderFilter implements Filter {
             chain.doFilter(wrapperRequest, response);
             return;
         }
-
+        String finalUserId = wrapperRequest.getHeader("finalUserId");
+        if (StringUtils.isBlank(finalUserId)) {
+            //此参数accid必传
+            log.warn("finalUserId:{}，不存在", finalUserId);
+            response.getWriter().write(JSON.toJSONString(CommonResult.error(INVALID_ACC_ID)));
+            response.flushBuffer();
+            return;
+        }
+        CommonResult<VMUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryVMUser("", finalUserId);
+        VMUserVO vmUserVO = vmUserVOCommonResult.getData();
+        if (ObjectUtil.isEmpty(vmUserVO)) {
+            //仍为null
+            log.error("VM数据查询异常，accid:{}", finalUserId);
+        }
+        Integer levelCode = vmUserVO.getLevelCode();
+        String joyoCode = vmUserVO.getJoyoCode();
+        String nickName = vmUserVO.getNickName();
+        wrapperRequest.addHeader("levelCode", String.valueOf(levelCode));
+        wrapperRequest.addHeader("joyoCode", joyoCode);
+        wrapperRequest.addHeader("userName", nickName);
         chain.doFilter(wrapperRequest, response);
     }
 }

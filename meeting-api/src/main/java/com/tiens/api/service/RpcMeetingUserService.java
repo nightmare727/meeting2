@@ -2,11 +2,14 @@ package com.tiens.api.service;
 
 import com.tiens.api.dto.MeetingHostPageDTO;
 import com.tiens.api.vo.MeetingHostUserVO;
+import com.tiens.api.vo.MeetingResourceTypeVO;
 import com.tiens.api.vo.VMUserVO;
 import common.exception.ServiceException;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
+
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -29,9 +32,10 @@ public interface RpcMeetingUserService {
      * 通过卓越卡号添加用户
      *
      * @param joyoCode
+     * @param resourceType
      * @return
      */
-    CommonResult addMeetingHostUser(String joyoCode) throws ServiceException;
+    CommonResult addMeetingHostUser(String joyoCode, Integer resourceType) throws ServiceException;
 
 
     /**
@@ -65,4 +69,11 @@ public interface RpcMeetingUserService {
      * @return
      */
     PageResult<MeetingHostUserVO> queryPage(PageParam<MeetingHostPageDTO> pageDTOPageParam) throws ServiceException ;
+
+    /**
+     * 查询会议资源配置列表
+     * @return
+     * @param level
+     */
+    CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes(Integer level);
 }

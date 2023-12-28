@@ -5,10 +5,8 @@ import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.tiens.api.dto.MeetingHostPageDTO;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingHostUserVO;
+import com.tiens.api.vo.MeetingResourceTypeVO;
 import com.tiens.api.vo.VMUserVO;
-import com.tiens.china.circle.api.bo.HomepageBo;
-import com.tiens.china.circle.api.common.result.Result;
-import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
 import com.tiens.meeting.ServiceApplication;
 import common.pojo.CommonResult;
@@ -21,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -58,7 +58,7 @@ class RpcMeetingUserServiceImplTest {
 
     @Test
     void addMeetingHostUser() {
-        CommonResult commonResult = rpcMeetingUserService.addMeetingHostUser("123456");
+        CommonResult commonResult = rpcMeetingUserService.addMeetingHostUser("66837976", 3);
         System.out.println(commonResult);
     }
 
@@ -83,7 +83,17 @@ class RpcMeetingUserServiceImplTest {
         meetingHostPageDTO.setName("22");
         pageParam.setCondition(meetingHostPageDTO);
         PageResult<MeetingHostUserVO> pageResult = rpcMeetingUserService.queryPage(pageParam);
-        System.out.println(pageResult);
 
+        pageResult.getList().forEach(meetingHostUserVO -> {
+            System.out.println(meetingHostUserVO);
+        });
+    }
+    @Test
+    void queryResourceTypes() {
+        CommonResult<List<MeetingResourceTypeVO>> listCommonResult = rpcMeetingUserService.queryResourceTypes(1);
+        List<MeetingResourceTypeVO> data = listCommonResult.getData();
+        data.forEach(meetingResourceTypeVO -> {
+            System.out.println(meetingResourceTypeVO);
+        });
     }
 }

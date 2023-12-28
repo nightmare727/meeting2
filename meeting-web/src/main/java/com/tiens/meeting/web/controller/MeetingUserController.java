@@ -1,9 +1,13 @@
 package com.tiens.meeting.web.controller;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingHostUserVO;
 import com.tiens.api.vo.VMMeetingCredentialVO;
+import com.tiens.api.vo.VMUserVO;
+import com.tiens.meeting.web.entity.req.QueryUserRequest;
+import com.tiens.meeting.web.entity.resp.QueryUserResponse;
 import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -22,12 +26,11 @@ public class MeetingUserController {
 
     @Reference
     RpcMeetingRoomService rpcMeetingRoomService;
-
     @Reference
     RpcMeetingUserService rpcMeetingUserService;
 
     /**
-     * 查询主持人信息
+     * (废弃) 查询主持人信息
      *
      * @param accid
      * @return
@@ -39,6 +42,38 @@ public class MeetingUserController {
         CommonResult<MeetingHostUserVO> meetingHostUserVOCommonResult =
             rpcMeetingUserService.queryMeetingHostUser(accid);
         return meetingHostUserVOCommonResult;
+    }
+
+    /**
+     * 查询VM用户信息
+     *
+     * @param finalUserId
+     * @return
+     * @throws Exception
+     */
+    @ResponseBody
+    @GetMapping("/queryVMUser")
+    public CommonResult<VMUserVO> queryVMUser(@RequestHeader("finalUserId") String finalUserId) throws Exception {
+        return rpcMeetingUserService.queryVMUser(null, finalUserId);
+    }
+
+    @ResponseBody
+    @PostMapping("/queryLiveVMUser")
+    public CommonResult<QueryUserResponse> queryLiveVMUser(@RequestBody QueryUserRequest queryUserRequest)
+        throws Exception {
+        CommonResult<VMUserVO> vmUserVOCommonResult =
+            rpcMeetingUserService.queryVMUser(queryUserRequest.getUniqueSign(), "");
+        VMUserVO data = vmUserVOCommonResult.getData();
+        if (ObjectUtil.isEmpty(data)) {
+            return CommonResult.success(null);
+        }
+        QueryUserResponse queryUserResponse = new QueryUserResponse();
+        queryUserResponse.setUserId(data.getAccid());
+        queryUserResponse.setNickName(data.getNickName());
+        queryUserResponse.setUserPhone(data.getMobile());
+        queryUserResponse.setUserPhoto(data.getHeadImg());
+//        queryUserResponse.setInviteCode();
+        return CommonResult.success(queryUserResponse);
     }
 
     /**

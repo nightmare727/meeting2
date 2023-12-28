@@ -16,100 +16,220 @@
 
 package com.tiens.meeting.web.controller;
 
-import com.tiens.meeting.web.entity.common.CommonWeHookRequest;
+import com.tiens.api.dto.*;
+import com.tiens.api.dto.hwevent.HwEventReq;
+import com.tiens.api.service.RpcMeetingRoomService;
+import com.tiens.api.vo.*;
+import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author <a href="mailto:chenxilzx1@gmail.com">theonefx</a>
  */
 @RestController
 @Slf4j
+@RequestMapping(value = "/room")
 public class MeetingController {
 
-    String token = "FOVAN9JdTLsizOpyQKCQwPrKo";
-
-    String encodingAESKey = "76Sj3yUfCBHnGlM5Vr36kCZR9pBXhwsFmVBr2sXBB5z";
-
-    public static void main(String[] args) {
-//        "start_time":1698465860,"end_time":1698469460,
-        System.out.println((1698469460 - 1698465860));
-    }
+    @Reference
+    RpcMeetingRoomService rpcMeetingRoomService;
 
     /**
-     * 解密
+     * 企业级华为云事件回调
      *
-     * @param encryptedText
-     * @param key
+     * @param hwEventReq
      * @return
-     * @throws Exception
      */
-    public static String decrypt(String encryptedText, String key) throws Exception {
-        byte[] encryptedBytes = Base64.getDecoder().decode(encryptedText);
-        byte[] keyBytes = Base64.getDecoder().decode(key + "=");
-        byte[] ivBytes = new byte[16];
-        System.arraycopy(keyBytes, 0, ivBytes, 0, 16);
-
-        SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "AES");
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
-
-        Cipher cipher = Cipher.getInstance("AES/CBC/NOPADDING");
-        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
-
-        byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
-        int paddingLength = decryptedBytes[decryptedBytes.length - 1];
-        byte[] unpaddedData = new byte[decryptedBytes.length - paddingLength];
-        System.arraycopy(decryptedBytes, 0, unpaddedData, 0, unpaddedData.length);
-        return new String(unpaddedData, StandardCharsets.UTF_8);
+    @ResponseBody
+    @PostMapping("/openapi/meetingevent")
+    public String addMeetingHostUser(@RequestBody HwEventReq hwEventReq) {
+        log.info("企业级华为云事件回调入参：{}", hwEventReq);
+        CommonResult<String> stringCommonResult = rpcMeetingRoomService.updateMeetingRoomStatus(hwEventReq);
+        return stringCommonResult.getData();
     }
 
     /**
-     * 此接口用于腾讯会议验证事件回调地址有效性
-     * @param name
-     * @param checkStr
-     * @param map
+     * 加入会议前置校验
+     *
+     * @param enterMeetingRoomCheckDTO
      * @return
-     * @throws Exception
      */
     @ResponseBody
-    @GetMapping("/")
-    public String check(@RequestParam(name = "name", defaultValue = "unknown user") String name,
-        @RequestParam(name = "check_str", required = false, defaultValue = "") String checkStr,
-        @RequestHeader Map<String, String> map) throws Exception {
-        boolean signatureResult = checkSign(map, checkStr);
-        log.info("验签结果：{}", signatureResult);
-        String decrypt = decrypt(checkStr, encodingAESKey);
-        log.info("明文结果：{}", decrypt);
-        return decrypt;
+    @PostMapping("/enterMeetingRoomCheck")
+    public CommonResult enterMeetingRoomCheck(@RequestHeader("finalUserId") String finalUserId,
+        @RequestBody EnterMeetingRoomCheckDTO enterMeetingRoomCheckDTO) {
+        enterMeetingRoomCheckDTO.setImUserId(finalUserId);
+        return rpcMeetingRoomService.enterMeetingRoomCheck(enterMeetingRoomCheckDTO);
     }
 
-    @PostMapping("/")
+    /**
+     * 获取空闲资源列表
+     *
+     * @param
+     * @return
+     */
     @ResponseBody
-    public String eventHander(@RequestBody CommonWeHookRequest commonWeHookRequest,
-        @RequestHeader Map<String, String> map) throws Exception {
-        String data = commonWeHookRequest.getData();
-        boolean signatureResult = checkSign(map, data);
-        log.info("验签结果：{}", signatureResult);
-        String decrypt = decrypt(data, encodingAESKey);
-
-        log.info("事件明文：{}",decrypt);
-        return "successfully received callback";
+    @PostMapping("/getFreeResourceList")
+    CommonResult<List<MeetingResourceVO>> getFreeResourceList(@RequestHeader("levelCode") Integer levelCode,
+        @RequestHeader("finalUserId") String finalUserId, @RequestBody FreeResourceListDTO freeResourceListDTO) {
+        freeResourceListDTO.setLevelCode(levelCode);
+        freeResourceListDTO.setImUserId(finalUserId);
+        return rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO);
     }
 
-    private boolean checkSign(Map<String, String> map, String checkStr) {
-//        String timestamp = map.get("timestamp");
-//        String nonce = map.get("nonce");
-//        String signature = map.get("signature");
-//        //根据已有的 token，结合上述 timestamp、nonce、check_str 参数计算签名，并与 signature 参数对比是否一致，一致表示调用合法
-//        String sign = Sha1Util.calSignature(token, timestamp, nonce, checkStr);
-//        return signature.equals(sign);
-        return true;
+    /**
+     * 创建、预约会议
+     *
+     * @param meetingRoomContextDTO
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/createMeetingRoom")
+    CommonResult<MeetingRoomDetailDTO> createMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
+        @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
+        @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) throws Exception {
+        meetingRoomContextDTO.setImUserId(finalUserId);
+        meetingRoomContextDTO.setLevelCode(levelCode);
+        meetingRoomContextDTO.setImUserName(userName);
+        return rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO);
     }
+
+    /**
+     * 编辑会议
+     *
+     * @param meetingRoomContextDTO
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/updateMeetingRoom")
+    CommonResult updateMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
+        @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
+        @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) {
+        meetingRoomContextDTO.setImUserId(finalUserId);
+        meetingRoomContextDTO.setLevelCode(levelCode);
+        meetingRoomContextDTO.setImUserName(userName);
+        return rpcMeetingRoomService.updateMeetingRoom(meetingRoomContextDTO);
+
+    }
+
+    /**
+     * 查询会议详情
+     *
+     * @param meetingRoomId
+     * @return
+     * @oaram imUserId
+     */
+    @ResponseBody
+    @GetMapping("/getMeetingRoom/{meetingRoomId}")
+    CommonResult<MeetingRoomDetailDTO> getMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
+        @PathVariable("meetingRoomId") Long meetingRoomId) {
+        return rpcMeetingRoomService.getMeetingRoom(meetingRoomId, finalUserId);
+    }
+
+    /**
+     * 根据会议号查询会议详情
+     *
+     * @param meetingCode
+     * @return
+     * @oaram imUserId
+     */
+    @ResponseBody
+    @GetMapping("/getMeetingRoomByCode/{meetingCode}")
+    CommonResult<MeetingRoomDetailDTO> getMeetingRoomByCode(@RequestHeader("finalUserId") String finalUserId,
+        @PathVariable("meetingCode") String meetingCode) {
+        return rpcMeetingRoomService.getMeetingRoomByCode(meetingCode);
+    }
+
+    /**
+     * 取消会议
+     *
+     * @param cancelMeetingRoomDTO
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/cancelMeetingRoom")
+    CommonResult cancelMeetingRoom(@RequestBody CancelMeetingRoomDTO cancelMeetingRoomDTO) {
+        return rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
+    }
+
+    /**
+     * 首页查询即将召开和进行中的会议列表
+     *
+     * @param finalUserId
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/getFutureAndRunningMeetingRoomList")
+    CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(
+        @RequestHeader("finalUserId") String finalUserId) {
+        return rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(finalUserId);
+    }
+
+    /**
+     * 查询历史会议列表
+     *
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/getHistoryMeetingRoomList/{month}")
+    CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(@RequestHeader("finalUserId") String finalUserId,
+        @PathVariable("month") Integer month) {
+        return rpcMeetingRoomService.getHistoryMeetingRoomList(finalUserId, month);
+    }
+
+    /**
+     * 查询资源可用的时间段
+     *
+     * @param availableResourcePeriodGetDTO
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/getAvailableResourcePeriod")
+    CommonResult<List<AvailableResourcePeriodVO>> getAvailableResourcePeriod(
+        @RequestHeader("finalUserId") String finalUserId,
+        @RequestBody AvailableResourcePeriodGetDTO availableResourcePeriodGetDTO) {
+        availableResourcePeriodGetDTO.setImUserId(finalUserId);
+        return rpcMeetingRoomService.getAvailableResourcePeriod(availableResourcePeriodGetDTO);
+    }
+
+    /**
+     * 查询会议录制详情
+     *
+     * @param meetingRoomId
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/getMeetingRoomRecordList/{meetingRoomId}")
+    CommonResult<List<RecordVO>> getMeetingRoomRecordList(@PathVariable("meetingRoomId") Long meetingRoomId) {
+        return rpcMeetingRoomService.getMeetingRoomRecordList(meetingRoomId);
+    }
+
+    /**
+     * 查询会议类型列表
+     *
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/getMeetingResourceTypeList")
+    CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(@RequestHeader("finalUserId") String finalUserId,
+        @RequestHeader("levelCode") Integer levelCode) {
+        return rpcMeetingRoomService.getMeetingResourceTypeList(finalUserId, levelCode);
+    }
+
+    /**
+     * 查询某资源类型下全部资源
+     *
+     * @param resourceCode
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/getAllMeetingResourceList/{resourceCode}")
+    CommonResult getAllMeetingResourceList(@PathVariable("resourceCode") String resourceCode) {
+        return rpcMeetingRoomService.getAllMeetingResourceList(resourceCode);
+    }
+
 }

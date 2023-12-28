@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="off" monitorInterval="10" packages="org.apache.logging.log4j.core,io.sentry.log4j2">
     <properties>
-        <property name="LOG_HOME">/logs/meeting-web</property>
+        <property name="LOG_HOME">/data/logs/meeting-web</property>
         <property name="COMMON_FILE_NAME">meeting-web</property>
         <property name="MAX_FILE_SIZE">500MB</property>
         <property name="MAX_FILE_COUNT">5</property>

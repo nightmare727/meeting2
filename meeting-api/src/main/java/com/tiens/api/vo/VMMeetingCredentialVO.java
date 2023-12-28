@@ -19,7 +19,7 @@ public class VMMeetingCredentialVO implements Serializable {
     /**
      * 过期时间戳
      */
-    private Long expireTime;
+    private Integer expireTime;
     /**
      * 随机字符串
      */

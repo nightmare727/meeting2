@@ -2,47 +2,52 @@ package com.tiens.meeting.dubboservice.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.huaweicloud.sdk.core.exception.ConnectionException;
-import com.huaweicloud.sdk.core.exception.RequestTimeoutException;
 import com.huaweicloud.sdk.core.exception.ServiceResponseException;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
-import com.huaweicloud.sdk.meeting.v1.model.AddUserDTO;
-import com.huaweicloud.sdk.meeting.v1.model.AddUserRequest;
-import com.huaweicloud.sdk.meeting.v1.model.AddUserResponse;
+import com.huaweicloud.sdk.meeting.v1.model.AuthTypeEnum;
+import com.huaweicloud.sdk.meeting.v1.model.BatchDeleteUsersRequest;
+import com.huaweicloud.sdk.meeting.v1.model.BatchDeleteUsersResponse;
 import com.tiens.api.dto.MeetingHostPageDTO;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingHostUserVO;
+import com.tiens.api.vo.MeetingResourceTypeVO;
 import com.tiens.api.vo.VMUserVO;
 import com.tiens.china.circle.api.bo.HomepageBo;
 import com.tiens.china.circle.api.common.result.Result;
 import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
-import com.tiens.meeting.dubboservice.config.HWMeetingConfiguration;
+import com.tiens.meeting.dubboservice.core.HwMeetingUserService;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
+import com.tiens.meeting.repository.po.MeetingLevelResourceConfigPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
-import common.enums.VmUserSourceEnum;
+import com.tiens.meeting.repository.service.MeetingLevelResourceConfigDaoService;
+import common.enums.MeetingResourceEnum;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
+import common.util.cache.CacheKeyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.redisson.api.RBucket;
+import org.redisson.api.RMap;
+import org.redisson.api.RedissonClient;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,6 +68,12 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
     private final MeetingHostUserDaoService meetingHostUserDaoService;
 
+    private final MeetingLevelResourceConfigDaoService meetingLevelResourceConfigDaoService;
+
+    private final HwMeetingUserService hwMeetingUserService;
+
+    private final RedissonClient redissonClient;
+
     /**
      * 通过卓越卡号查询用户
      *
@@ -71,6 +82,18 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult<VMUserVO> queryVMUser(String joyoCode, String accid) {
+        if (StringUtils.isAllBlank(joyoCode, accid)) {
+            return CommonResult.success(null);
+        }
+        RBucket<VMUserVO> bucket = null;
+        if (StringUtils.isNotBlank(accid)) {
+            //查询缓存
+            bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(accid));
+            VMUserVO vmUserCacheVO = bucket.get();
+            if (ObjectUtil.isNotNull(vmUserCacheVO)) {
+                return CommonResult.success(vmUserCacheVO);
+            }
+        }
         HomepageBo homepageBo = new HomepageBo();
         homepageBo.setJoyoCode(joyoCode);
         homepageBo.setAccId(accid);
@@ -87,6 +110,10 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         HomepageUserDTO data = dtoResult.getData();
         VMUserVO vmUserVO = BeanUtil.copyProperties(data, VMUserVO.class);
         vmUserVO.setJoyoCode(data.getJoyo_code());
+        //设置缓存
+        if (StringUtils.isNotBlank(accid)) {
+            bucket.set(vmUserVO);
+        }
         return CommonResult.success(vmUserVO);
     }
 
@@ -94,20 +121,26 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * 通过卓越卡号添加用户
      *
      * @param joyoCode
+     * @param resourceType
      * @return
      */
     @Override
     @Transactional
-    public CommonResult addMeetingHostUser(String joyoCode) throws ServiceException {
+    public CommonResult addMeetingHostUser(String joyoCode, Integer resourceType) throws ServiceException {
         //1、查询主持人信息是否存在
         CommonResult<VMUserVO> vmUserVOCommonResult = queryVMUser(joyoCode, "");
         VMUserVO vmUserVO = vmUserVOCommonResult.getData();
-        if (ObjectUtil.isEmpty(vmUserVOCommonResult.getData())) {
+        if (ObjectUtil.isEmpty(vmUserVO)) {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_HOST_INFO);
+        }
+        //校验配置是否合法
+        boolean res = checkLevelResource(vmUserVO, resourceType);
+        if (!res) {
+            return CommonResult.error(GlobalErrorCodeConstants.EXIST_HOST_RESOURCE_CONFIGURATION);
         }
         //2、添加到主持人表
 
-        MeetingHostUserPO meetingHostUserPO = wrapperMeetingHostUserPO(vmUserVO);
+        MeetingHostUserPO meetingHostUserPO = wrapperMeetingHostUserPO(vmUserVO, resourceType);
         try {
             meetingHostUserDaoService.save(meetingHostUserPO);
         } catch (DuplicateKeyException e) {
@@ -115,8 +148,26 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             return CommonResult.error(GlobalErrorCodeConstants.EXIST_HOST_INFO);
         }
         //3、添加主持人信息到华为云用户列表中
-        boolean result = syncAddHWMeetinguser(vmUserVO);
+        boolean result = hwMeetingUserService.addHwUser(vmUserVO);
         return CommonResult.success(result);
+    }
+
+    private boolean checkLevelResource(VMUserVO vmUserVO, Integer resourceType) {
+        if (vmUserVO.getLevelCode() == 9) {
+            if (!(resourceType >= 7)) {
+                //不符合规则
+                return false;
+            }
+        } else {
+            //1-8级逻辑处理
+            MeetingLevelResourceConfigPO configPO = meetingLevelResourceConfigDaoService.lambdaQuery()
+                .eq(MeetingLevelResourceConfigPO::getVmUserLevel, vmUserVO.getLevelCode()).oneOpt().get();
+            if (resourceType <= configPO.getResourceType()) {
+                //不符合规则
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -127,77 +178,53 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult addMeetingCommonUser(String accid) throws ServiceException {
-        //通过accid查询用户
+        RMap<String, String> hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
+        String userAddFlag = hwUserFlagMap.get(accid);
+        if (StrUtil.isNotBlank(userAddFlag)) {
+            return CommonResult.success(userAddFlag);
+        }
+        //1、通过accid查询用户
         CommonResult<VMUserVO> vmUserVOCommonResult = queryVMUser("", accid);
         VMUserVO vmUserVO = vmUserVOCommonResult.getData();
         if (ObjectUtil.isEmpty(vmUserVOCommonResult.getData())) {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_HOST_INFO);
         }
-        //3、添加主持人信息到华为云用户列表中
+        //2、添加普通信息到华为云用户列表中
         boolean result = false;
         try {
-            result = syncAddHWMeetinguser(vmUserVO);
+            result = hwMeetingUserService.addHwUser(vmUserVO);
         } catch (Exception e) {
             log.error("添加普通用户发生异常！", e);
         }
         return CommonResult.success(result);
     }
 
-    private boolean syncAddHWMeetinguser(VMUserVO vmUserVO) throws ServiceException {
-        AddUserRequest request = new AddUserRequest();
-        AddUserDTO body = new AddUserDTO();
-//        String mobile = vmUserVO.getMobile();
-//        if (ObjectUtil.isNotEmpty(mobile)) {
-//            body.withPhone(mobile);
-//        }
-        //1-买买 2-云购 3 Vshare 4 瑞狮 5意涵永
-        body.withName(StrUtil.brief(vmUserVO.getNickName(), 64));
-        body.setEmail(vmUserVO.getEmail());
-        //userId
-        body.withThirdAccount(vmUserVO.getAccid());
-        //华为账号为卓越卡号拼接
-        body.withAccount(buildHWAccount(vmUserVO));
+    private boolean RemoveHWMeetinguser(List<String> accIds) throws ServiceException {
+        BatchDeleteUsersRequest request = new BatchDeleteUsersRequest();
 
-        request.withBody(body);
-        //userId
+        request.withBody(accIds);
+        request.withAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         try {
             MeetingClient meetingClient = SpringUtil.getBean(MeetingClient.class);
-            AddUserResponse response = meetingClient.addUser(request);
-            log.info("华为云添加用户结果：{}", JSON.toJSONString(response));
-        } catch (ConnectionException e) {
-            e.printStackTrace();
-        } catch (RequestTimeoutException e) {
-            e.printStackTrace();
+            BatchDeleteUsersResponse response = meetingClient.batchDeleteUsers(request);
+            log.info("华为云删除用户结果：{}", JSON.toJSONString(response));
         } catch (ServiceResponseException e) {
             e.printStackTrace();
-//            System.out.println(e.getHttpStatusCode());
-//            System.out.println(e.getRequestId());
-//            System.out.println(e.getErrorCode());
-//            System.out.println(e.getErrorMsg());
-            if (e.getErrorCode().equals("USG.201040001")) {
-                //账号已经存在
-                log.info("账号已存在，无需添加");
-                return true;
-            }
-            log.error("华为云添加用户业务异常", e);
+            log.error("华为云删除用户业务异常", e);
             throw new ServiceException("1000", e.getErrorMsg());
         }
         return true;
     }
 
-    private String buildHWAccount(VMUserVO vmUserVO) {
-        String source = VmUserSourceEnum.getNameByCode(vmUserVO.getSource());
-        String joyoCode = ObjectUtil.defaultIfBlank(vmUserVO.getJoyoCode(), "DEFAULT" + RandomUtil.randomNumbers(20));
-        return source + "-" + joyoCode;
-    }
-
-    private MeetingHostUserPO wrapperMeetingHostUserPO(VMUserVO data) {
+    private MeetingHostUserPO wrapperMeetingHostUserPO(VMUserVO data, Integer resourceType) {
         MeetingHostUserPO meetingHostUserPO = new MeetingHostUserPO();
         meetingHostUserPO.setAccId(data.getAccid());
         meetingHostUserPO.setPhone(data.getMobile());
         meetingHostUserPO.setEmail(data.getEmail());
         meetingHostUserPO.setName(data.getNickName());
         meetingHostUserPO.setJoyoCode(data.getJoyoCode());
+        meetingHostUserPO.setLevel(data.getLevelCode());
+        meetingHostUserPO.setResourceType(resourceType);
         return meetingHostUserPO;
     }
 
@@ -256,9 +283,41 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         Page<MeetingHostUserPO> pagePoResult = meetingHostUserDaoService.page(page, queryWrapper);
         List<MeetingHostUserPO> records = pagePoResult.getRecords();
         List<MeetingHostUserVO> meetingHostUserVOS = BeanUtil.copyToList(records, MeetingHostUserVO.class);
+        if (ObjectUtil.isNotEmpty(meetingHostUserVOS)) {
+            meetingHostUserVOS.forEach(meetingHostUserVO -> {
+                MeetingResourceEnum byCode =
+                    MeetingResourceEnum.getByCode(Optional.ofNullable(meetingHostUserVO.getResourceType()).orElse(0));
+                meetingHostUserVO.setResourceNum(byCode.getValue());
+            });
+        }
         PageResult<MeetingHostUserVO> pageResult = new PageResult<>();
         pageResult.setList(meetingHostUserVOS);
         pageResult.setTotal(pagePoResult.getTotal());
         return pageResult;
+    }
+
+    @Override
+    public CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes(Integer level) {
+        QueryWrapper<MeetingLevelResourceConfigPO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne("resource_type", 0);
+        if (level == 9) {
+            queryWrapper.eq("vm_user_level", level);
+        }
+        if (level >= 3 && level != 9) {
+            queryWrapper.gt("vm_user_level", level);
+        }
+        List<MeetingLevelResourceConfigPO> list = meetingLevelResourceConfigDaoService.list(queryWrapper);
+        if (!ObjectUtil.isNotEmpty(list)) {
+            return CommonResult.success(null);
+        }
+        ArrayList<MeetingResourceTypeVO> typeVOS = new ArrayList<>();
+        list.forEach(meetingLevelResourceConfigPO -> {
+            MeetingResourceTypeVO typeVO = new MeetingResourceTypeVO();
+            BeanUtil.copyProperties(meetingLevelResourceConfigPO, typeVO);
+            MeetingResourceEnum byCode = MeetingResourceEnum.getByCode(typeVO.getResourceType());
+            typeVO.setResourceTypeName(byCode.getDesc());
+            typeVOS.add(typeVO);
+        });
+        return CommonResult.success(typeVOS);
     }
 }
