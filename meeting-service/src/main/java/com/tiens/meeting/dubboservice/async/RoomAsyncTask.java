@@ -29,16 +29,19 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
      */
     @Override
     public void saveHwEventLog(HwEventReq hwEventReq) {
-        EventInfo eventInfo = hwEventReq.getEventInfo();
-        Payload payload = eventInfo.getPayload();
-        MeetingHwEventCallbackPO meetingHwEventCallbackPO = new MeetingHwEventCallbackPO();
-        meetingHwEventCallbackPO.setAppId(hwEventReq.getAppID());
-        meetingHwEventCallbackPO.setTimestamp(DateUtil.date(hwEventReq.getTimestamp()));
-        meetingHwEventCallbackPO.setEvent(eventInfo.getEvent());
-        meetingHwEventCallbackPO.setPayload(JSON.toJSONString(payload));
-        meetingHwEventCallbackPO.setMeetingCode(payload.getMeetingInfo().getMeetingID());
-        meetingHwEventCallbackPO.setMeetingId(payload.getMeetingInfo().getMeetingUUID());
+        if(!hwEventReq.getRetryFlag()){
+            EventInfo eventInfo = hwEventReq.getEventInfo();
+            Payload payload = eventInfo.getPayload();
+            MeetingHwEventCallbackPO meetingHwEventCallbackPO = new MeetingHwEventCallbackPO();
+            meetingHwEventCallbackPO.setAppId(hwEventReq.getAppID());
+            meetingHwEventCallbackPO.setTimestamp(DateUtil.date(hwEventReq.getTimestamp()));
+            meetingHwEventCallbackPO.setEvent(eventInfo.getEvent());
+            meetingHwEventCallbackPO.setPayload(JSON.toJSONString(payload));
+            meetingHwEventCallbackPO.setMeetingCode(payload.getMeetingInfo().getMeetingID());
+            meetingHwEventCallbackPO.setMeetingId(payload.getMeetingInfo().getMeetingUUID());
 
-        meetingHwEventCallbackDaoService.save(meetingHwEventCallbackPO);
+            meetingHwEventCallbackDaoService.save(meetingHwEventCallbackPO);
+        }
+
     }
 }
