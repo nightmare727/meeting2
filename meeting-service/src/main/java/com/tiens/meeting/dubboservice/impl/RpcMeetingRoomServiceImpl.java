@@ -1018,7 +1018,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             String[] split = resourceCode.split("-");
             String imUserId = split[0];
             String resourceSize = split[1];
-            result = meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getResourceType, resourceCode)
+            String resourceType = split[2];
+            result = meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getResourceType, resourceType)
                 .eq(MeetingResourcePO::getOwnerImUserId, imUserId).eq(MeetingResourcePO::getSize, resourceSize).list()
                 .stream().collect(Collectors.toList());
 

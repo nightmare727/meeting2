@@ -155,6 +155,10 @@ class RpcMeetingRoomServiceImplTest {
     void getMeetingRoomRecordList() {
         System.out.println(rpcMeetingRoomService.getMeetingRoomRecordList(1738002691414646786L));
     }
+    @Test
+    void getAllMeetingResourceList() {
+        System.out.println(rpcMeetingRoomService.getAllMeetingResourceList("9f450708cf794c3889cc06d2e6ec1029-50-2"));
+    }
 
     @Test
     @SneakyThrows
