@@ -3,7 +3,6 @@ package com.tiens.meeting.dubboservice.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -23,6 +22,7 @@ import com.tiens.china.circle.api.bo.HomepageBo;
 import com.tiens.china.circle.api.common.result.Result;
 import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
+import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.core.HwMeetingUserService;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.po.MeetingLevelResourceConfigPO;
@@ -71,6 +71,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     private final MeetingLevelResourceConfigDaoService meetingLevelResourceConfigDaoService;
 
     private final HwMeetingUserService hwMeetingUserService;
+
+    private final HwMeetingCommonService hwMeetingCommonService;
 
     private final RedissonClient redissonClient;
 
@@ -205,7 +207,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         request.withBody(accIds);
         request.withAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         try {
-            MeetingClient meetingClient = SpringUtil.getBean(MeetingClient.class);
+            MeetingClient meetingClient = hwMeetingCommonService.getMgrMeetingClient();
             BatchDeleteUsersResponse response = meetingClient.batchDeleteUsers(request);
             log.info("华为云删除用户结果：{}", JSON.toJSONString(response));
         } catch (ServiceResponseException e) {

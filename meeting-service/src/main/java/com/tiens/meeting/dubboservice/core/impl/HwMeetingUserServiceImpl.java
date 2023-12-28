@@ -103,7 +103,7 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
     @Override
     public Boolean modHwUser(VMUserVO vmUserVO) {
         //尝试修改华为云用户信息
-        MeetingClient meetingClient = SpringUtil.getBean(MeetingClient.class);
+        MeetingClient meetingClient = hwMeetingCommonService.getMgrMeetingClient();
         UpdateUserRequest request = new UpdateUserRequest();
         ModUserDTO body = new ModUserDTO();
         //1-买买 2-云购 3 Vshare 4 瑞狮 5意涵永
