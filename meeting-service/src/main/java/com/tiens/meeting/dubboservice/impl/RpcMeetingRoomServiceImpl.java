@@ -136,18 +136,18 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 //        Integer resourceId = meetingRoomInfoPO.getResourceId();
 //        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
 //        if (ObjectUtil.isEmpty(meetingResourcePO.getOwnerImUserId())) {
-            //此资源为共有资源
-            Date lockStartTime = meetingRoomInfoPO.getLockStartTime();
-            DateTime now = DateUtil.date();
-            if (now.isBefore(lockStartTime)) {
-                //未到开会开始时间
-                String betweenDate = DateUtil.formatBetween(now, lockStartTime, BetweenFormatter.Level.MINUTE);
-                //未到开会开始时间
-                return CommonResult.error(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getCode(),
-                    String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getChinesMsg(),
-                        lockStartTime.getTime()));
+        //此资源为共有资源
+        Date lockStartTime = meetingRoomInfoPO.getLockStartTime();
+        DateTime now = DateUtil.date();
+        if (now.isBefore(lockStartTime)) {
+            //未到开会开始时间
+            String betweenDate = DateUtil.formatBetween(now, lockStartTime, BetweenFormatter.Level.MINUTE);
+            //未到开会开始时间
+            return CommonResult.error(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getCode(),
+                String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getChinesMsg(),
+                    lockStartTime.getTime()));
 //                return CommonResult.errorMsg(String.format("请在 %s后进入会议", betweenDate));
-            }
+        }
 //        }
         //返回主持人的id
         return CommonResult.success(meetingRoomInfoPO.getOwnerImUserId());
@@ -900,21 +900,23 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String meetingID = payload.getMeetingInfo().getMeetingID();
         Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional =
             meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID).oneOpt();
+        RAtomicLong count = redissonClient.getAtomicLong(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));
+        int maxErrorCount = 3;
         if (!meetingRoomInfoPOOptional.isPresent()) {
             log.error("事件回调数据异常，数据不存在 meetingID：{}", meetingID);
-            RAtomicLong count = redissonClient.getAtomicLong(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));
-            int maxErrorCount = 3;
-            if (count.getAndIncrement() == maxErrorCount) {
+            if (count.getAndIncrement() >= maxErrorCount) {
                 log.error("事件回调数据异常达到次数上限：{}次,会议号：{}", maxErrorCount, meetingID);
                 return CommonResult.errorMsg("事件达到次数上限");
             }
             //5、5秒后重试，优化立即会议
             WheelTimerContext.getInstance().createTimeoutTask(timeout -> {
                 //重试
+                hwEventReq.setRetryFlag(true);
                 updateMeetingRoomStatus(hwEventReq);
             }, 5, TimeUnit.SECONDS);
             return CommonResult.success("");
         }
+
         MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOptional.get();
         Integer vmrMode = meetingRoomInfoPO.getVmrMode();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());

@@ -32,4 +32,8 @@ public class HwEventReq implements Serializable {
      * 回调事件
      */
     private EventInfo eventInfo;
+    /**
+     * 自身重试表示
+     */
+    private Boolean retryFlag = false;
 }
