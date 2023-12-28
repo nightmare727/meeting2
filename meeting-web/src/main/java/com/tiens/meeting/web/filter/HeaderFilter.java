@@ -49,6 +49,8 @@ public class HeaderFilter implements Filter {
     static {
         whiteListSet.add("/vmeeting/web/room/openapi/meetingevent");
         whiteListSet.add("/vmeeting/web/mtuser/queryLiveVMUser");
+        whiteListSet.add("/vmeeting/web/mtuser/getCredential");
+        whiteListSet.add("/vmeeting/web/mtuser/queryMeetingHostUser");
         whiteListSet.add("/vmeeting/web/ping");
 
         //临时增加白名单，注意后期删除
@@ -68,6 +70,12 @@ public class HeaderFilter implements Filter {
         if (whiteListSet.contains(requestURI)) {
             chain.doFilter(wrapperRequest, response);
             return;
+        }
+        for (String s : whiteListSet) {
+            if (requestURI.contains(s)) {
+                chain.doFilter(wrapperRequest, response);
+                return;
+            }
         }
         String finalUserId = wrapperRequest.getHeader("finalUserId");
         if (StringUtils.isBlank(finalUserId)) {
