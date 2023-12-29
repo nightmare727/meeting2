@@ -90,6 +90,9 @@ public class HeaderFilter implements Filter {
         if (ObjectUtil.isEmpty(vmUserVO)) {
             //仍为null
             log.error("VM数据查询异常，accid:{}", finalUserId);
+            response.getWriter().write(JSON.toJSONString(CommonResult.error(INVALID_ACC_ID)));
+            response.flushBuffer();
+            return;
         }
         Integer levelCode = vmUserVO.getLevelCode();
         String joyoCode = vmUserVO.getJoyoCode();
