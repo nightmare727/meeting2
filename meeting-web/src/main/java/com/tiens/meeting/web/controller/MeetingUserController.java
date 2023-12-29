@@ -1,5 +1,6 @@
 package com.tiens.meeting.web.controller;
 
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.service.RpcMeetingUserService;
@@ -87,7 +88,9 @@ public class MeetingUserController {
     @GetMapping("/getCredential/{accid}")
     public CommonResult<VMMeetingCredentialVO> getCredential(@PathVariable("accid") String accid) throws Exception {
         //同步添加普通用户-必定成功
-        rpcMeetingUserService.addMeetingCommonUser(accid);
+        ThreadUtil.execute(() -> {
+            rpcMeetingUserService.addMeetingCommonUser(accid);
+        });
         //查询登录认证
         return rpcMeetingRoomService.getCredential(accid);
     }
