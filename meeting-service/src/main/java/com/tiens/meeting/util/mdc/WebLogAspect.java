@@ -52,7 +52,7 @@ public class WebLogAspect {
      */
     @After("MDCLog()")
     public void doAfter() throws Exception {
-        MDC.remove(TRACE_ID);
+        //先于doAround执行
     }
 
     /**
@@ -67,6 +67,7 @@ public class WebLogAspect {
         long startTime = System.currentTimeMillis();
         Object result = proceedingJoinPoint.proceed();
         log.info("【定时任务执行】耗时: {} ms", System.currentTimeMillis() - startTime);
+        MDC.remove(TRACE_ID);
         return result;
     }
 
