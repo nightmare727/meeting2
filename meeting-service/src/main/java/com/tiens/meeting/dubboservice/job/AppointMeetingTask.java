@@ -12,6 +12,7 @@ import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
+import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import common.enums.MeetingResourceStateEnum;
 import common.enums.MeetingRoomStateEnum;
@@ -54,6 +55,7 @@ public class AppointMeetingTask {
 
     @XxlJob("AppointMeetingJobHandler")
     @Transactional(rollbackFor = Exception.class)
+    @MDCLog
     public void jobHandler() throws Exception {
 
         //1、预约提前30分钟锁定资源
@@ -62,22 +64,21 @@ public class AppointMeetingTask {
             .eq(MeetingRoomInfoPO::getNotifyRoomStartStatus, 0).le(MeetingRoomInfoPO::getLockStartTime, DateUtil.date())
             .list();
         if (CollectionUtil.isEmpty(list)) {
-            log.info("【会议开始前30分钟前发送消息】:当前无需要通知的消息");
+            log.info("【定时任务：会议开始前30分钟】 当前无需要通知的消息");
             return;
         }
-        List<Long> roomIds = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
 
-        boolean update = meetingRoomInfoDaoService.lambdaUpdate().in(MeetingRoomInfoPO::getId, roomIds)
-            .set(MeetingRoomInfoPO::getAssignResourceStatus, 1).update();
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
             String ownerImUserId = meetingRoomInfoPO.getOwnerImUserId();
             MeetingResourcePO byId = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
             if (!byId.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
+                log.info("【定时任务：会议开始前30分钟】 执行分配资源，ownerImUserId：{},vmrId:{}", ownerImUserId,
+                    byId.getVmrId());
                 hwMeetingCommonService.associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
             }
         }
 
-        List<Long> ids = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
+        List<Long> roomIds = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
 
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
             BatchAttachMessageVo batchMessageVo = new BatchAttachMessageVo();
@@ -89,14 +90,16 @@ public class AppointMeetingTask {
                 JSONUtil.createObj().set("pushContent", pushContent).set("push_type", "room_start_notice")
                     .set("meetingCode", meetingRoomInfoPO.getHwMeetingCode()).toString());
 //        batchMessageVo.setPayload("");//不传ios收不到
-            log.info("【会议开始前30分钟前发送消息】发送消息入参：{}", batchMessageVo);
+            log.info("【定时任务：会议开始前30分钟】发送消息入参：{}", batchMessageVo);
             Result<?> result = messageService.batchSendAttachMessage(batchMessageVo);
-            log.info("【会议开始前30分钟前发送消息】发送消息结果：{}", result);
+            log.info("【定时任务：会议开始前30分钟】发送消息结果：{}", result);
         }
-        meetingRoomInfoDaoService.lambdaUpdate().set(MeetingRoomInfoPO::getNotifyRoomStartStatus, 1)
-            .in(MeetingRoomInfoPO::getId, ids).update();
 
-        log.info("会议开始前30分钟前锁定资源分配完成】，id:{},result:{}", roomIds, update);
+        //修改分配资源状态及通知状态
+        boolean update = meetingRoomInfoDaoService.lambdaUpdate().set(MeetingRoomInfoPO::getNotifyRoomStartStatus, 1)
+            .set(MeetingRoomInfoPO::getAssignResourceStatus, 1).in(MeetingRoomInfoPO::getId, roomIds).update();
+
+        log.info("【定时任务：会议开始前30分钟】锁定资源分配完成，roomIds:{},result:{}", roomIds, update);
 
     }
 }

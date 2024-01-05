@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.huaweicloud.sdk.core.exception.ServiceResponseException;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.*;
 import com.tiens.api.dto.MeetingRoomContextDTO;
@@ -100,6 +101,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             //会议开始时间（UTC时间）。格式：yyyy-MM-dd HH:mm。 > * 创建预约会议时，如果没有指定开始时间或填空串，则表示会议马上开始 > * 时间是UTC时间，即0时区的时间
             body.withStartTime(startTimeStr);
             request.withBody(body);
+            log.info("创建云会议结果入参：{}", request);
             CreateMeetingResponse response = userMeetingClient.createMeeting(request);
             log.info("创建云会议结果响应：{}", response);
             List<ConferenceInfo> body1 = response.getBody();
@@ -190,6 +192,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withLength(meetingRoomContextDTO.getLength() + 60);
             body.withStartTime(startTimeStr);
             request.withBody(body);
+            log.info("编辑云会议会议结果入参：{}", request);
             UpdateMeetingResponse response = userMeetingClient.updateMeeting(request);
             log.info("编辑云会议会议结果响应：{}", response);
         } catch (Exception e) {
@@ -226,11 +229,19 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             //取消会议
             CancelMeetingRequest request = new CancelMeetingRequest();
             request.withConferenceID(cancelMeetingRoomModel.getConferenceID());
+            log.info("取消云会议会议结果入参：{}", request);
             CancelMeetingResponse response = userMeetingClient.cancelMeeting(request);
             log.info("取消云会议会议结果响应：{}", response);
+        } catch (ServiceResponseException e) {
+            if (e.getErrorCode().equals("MMC.111070005")) {
+                log.info("取消华为云--云会议信息不存在，当前会议号:{}", cancelMeetingRoomModel.getConferenceID());
+            } else {
+                log.error("取消华为云--云会议信息发生其他异常，当前会议号:{}，异常信息：{}",
+                    cancelMeetingRoomModel.getConferenceID(), e);
+            }
         } catch (Exception e) {
-            //TODO 取消会议，如果取消失败，华为不存在，则不抛出异常
-            log.error("取消云会议异常，异常信息：{}", e);
+            log.error("取消华为云--云会议信息发生系统异常，当前会议号:{}，异常信息：{}",
+                cancelMeetingRoomModel.getConferenceID(), e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
         } finally {
             //回收资源
@@ -265,7 +276,9 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         request.withConferenceID(meetingRoomDetailDTO.getHwMeetingCode());
         try {
             MeetingClient meetingClient = hwMeetingCommonService.getMgrMeetingClient();
+            log.info("查询华为云会议详情入参：{}", request);
             ShowMeetingDetailResponse response = meetingClient.showMeetingDetail(request);
+            log.info("查询华为云会议详情结果：{}", response);
             //会议信息
             ConferenceInfo conferenceData = response.getConferenceData();
             List<PasswordEntry> passwordEntry = conferenceData.getPasswordEntry();
@@ -287,11 +300,18 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             meetingRoomDetailDTO.setGuestJoinUri(conferenceData.getGuestJoinUri());
             //网络研讨会观众会议链接地址
             meetingRoomDetailDTO.setAudienceJoinUri(conferenceData.getAudienceJoinUri());
+        } catch (ServiceResponseException e) {
+            if (e.getErrorCode().equals("MMC.111070005")) {
+                log.error("查询华为云会议信息不存在，当前会议号:{}，异常信息：{}", meetingRoomDetailDTO.getHwMeetingCode(),
+                    e);
+            } else {
+                log.error("查询华为云会议信息发生其他异常，当前会议号:{}，异常信息：{}",
+                    meetingRoomDetailDTO.getHwMeetingCode(), e);
+            }
         } catch (Exception e) {
-            log.error("查询云会议详情异常，异常信息：{}", e);
+            log.error("查询华为云会议信息系统异常，当前会议号:{}，异常信息：{}", meetingRoomDetailDTO.getHwMeetingCode(),
+                e);
 //            throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
-        } finally {
-
         }
 
     }
@@ -307,8 +327,10 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         SearchMeetingsRequest request = new SearchMeetingsRequest();
         request.withQueryAll(true);
         request.withSearchKey(meetingCode);
+        log.info("查询是否存在会议入参：{}", request);
         MeetingClient meetingClient = hwMeetingCommonService.getMgrMeetingClient();
         SearchMeetingsResponse response = meetingClient.searchMeetings(request);
+        log.info("查询是否存在会议返回：{}", response);
         return response.getCount() > 0;
 
     }

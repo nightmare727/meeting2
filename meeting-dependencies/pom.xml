@@ -42,7 +42,7 @@
         <!-- Bpm 工作流相关 -->
         <flowable.version>6.8.0</flowable.version>
         <!-- 工具类相关 -->
-        <jtmm.third.tools.version>1.0-SNAPSHOT</jtmm.third.tools.version>
+        <jtmm.third.tools.version>1.1-SNAPSHOT</jtmm.third.tools.version>
         <fast-md5.version>2.7.1</fast-md5.version>
         <rocketmq-spring-boot-starter.version>2.2.3</rocketmq-spring-boot-starter.version>
         <javacv.version>1.5.8</javacv.version>
@@ -50,7 +50,7 @@
         <mybatis-plus-join-boot-starter.version>1.4.2.2</mybatis-plus-join-boot-starter.version>
         <leaf-core.version>1.0.2-RELEASE</leaf-core.version>
         <huaweicloud-sdk-iam.version>3.0.108</huaweicloud-sdk-iam.version>
-        <wechat-company.version>1.0-SNAPSHOT</wechat-company.version>
+        <wechat-company.version>1.1-SNAPSHOT</wechat-company.version>
         <common-core.version>1.0-SNAPSHOT</common-core.version>
         <common-utils.version>1.0-SNAPSHOT</common-utils.version>
         <spring-cloud-starter-alibaba-nacos-config.version>2021.0.4.0

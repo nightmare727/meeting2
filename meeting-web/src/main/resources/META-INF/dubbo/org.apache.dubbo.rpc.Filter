@@ -1,1 +1,1 @@
-customDubboFilter=com.tiens.meeting.web.filter.CustomDubboFilter
+logFilter=common.log.LogDubboFilter

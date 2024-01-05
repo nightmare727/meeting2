@@ -23,10 +23,13 @@ import common.enums.MeetingRoomStateEnum;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
+import common.util.cache.CacheKeyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -34,6 +37,7 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +59,8 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
     private final HwMeetingCommonService hwMeetingCommonService;
     private final RpcMeetingUserService rpcMeetingUserService;
+
+    private RedissonClient redissonClient;
 
     public static void main(String[] args) {
         ZoneId zoneId1 = ZoneId.of("GMT+09:00");
@@ -99,37 +105,59 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     @Transactional
     @Override
     public CommonResult allocate(ResourceAllocateDTO resourceAllocateDTO) {
+        log.info("【分配资源】入参为：{}", resourceAllocateDTO);
         CommonResult<VMUserVO> vmUserVOCommonResult =
             rpcMeetingUserService.queryVMUser(resourceAllocateDTO.getJoyoCode(), "");
         VMUserVO vmUserVO = vmUserVOCommonResult.getData();
         if (ObjectUtil.isEmpty(vmUserVO)) {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_HOST_INFO);
         }
-        //添加华为用户
+        //添加华为用户,防止分配资源失败
         rpcMeetingUserService.addMeetingCommonUser(vmUserVO.getAccid());
 
-        //共有空闲、共有预约可分配，其他状态都不可分配
-        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceAllocateDTO.getResourceId());
-        Integer status = meetingResourcePO.getStatus();
-        if (MeetingResourceStateEnum.PRIVATE.getState()
-            .equals(status) || MeetingResourceStateEnum.REDISTRIBUTION.getState().equals(status)) {
-            return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_ALLOCATE_RESOURCE);
+        Integer resourceId = resourceAllocateDTO.getResourceId();
+
+        RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
+        try {
+            if (lock.isLocked()) {
+                //资源锁定中
+                log.error("【分配资源】抢占资源锁失败，资源已被占用，资源id:{}", resourceId);
+                return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_OPERATED_ERROR);
+            }
+            //资源维度锁定
+            lock.lock(10, TimeUnit.SECONDS);
+
+            //共有空闲、共有预约可分配，其他状态都不可分配
+            MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
+            Integer status = meetingResourcePO.getStatus();
+            if (MeetingResourceStateEnum.PRIVATE.getState()
+                .equals(status) || MeetingResourceStateEnum.REDISTRIBUTION.getState().equals(status)) {
+                return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_ALLOCATE_RESOURCE);
+            }
+            //当前资源状态是否为公有空闲
+            Boolean freeFlag = MeetingResourceStateEnum.PUBLIC_FREE.getState().equals(status);
+            meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceAllocateDTO.getResourceId())
+                .set(MeetingResourcePO::getStatus, freeFlag ? MeetingResourceStateEnum.PRIVATE.getState()
+                    : MeetingResourceStateEnum.REDISTRIBUTION.getState())
+                .set(freeFlag, MeetingResourcePO::getCurrentUseImUserId, vmUserVO.getAccid())
+                .set(MeetingResourcePO::getOwnerImUserId, vmUserVO.getAccid())
+                .set(MeetingResourcePO::getOwnerImUserJoyoCode, vmUserVO.getJoyoCode())
+                .set(MeetingResourcePO::getOwnerImUserName, vmUserVO.getNickName()).update();
+            if (freeFlag) {
+                //当前是空闲状态，则直接分配资源
+                hwMeetingCommonService.associateVmr(vmUserVO.getAccid(),
+                    Collections.singletonList(meetingResourcePO.getVmrId()));
+            }
+            return CommonResult.success(null);
+        } catch (Exception e) {
+            log.error("【分配资源】发生异常，资源id：{},异常：{}", resourceId, e);
+            throw e;
+        } finally {
+            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+                log.info("【分配资源】释放资源锁：资源id：{}", resourceId);
+                lock.unlock();
+            }
         }
-        //当前资源状态是否为公有空闲
-        Boolean freeFlag = MeetingResourceStateEnum.PUBLIC_FREE.getState().equals(status);
-        meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceAllocateDTO.getResourceId())
-            .set(MeetingResourcePO::getStatus, freeFlag ? MeetingResourceStateEnum.PRIVATE.getState()
-                : MeetingResourceStateEnum.REDISTRIBUTION.getState())
-            .set(freeFlag, MeetingResourcePO::getCurrentUseImUserId, vmUserVO.getAccid())
-            .set(MeetingResourcePO::getOwnerImUserId, vmUserVO.getAccid())
-            .set(MeetingResourcePO::getOwnerImUserJoyoCode, vmUserVO.getJoyoCode())
-            .set(MeetingResourcePO::getOwnerImUserName, vmUserVO.getNickName()).update();
-        if (freeFlag) {
-            //当前是空闲状态，则直接分配资源
-            hwMeetingCommonService.associateVmr(vmUserVO.getAccid(),
-                Collections.singletonList(meetingResourcePO.getVmrId()));
-        }
-        return CommonResult.success(null);
     }
 
     /**
@@ -143,33 +171,53 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     public CommonResult cancelAllocate(CancelResourceAllocateDTO cancelResourceAllocateDTO) {
         //共有空闲、共有预约可分配，其他状态都不可分配
         Integer resourceId = cancelResourceAllocateDTO.getResourceId();
-        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
-        Integer status = meetingResourcePO.getStatus();
-        if (MeetingResourceStateEnum.PUBLIC_FREE.getState()
-            .equals(status) || MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState().equals(status)) {
-            return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_ALLOCATE_RESOURCE);
-        }
-        Boolean privateFlag = MeetingResourceStateEnum.PRIVATE.getState().equals(status);
-        //查询是否有进行中或者预约中的会议
-        if (privateFlag) {
-            List<MeetingRoomInfoPO> meetingRoomInfoPOList =
-                meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, resourceId)
-                    .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).list();
-            Boolean emptyRoomFlag = CollectionUtil.isEmpty(meetingRoomInfoPOList);
-            if (privateFlag && !emptyRoomFlag) {
-                //存在会议，无法取消分配，需要先处理会议
-                log.error("私有资源存在进行中或者预约中的会议，无法取消分配");
+
+        RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
+        try {
+            if (lock.isLocked()) {
+                //资源锁定中
+                log.error("【取消分配资源】抢占资源锁失败，资源已被占用，资源id:{}", resourceId);
+                return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_OPERATED_ERROR);
+            }
+            //资源维度锁定
+            lock.lock(10, TimeUnit.SECONDS);
+
+            MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
+            Integer status = meetingResourcePO.getStatus();
+            if (MeetingResourceStateEnum.PUBLIC_FREE.getState()
+                .equals(status) || MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState().equals(status)) {
                 return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_ALLOCATE_RESOURCE);
             }
+            Boolean privateFlag = MeetingResourceStateEnum.PRIVATE.getState().equals(status);
+            //查询是否有进行中或者预约中的会议
+            if (privateFlag) {
+                List<MeetingRoomInfoPO> meetingRoomInfoPOList =
+                    meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, resourceId)
+                        .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).list();
+                Boolean emptyRoomFlag = CollectionUtil.isEmpty(meetingRoomInfoPOList);
+                if (privateFlag && !emptyRoomFlag) {
+                    //存在会议，无法取消分配，需要先处理会议
+                    log.error("【取消分配资源】私有资源存在进行中或者预约中的会议，无法取消分配");
+                    return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_ALLOCATE_RESOURCE);
+                }
+            }
+            //可以取消分配
+            meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
+                .set(MeetingResourcePO::getOwnerImUserId, null).set(MeetingResourcePO::getOwnerImUserJoyoCode, null)
+                .set(MeetingResourcePO::getOwnerImUserName, null)
+                .set(privateFlag, MeetingResourcePO::getCurrentUseImUserId, null).set(MeetingResourcePO::getStatus,
+                    privateFlag ? MeetingResourceStateEnum.PUBLIC_FREE.getState()
+                        : MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState()).update();
+            return CommonResult.success(null);
+        } catch (Exception e) {
+            log.error("【取消分配资源】发生异常，资源id：{},异常：{}", resourceId, e);
+            throw e;
+        } finally {
+            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+                log.info("【取消分配资源】释放资源锁：资源id：{}", resourceId);
+                lock.unlock();
+            }
         }
-        //可以取消分配
-        meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
-            .set(MeetingResourcePO::getOwnerImUserId, null).set(MeetingResourcePO::getOwnerImUserJoyoCode, null)
-            .set(MeetingResourcePO::getOwnerImUserName, null)
-            .set(privateFlag, MeetingResourcePO::getCurrentUseImUserId, null).set(MeetingResourcePO::getStatus,
-                privateFlag ? MeetingResourceStateEnum.PUBLIC_FREE.getState()
-                    : MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState()).update();
-        return CommonResult.success(null);
     }
 
     /**
