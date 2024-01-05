@@ -1,10 +1,12 @@
 package com.tiens.meeting.dubboservice.impl.core;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSON;
 import com.huaweicloud.sdk.core.auth.ICredential;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.MeetingCredentials;
 import com.huaweicloud.sdk.meeting.v1.model.*;
+import com.tiens.api.vo.RecordVO;
 import common.enums.MeetingRoomHandlerEnum;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -24,8 +26,8 @@ import java.util.List;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MeetingClientTest {
 
-    public String appId = "89f4e01b24c54752aa6ef02c864efa42";
-    public String appKey = "3b6419481b81e65aee20946d84f1837924fe1b7c9d476fe781428e841217c72e";
+    public String appId = "ce1860512edc4e77a288283d79f08a27";
+    public String appKey = "502367f7fec27f77ddef76cd3b3129c71153431a9b45a5d4825e4f14e999d4dd";
     public String userId = "115e039f98e1441ba24e5e3584cef950";
 
     MeetingClient managerClient = null;
@@ -125,4 +127,16 @@ public class MeetingClientTest {
         System.out.println(stopMeeting);
     }
 
+    @Test
+    @DisplayName("华为云SDK停止会议")
+    public void queryRecordFiles() {
+        ShowRecordingFileDownloadUrlsRequest request = new ShowRecordingFileDownloadUrlsRequest();
+        request.withConfUUID("a6963021d25342b39645ea05425544bc");
+        request.withLimit(500);
+        ShowRecordingFileDownloadUrlsResponse response = managerClient.showRecordingFileDownloadUrls(request);
+        List<RecordDownloadInfoBO> recordUrls = response.getRecordUrls();
+        RecordDownloadInfoBO recordDownloadInfoBO = recordUrls.get(0);
+        List<RecordDownloadUrlDO> urls = recordDownloadInfoBO.getUrls();
+        System.out.println(urls);
+    }
 }

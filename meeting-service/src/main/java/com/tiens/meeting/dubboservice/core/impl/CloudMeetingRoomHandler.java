@@ -229,6 +229,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             CancelMeetingResponse response = userMeetingClient.cancelMeeting(request);
             log.info("取消云会议会议结果响应：{}", response);
         } catch (Exception e) {
+            //TODO 取消会议，如果取消失败，华为不存在，则不抛出异常
             log.error("取消云会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
         } finally {

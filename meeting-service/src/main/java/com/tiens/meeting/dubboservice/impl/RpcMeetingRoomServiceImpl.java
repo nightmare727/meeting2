@@ -349,7 +349,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             throw e;
         } finally {
             if (lock.isLocked() && lock.isHeldByCurrentThread()) {
-                log.error("创建、预约会议释放资源锁：资源id：{}", resourceId);
+                log.info("创建、预约会议释放资源锁：资源id：{}", resourceId);
                 lock.unlock();
             }
         }
@@ -599,6 +599,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         MeetingRoomInfoPO meetingRoomInfoPO =
             packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
         //2、修改本地会议
+        //TODO 容易产生死锁
         meetingRoomInfoDaoService.updateById(meetingRoomInfoPO);
         //3、锁定资源，更改资源状态为共有预约
         publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
@@ -739,7 +740,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 } else {
                     log.error(
                         "【资源挂起释放】修改资源状态为空闲/私有状态失败无法释放,resourceId：{},当前存在相关会议数,count：{}",
-                        count);
+                        resourceId, count);
                     return Boolean.FALSE;
                 }
             default:
