@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -109,6 +110,30 @@ public class MeetingClientTest {
         request.withVmrMode(MeetingRoomHandlerEnum.CLOUD.getVmrMode());
         SearchCorpVmrResponse response2 = managerClient.searchCorpVmr(request);
         System.out.println(response2);
+
+    }
+
+    @Test
+    @DisplayName("华为云SDK-分配资源接口")
+    public void fenPei() {
+        AssociateVmrRequest request = new AssociateVmrRequest();
+        request.withAccount("6b91d8c60f2949feaf6725c5b380bd0a");
+        request.withBody(Collections.singletonList("988994ebe1f8442eba39facd4d5f4d0c"));
+        request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
+        AssociateVmrResponse response = managerClient.associateVmr(request);
+        System.out.println(response);
+
+    }
+
+    @Test
+    @DisplayName("华为云SDK-取消资源接口")
+    public void qx() {
+        DisassociateVmrRequest request = new DisassociateVmrRequest();
+        request.withAccount("6b91d8c60f2949feaf6725c5b380bd0a");
+        request.withBody(Collections.singletonList("988994ebe1f8442eba39facd4d5f4d0c"));
+        request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
+        DisassociateVmrResponse response = managerClient.disassociateVmr(request);
+        System.out.println(response);
 
     }
 
