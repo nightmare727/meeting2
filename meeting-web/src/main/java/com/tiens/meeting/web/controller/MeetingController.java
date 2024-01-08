@@ -28,14 +28,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * @author <a href="mailto:chenxilzx1@gmail.com">theonefx</a>
  */
 @RestController
 @Slf4j
 @RequestMapping(value = "/room")
 public class MeetingController {
 
-    @Reference
+    @Reference(timeout = 7000)
     RpcMeetingRoomService rpcMeetingRoomService;
 
     /**
