@@ -67,6 +67,19 @@ public class MeetingController {
     }
 
     /**
+     * 成功加入会议后回调
+     *
+     * @param joinMeetingRoomDTO
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/enterMeetingRoom")
+    public CommonResult enterMeetingRoom(
+        @RequestBody JoinMeetingRoomDTO joinMeetingRoomDTO) {
+        return rpcMeetingRoomService.enterMeetingRoom(joinMeetingRoomDTO);
+    }
+
+    /**
      * 获取空闲资源列表
      *
      * @param
