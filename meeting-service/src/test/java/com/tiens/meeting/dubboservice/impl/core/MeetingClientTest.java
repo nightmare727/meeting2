@@ -1,13 +1,16 @@
 package com.tiens.meeting.dubboservice.impl.core;
 
-import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.huaweicloud.sdk.core.auth.ICredential;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.MeetingCredentials;
 import com.huaweicloud.sdk.meeting.v1.model.*;
-import com.tiens.api.vo.RecordVO;
 import common.enums.MeetingRoomHandlerEnum;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -153,7 +156,7 @@ public class MeetingClientTest {
     }
 
     @Test
-    @DisplayName("华为云SDK停止会议")
+    @DisplayName("华为云SDK-查询录制文件")
     public void queryRecordFiles() {
         ShowRecordingFileDownloadUrlsRequest request = new ShowRecordingFileDownloadUrlsRequest();
         request.withConfUUID("a6963021d25342b39645ea05425544bc");
@@ -164,4 +167,28 @@ public class MeetingClientTest {
         List<RecordDownloadUrlDO> urls = recordDownloadInfoBO.getUrls();
         System.out.println(urls);
     }
+
+    @Test
+    @DisplayName("测试集合差异")
+    public void collDiff() {
+        CollDiffInner collDiffInner = new CollDiffInner("name1", "age1");
+        ArrayList<CollDiffInner> integers1 = Lists.newArrayList();
+        ArrayList<CollDiffInner> integers2 = Lists.newArrayList();
+        System.out.println("交集：" + CollectionUtil.intersection(integers1, integers2));
+        System.out.println("差集1：" + CollectionUtil.subtractToList(integers1, integers2));
+        System.out.println("差集2：" + CollectionUtil.subtractToList(integers2, integers1));
+
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public class CollDiffInner {
+
+        String name;
+        String age;
+
+    }
 }
+
+

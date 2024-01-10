@@ -1,14 +1,21 @@
 package com.tiens.meeting.dubboservice.impl;
 
+import com.google.common.collect.Lists;
 import com.tiens.api.dto.ResourceAllocateDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.meeting.ServiceApplication;
+import com.tiens.meeting.repository.po.MeetingTimeZoneConfigPO;
+import com.tiens.meeting.repository.service.MeetingResourceDaoService;
+import com.tiens.meeting.repository.service.MeetingTimeZoneConfigDaoService;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.ArrayList;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ServiceApplication.class)
@@ -18,6 +25,9 @@ class RpcMeetingResourceServiceImplTest {
     @Autowired
     RPCMeetingResourceService rpcMeetingResourceService;
 
+
+    @Autowired
+    MeetingTimeZoneConfigDaoService meetingTimeZoneConfigDaoService;
     /*@Test
     void getClient() {
         MeetingClient client = SpringUtil.getBean(MeetingClient.class);
@@ -116,6 +126,19 @@ class RpcMeetingResourceServiceImplTest {
         resourceAllocateDTO.setResourceId(227);
 
         System.out.println(rpcMeetingResourceService.allocate(resourceAllocateDTO));
+
+    }
+    @Test
+    void getId() {
+        MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = new MeetingTimeZoneConfigPO();
+        meetingTimeZoneConfigPO.setChineseDesc("asa");
+        meetingTimeZoneConfigPO.setEnglishDesc("asa");
+        meetingTimeZoneConfigPO.setTimeZoneId(1);
+        meetingTimeZoneConfigPO.setTimeZoneOffset("12313");
+        ArrayList< MeetingTimeZoneConfigPO> objects = Lists.newArrayList();
+        objects.add(meetingTimeZoneConfigPO);
+        boolean save = meetingTimeZoneConfigDaoService.saveBatch(objects);
+        System.out.println(meetingTimeZoneConfigPO);
 
     }
 

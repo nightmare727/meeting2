@@ -1,7 +1,10 @@
 package com.tiens.meeting.dubboservice.async;
 
 import com.tiens.api.dto.hwevent.HwEventReq;
+import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import org.springframework.scheduling.annotation.Async;
+
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -17,4 +20,13 @@ public interface RoomAsyncTaskService {
      * @param hwEventReq
      */
     void saveHwEventLog(HwEventReq hwEventReq);
+
+    /**
+     * 批量发送点对点IM消息
+     *
+     * @param meetingRoomInfoPO
+     * @param toAccIds
+     */
+    void batchSendIMMessage(MeetingRoomInfoPO meetingRoomInfoPO, List<String> toAccIds);
+
 }

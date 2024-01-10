@@ -1,5 +1,6 @@
 package com.tiens.api.vo;
 
+import com.tiens.api.dto.MeetingAttendeeDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -7,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -151,5 +153,14 @@ public class MeetingRoomDetailDTO implements Serializable {
      * 资源过期时间
      */
     private Date resourceExpireTime;
+
+    /**
+     * 与会者
+     */
+    private List<MeetingAttendeeVO> attendees;
+    /**
+     * 备注
+     */
+    private String remark;
 
 }

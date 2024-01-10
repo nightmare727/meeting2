@@ -44,8 +44,7 @@ public interface RpcMeetingRoomService {
      * @param meetingRoomContextDTO
      * @return
      */
-    CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO)
-        throws Exception;
+    CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) throws Exception;
 
     /**
      * 编辑会议
@@ -59,8 +58,8 @@ public interface RpcMeetingRoomService {
      * 查询会议详情
      *
      * @param meetingRoomId
-     * @oaram imUserId
      * @return
+     * @oaram imUserId
      */
     CommonResult<MeetingRoomDetailDTO> getMeetingRoom(Long meetingRoomId, String imUserId);
 
@@ -127,5 +126,19 @@ public interface RpcMeetingRoomService {
      */
     CommonResult<List<MeetingResourceVO>> getAllMeetingResourceList(String resourceCode);
 
+    /**
+     * 通过会议号查询会议
+     *
+     * @param meetingCode
+     * @return
+     */
     CommonResult<MeetingRoomDetailDTO> getMeetingRoomByCode(String meetingCode);
+
+    /**
+     * 加入会议
+     *
+     * @param joinMeetingRoomDTO
+     * @return
+     */
+    CommonResult enterMeetingRoom(JoinMeetingRoomDTO joinMeetingRoomDTO);
 }

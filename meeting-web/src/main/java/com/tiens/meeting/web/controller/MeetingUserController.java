@@ -25,9 +25,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class MeetingUserController {
 
-    @Reference
+    @Reference(timeout = 20000)
     RpcMeetingRoomService rpcMeetingRoomService;
-    @Reference
+    @Reference(timeout = 20000)
     RpcMeetingUserService rpcMeetingUserService;
 
     /**
@@ -57,6 +57,8 @@ public class MeetingUserController {
     public CommonResult<VMUserVO> queryVMUser(@RequestHeader("finalUserId") String finalUserId) throws Exception {
         return rpcMeetingUserService.queryVMUser(null, finalUserId);
     }
+
+
 
     @ResponseBody
     @PostMapping("/queryLiveVMUser")

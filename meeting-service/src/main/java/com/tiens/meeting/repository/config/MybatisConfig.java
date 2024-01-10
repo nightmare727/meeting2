@@ -13,6 +13,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MybatisConfig {
 
+
+    @Bean
+    public MySqlInjector sqlInjector() {
+        return new MySqlInjector();
+    }
+
     @Bean
     public MybatisPlusInterceptor paginationInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();

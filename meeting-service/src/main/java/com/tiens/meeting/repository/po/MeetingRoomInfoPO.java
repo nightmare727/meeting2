@@ -185,6 +185,13 @@ public class MeetingRoomInfoPO implements Serializable {
     @TableField(value = "subject")
     private String subject;
 
+
+    /**
+     * 备注
+     */
+    @TableField(value = "remark")
+    private String remark;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

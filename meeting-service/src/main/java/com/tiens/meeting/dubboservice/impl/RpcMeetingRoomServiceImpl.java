@@ -39,6 +39,7 @@ import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RLock;
 import org.redisson.api.RLongAdder;
 import org.redisson.api.RedissonClient;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -78,6 +79,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private final RedissonClient redissonClient;
 
     private final RoomAsyncTaskService roomAsyncTaskService;
+
+    private final MeetingAttendeeDaoService meetingAttendeeDaoService;
 
     public static final String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
 
@@ -153,6 +156,38 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("加入会议校验通过：主持人id:{}", meetingRoomInfoPO.getOwnerImUserId());
         //返回主持人的id
         return CommonResult.success(meetingRoomInfoPO.getOwnerImUserId());
+    }
+
+    /**
+     * 加入会议
+     *
+     * @param joinMeetingRoomDTO
+     * @return
+     */
+    @Override
+    public CommonResult enterMeetingRoom(JoinMeetingRoomDTO joinMeetingRoomDTO) {
+        log.info("【加入会议】 入参：{}", joinMeetingRoomDTO);
+
+        MeetingRoomInfoPO one = meetingRoomInfoDaoService.lambdaQuery()
+            .eq(MeetingRoomInfoPO::getHwMeetingCode, joinMeetingRoomDTO.getMeetRoomCode())
+            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).one();
+        if (ObjectUtil.isNull(one)) {
+            log.error("【加入会议】 会议不存在，会议号：{}", joinMeetingRoomDTO.getMeetRoomCode());
+            return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
+        }
+
+        MeetingAttendeePO meetingAttendeePO = new MeetingAttendeePO();
+        meetingAttendeePO.setMeetingRoomId(one.getId());
+        meetingAttendeePO.setAttendeeUserId(joinMeetingRoomDTO.getImUserId());
+        meetingAttendeePO.setAttendeeUserName(joinMeetingRoomDTO.getAttendeeUserName());
+        meetingAttendeePO.setSource(MeetingUserJoinSourceEnum.MIDWAY.getCode());
+        try {
+            meetingAttendeeDaoService.save(meetingAttendeePO);
+        } catch (DuplicateKeyException e) {
+            log.info("【加入会议】 重复添加会议与会者");
+        }
+
+        return CommonResult.success(null);
     }
 
     /**
@@ -344,10 +379,26 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
             //2、创建本地会议
             meetingRoomInfoDaoService.save(meetingRoomInfoPO);
+            Long meetingRoomId = meetingRoomInfoPO.getId();
+            //插入与会者数据
+            List<MeetingAttendeeDTO> attendees = meetingRoomContextDTO.getAttendees();
+            if (ObjectUtil.isNotEmpty(attendees)) {
+                DateTime now = DateUtil.date();
+                List<MeetingAttendeePO> collect = attendees.stream().map(
+                    t -> MeetingAttendeePO.builder().meetingRoomId(meetingRoomId).attendeeUserId(t.getAttendeeUserId())
+                        .attendeeUserName(t.getAttendeeUserName()).source(MeetingUserJoinSourceEnum.APPOINT.getCode())
+                        .createTime(now).updateTime(now).build()).collect(Collectors.toList());
+
+                roomAsyncTaskService.batchSendIMMessage(meetingRoomInfoPO,
+                    attendees.stream().map(MeetingAttendeeDTO::getAttendeeUserId).collect(Collectors.toList()));
+
+                meetingAttendeeDaoService.saveBatch(collect);
+            }
+
             //3、锁定资源，更改资源状态为共有预约
             publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
             //返回创建后得详情
-            MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO);
+            MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, null);
             result.setResourceExpireTime(meetingResourcePO.getExpireDate());
 //        hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail
 //        (result);
@@ -412,6 +463,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             build.setHwMeetingCode(meetingRoom.getHwMeetingCode());
             build.setHostPwd(meetingRoom.getHostPwd());
         }
+
         if (!publicFlag) {
             //私有资源，自动设置已分配资源
             build.setAssignResourceStatus(1);
@@ -627,6 +679,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 //1、变更旧资源状态
                 publicResourceHoldHandle(oldMeetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_DOWN);
             }
+            //5、处理与会者相关
+            updateMeetingRoomAttendee(meetingRoomInfoPO, meetingRoomContextDTO.getAttendees());
+
             log.info("【编辑会议】成功，会议id：{}", meetingRoomContextDTO.getMeetingRoomId());
             return CommonResult.success(null);
 
@@ -639,6 +694,41 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 lock.unlock();
             }
         }
+    }
+
+    private void updateMeetingRoomAttendee(MeetingRoomInfoPO meetingRoomInfoPO, List<MeetingAttendeeDTO> attendees) {
+        if (ObjectUtil.isEmpty(attendees)) {
+            return;
+        }
+        Long meetRoomId = meetingRoomInfoPO.getId();
+        DateTime now = DateUtil.date();
+        List<MeetingAttendeePO> newMeetingAttendeeList = attendees.stream().map(
+                t -> MeetingAttendeePO.builder().attendeeUserId(t.getAttendeeUserId()).meetingRoomId(meetRoomId)
+                    .source(MeetingUserJoinSourceEnum.APPOINT.getCode()).createTime(now).updateTime(now).build())
+            .collect(Collectors.toList());
+
+        List<MeetingAttendeePO> oldMeetingAttendeeList =
+            meetingAttendeeDaoService.lambdaQuery().eq(MeetingAttendeePO::getMeetingRoomId, meetRoomId).list();
+
+        List<MeetingAttendeePO> addMeetingAttendeeList =
+            CollectionUtil.subtractToList(newMeetingAttendeeList, oldMeetingAttendeeList);
+        if (CollectionUtil.isNotEmpty(addMeetingAttendeeList)) {
+            //新增的
+            meetingAttendeeDaoService.saveBatch(addMeetingAttendeeList);
+            //
+            roomAsyncTaskService.batchSendIMMessage(meetingRoomInfoPO,
+                addMeetingAttendeeList.stream().map(MeetingAttendeePO::getAttendeeUserId).collect(Collectors.toList()));
+
+        }
+        List<MeetingAttendeePO> delMeetingAttendeeList =
+            CollectionUtil.subtractToList(oldMeetingAttendeeList, newMeetingAttendeeList);
+        if (CollectionUtil.isNotEmpty(delMeetingAttendeeList)) {
+            //删除的
+            List<Long> delIds =
+                delMeetingAttendeeList.stream().map(MeetingAttendeePO::getId).collect(Collectors.toList());
+            meetingAttendeeDaoService.removeBatchByIds(delIds);
+        }
+
     }
 
     /**
@@ -654,14 +744,30 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (ObjectUtil.isNull(meetingRoomInfoPO)) {
             return CommonResult.success(null);
         }
+        List<MeetingAttendeePO> list =
+            meetingAttendeeDaoService.lambdaQuery().eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomId).list();
+
         Integer vmrMode = meetingRoomInfoPO.getVmrMode();
-        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO);
+        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, list);
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail(result);
         return CommonResult.success(result);
     }
 
-    private MeetingRoomDetailDTO packBaseMeetingRoomDetailDTO(MeetingRoomInfoPO meetingRoomInfoPO) {
+    private MeetingRoomDetailDTO packBaseMeetingRoomDetailDTO(MeetingRoomInfoPO meetingRoomInfoPO,
+        List<MeetingAttendeePO> list) {
         MeetingRoomDetailDTO result = BeanUtil.copyProperties(meetingRoomInfoPO, MeetingRoomDetailDTO.class);
+        if (ObjectUtil.isNotEmpty(list)) {
+            List<MeetingAttendeeVO> collect = list.stream().map(t -> {
+                MeetingAttendeeVO meetingAttendeeVO = new MeetingAttendeeVO();
+                meetingAttendeeVO.setMeetingRoomId(meetingRoomInfoPO.getId());
+                meetingAttendeeVO.setAttendeeUserId(t.getAttendeeUserId());
+                meetingAttendeeVO.setAttendeeUserName(t.getAttendeeUserName());
+                return meetingAttendeeVO;
+            }).collect(Collectors.toList());
+            result.setAttendees(collect);
+
+        }
+
         return result;
     }
 
@@ -809,14 +915,23 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     @Override
     public CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(String imUserId) {
-//        列表中显示最近要开始的会议，按照会议开始时间正序。最多显示30天数据
-//        已结束的会议不显示。
-//        我创建的 和 我参加的。
-        List<MeetingRoomInfoPO> list =
-            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getOwnerImUserId, imUserId)
-                .in(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState(),
-                    MeetingRoomStateEnum.Created.getState()).orderByDesc(MeetingRoomInfoPO::getLockStartTime)
-                .last(" limit 30").list();
+
+        //列表中显示最近要开始的会议，按照会议开始时间正序。最多显示30天数据
+        //  已结束的会议不显示。
+        //我创建的 和 我参加的。
+        List<Long> joinMeetingRoomIds =
+            meetingAttendeeDaoService.lambdaQuery().select(MeetingAttendeePO::getMeetingRoomId)
+                .eq(MeetingAttendeePO::getAttendeeUserId, imUserId).list().stream()
+                .map(MeetingAttendeePO::getMeetingRoomId).collect(Collectors.toList());
+
+        Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
+            wrapper -> wrapper.or(ObjectUtil.isNotEmpty(joinMeetingRoomIds),
+                    wrapper1 -> wrapper1.in(MeetingRoomInfoPO::getId, joinMeetingRoomIds))
+                .or(wrapper2 -> wrapper2.eq(MeetingRoomInfoPO::getOwnerImUserId, imUserId));
+        List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
+            .in(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState(),
+                MeetingRoomStateEnum.Created.getState()).orderByDesc(MeetingRoomInfoPO::getLockStartTime)
+            .nested(consumer).last(" limit 30").list();
         //
         FutureAndRunningMeetingRoomListVO futureAndRunningMeetingRoomListVO =
             packFutureAndRunningMeetingRoomListVO(list);
@@ -846,13 +961,29 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         DateTime dateTime = getMonth(month);
         DateTime start = DateUtil.beginOfMonth(dateTime);
         DateTime end = DateUtil.endOfMonth(dateTime);
+        List<Long> joinMeetingRoomIds =
+            meetingAttendeeDaoService.lambdaQuery().select(MeetingAttendeePO::getMeetingRoomId)
+                .eq(MeetingAttendeePO::getAttendeeUserId, imUserId).list().stream()
+                .map(MeetingAttendeePO::getMeetingRoomId).collect(Collectors.toList());
+        Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
+            wrapper -> wrapper.or(ObjectUtil.isNotEmpty(joinMeetingRoomIds),
+                    wrapper1 -> wrapper1.in(MeetingRoomInfoPO::getId, joinMeetingRoomIds))
+                .or(wrapper2 -> wrapper2.eq(MeetingRoomInfoPO::getOwnerImUserId, imUserId));
+
         List<MeetingRoomInfoPO> list =
             meetingRoomInfoDaoService.lambdaQuery().ge(MeetingRoomInfoPO::getLockStartTime, start)
                 .le(MeetingRoomInfoPO::getLockEndTime, end)
-                .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
-                .eq(MeetingRoomInfoPO::getOwnerImUserId, imUserId).orderByDesc(MeetingRoomInfoPO::getCreateTime).list();
+                .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer)
+                .orderByDesc(MeetingRoomInfoPO::getCreateTime).list();
+        List<Long> meetingRoomIdList = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
+
+        Map<Long, List<MeetingAttendeePO>> roomIdAttendeeMap =
+            meetingAttendeeDaoService.lambdaQuery().in(MeetingAttendeePO::getMeetingRoomId, meetingRoomIdList).list()
+                .stream().collect(Collectors.groupingBy(MeetingAttendeePO::getMeetingRoomId));
+
         List<MeetingRoomDetailDTO> collect =
-            list.stream().map(t -> packBaseMeetingRoomDetailDTO(t)).collect(Collectors.toList());
+            list.stream().map(t -> packBaseMeetingRoomDetailDTO(t, roomIdAttendeeMap.get(t)))
+                .collect(Collectors.toList());
         return CommonResult.success(collect);
     }
 
@@ -1097,8 +1228,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (ObjectUtil.isNull(meetingRoomInfoPO)) {
             return CommonResult.success(null);
         }
+
+        List<MeetingAttendeePO> list =
+            meetingAttendeeDaoService.lambdaQuery().eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomInfoPO.getId())
+                .list();
+
         Integer vmrMode = meetingRoomInfoPO.getVmrMode();
-        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO);
+        MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, list);
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail(result);
         return CommonResult.success(result);
     }
