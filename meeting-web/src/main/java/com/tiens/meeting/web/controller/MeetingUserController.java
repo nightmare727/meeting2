@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class MeetingUserController {
 
-    @Reference(timeout = 20000)
+    @Reference(version = "1.0",timeout = 20000)
     RpcMeetingRoomService rpcMeetingRoomService;
     @Reference
     RpcMeetingUserService rpcMeetingUserService;

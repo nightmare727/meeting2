@@ -35,7 +35,7 @@ import java.util.List;
 @RequestMapping(value = "/room")
 public class MeetingController {
 
-    @Reference(timeout = 20000)
+    @Reference(version = "1.0",timeout = 20000)
     RpcMeetingRoomService rpcMeetingRoomService;
 
     /**
