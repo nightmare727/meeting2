@@ -54,11 +54,11 @@ public class LogDubboFilter extends ListenableFilter {
         @Override
         public void onResponse(Result appResponse, Invoker<?> invoker, Invocation invocation) {
             RpcContext context = RpcContext.getContext();
+            MDC.remove(TRACE_ID);
 
             // 使用自定义数据进行业务处理
-            if (context.isProviderSide()) {
-                MDC.remove(TRACE_ID);
-            }
+//            if (context.isProviderSide()) {
+//            }
 
         }
 
@@ -66,11 +66,13 @@ public class LogDubboFilter extends ListenableFilter {
         public void onError(Throwable t, Invoker<?> invoker, Invocation invocation) {
             RpcContext context = RpcContext.getContext();
             // 使用自定义数据进行业务处理
-            if (context.isProviderSide()) {
-                String methodPath = invoker.getInterface().getName() + "." + invocation.getMethodName();
-                log.error("[DUBBO调用异常],接口：{}，异常信息：{}", methodPath, t);
-                MDC.remove(TRACE_ID);
-            }
+          /*  if (context.isProviderSide()) {
+
+            }*/
+
+            String methodPath = invoker.getInterface().getName() + "." + invocation.getMethodName();
+            log.error("[DUBBO调用异常],接口：{}，异常信息：{}", methodPath, t);
+            MDC.remove(TRACE_ID);
         }
     }
 }
