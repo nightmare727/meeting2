@@ -19,7 +19,7 @@ import static common.log.LogInterceptor.TRACE_ID;
  * @Company: tiens
  */
 @Slf4j
-@Activate(group = {CommonConstants.CONSUMER, CommonConstants.PROVIDER}, order = Integer.MAX_VALUE)
+@Activate(group = {CommonConstants.CONSUMER, CommonConstants.PROVIDER})
 public class LogDubboFilter extends ListenableFilter {
 
     public LogDubboFilter() {
@@ -54,11 +54,11 @@ public class LogDubboFilter extends ListenableFilter {
         @Override
         public void onResponse(Result appResponse, Invoker<?> invoker, Invocation invocation) {
             RpcContext context = RpcContext.getContext();
-            MDC.remove(TRACE_ID);
 
             // 使用自定义数据进行业务处理
-//            if (context.isProviderSide()) {
-//            }
+            if (context.isProviderSide()) {
+                MDC.remove(TRACE_ID);
+            }
 
         }
 
@@ -66,13 +66,11 @@ public class LogDubboFilter extends ListenableFilter {
         public void onError(Throwable t, Invoker<?> invoker, Invocation invocation) {
             RpcContext context = RpcContext.getContext();
             // 使用自定义数据进行业务处理
-          /*  if (context.isProviderSide()) {
-
-            }*/
-
-            String methodPath = invoker.getInterface().getName() + "." + invocation.getMethodName();
-            log.error("[DUBBO调用异常],接口：{}，异常信息：{}", methodPath, t);
-            MDC.remove(TRACE_ID);
+            if (context.isProviderSide()) {
+                String methodPath = invoker.getInterface().getName() + "." + invocation.getMethodName();
+                log.error("[DUBBO调用异常],接口：{}，异常信息：{}", methodPath, t);
+                MDC.remove(TRACE_ID);
+            }
         }
     }
 }

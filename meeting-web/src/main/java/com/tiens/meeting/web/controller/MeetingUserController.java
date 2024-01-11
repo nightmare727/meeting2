@@ -27,7 +27,7 @@ public class MeetingUserController {
 
     @Reference(timeout = 20000)
     RpcMeetingRoomService rpcMeetingRoomService;
-    @Reference(timeout = 20000)
+    @Reference
     RpcMeetingUserService rpcMeetingUserService;
 
     /**
