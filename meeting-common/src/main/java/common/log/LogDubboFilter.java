@@ -42,7 +42,7 @@ public class LogDubboFilter implements Filter {
         }
         // 调用下一个过滤器或服务提供者/消费者
         Result result = invoker.invoke(invocation);
-        MDC.remove(TRACE_ID);
+//        MDC.remove(TRACE_ID);
         return result;
     }
 
