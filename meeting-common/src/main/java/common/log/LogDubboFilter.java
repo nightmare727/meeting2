@@ -20,11 +20,7 @@ import static common.log.LogInterceptor.TRACE_ID;
  */
 @Slf4j
 @Activate(group = {CommonConstants.CONSUMER, CommonConstants.PROVIDER})
-public class LogDubboFilter extends ListenableFilter {
-
-    public LogDubboFilter() {
-        super.listener = new LogListener();
-    }
+public class LogDubboFilter implements Filter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
@@ -46,18 +42,18 @@ public class LogDubboFilter extends ListenableFilter {
         }
         // 调用下一个过滤器或服务提供者/消费者
         Result result = invoker.invoke(invocation);
-
+        MDC.remove(TRACE_ID);
         return result;
     }
 
-    static class LogListener implements Listener {
+   /* static class LogListener implements Listener {
         @Override
         public void onResponse(Result appResponse, Invoker<?> invoker, Invocation invocation) {
             RpcContext context = RpcContext.getContext();
 
             // 使用自定义数据进行业务处理
             if (context.isProviderSide()) {
-                MDC.remove(TRACE_ID);
+
             }
 
         }
@@ -72,5 +68,5 @@ public class LogDubboFilter extends ListenableFilter {
                 MDC.remove(TRACE_ID);
             }
         }
-    }
+    }*/
 }
