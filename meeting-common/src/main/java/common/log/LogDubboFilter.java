@@ -19,7 +19,7 @@ import static common.log.LogInterceptor.TRACE_ID;
  * @Company: tiens
  */
 @Slf4j
-@Activate(group = {CommonConstants.CONSUMER, CommonConstants.PROVIDER})
+@Activate(group = {CommonConstants.CONSUMER, CommonConstants.PROVIDER}, order = Integer.MIN_VALUE)
 public class LogDubboFilter extends ListenableFilter {
 
     public LogDubboFilter() {
