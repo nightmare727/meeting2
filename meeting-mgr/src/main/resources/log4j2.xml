@@ -19,7 +19,7 @@
                              onMismatch="DENY"/>
         </Console>
         <!-- 2、配置日志级别、文件名、文件格式、文件路径 -->
-        <RollingRandomAccessFile name="FILE-INFO" fileName="${LOG_HOME}/${COMMON_FILE_NAME}-info.log"
+      <!--  <RollingRandomAccessFile name="FILE-INFO" fileName="${LOG_HOME}/${COMMON_FILE_NAME}-info.log"
                                  filePattern="${LOG_HOME}/%date{yyyy-MM-dd}/${COMMON_FILE_NAME}-%i-info.log">
             <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="${FILE_LOG_PATTERN}" charset="UTF-8"/>
@@ -27,7 +27,7 @@
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                 <SizeBasedTriggeringPolicy size="${MAX_FILE_SIZE}"/>
             </Policies>
-            <!--保存日志文件个数-->
+            &lt;!&ndash;保存日志文件个数&ndash;&gt;
             <DefaultRolloverStrategy max="${MAX_FILE_COUNT}"/>
         </RollingRandomAccessFile>
 
@@ -39,9 +39,9 @@
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                 <SizeBasedTriggeringPolicy size="${MAX_FILE_SIZE}"/>
             </Policies>
-            <!--保存日志文件个数-->
+            &lt;!&ndash;保存日志文件个数&ndash;&gt;
             <DefaultRolloverStrategy max="${MAX_FILE_COUNT}"/>
-        </RollingRandomAccessFile>
+        </RollingRandomAccessFile>-->
     </Appenders>
     <Loggers>
         <logger name="org.apache" level="WARN"/>
