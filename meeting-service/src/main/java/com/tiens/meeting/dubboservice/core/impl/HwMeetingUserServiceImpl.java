@@ -88,7 +88,6 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
                 hwUserFlagMap.fastPut(vmUserVO.getAccid(), "ok");
                 return true;
             }
-            e.printStackTrace();
             log.error("华为云添加用户业务异常", e);
             throw new ServiceException("1000", e.getErrorMsg());
         }
