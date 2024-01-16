@@ -50,9 +50,9 @@
         <Logger name="com.alibaba.nacos.client.naming" level="WARN"/>
         <AsyncRoot level="INFO" includeLocation="true">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="FILE-INFO"/>
+           <!-- <AppenderRef ref="FILE-INFO"/>
             <AppenderRef ref="FILE-ERROR"/>
-            <AppenderRef ref="Sentry" level="WARN"/>
+            <AppenderRef ref="Sentry" level="WARN"/>-->
         </AsyncRoot>
     </Loggers>
 </Configuration>

@@ -11,7 +11,7 @@
 
     <Appenders>
         <!-- 增加 sentry 监听 -->
-        <Sentry name="Sentry"/>
+       <!-- <Sentry name="Sentry"/>-->
         <Console name="Console" target="SYSTEM_OUT">
             <!-- 1.1、增加 traceId 配置项 -->
             <PatternLayout pattern="${FILE_LOG_PATTERN}" charset="UTF-8"/>
@@ -50,9 +50,9 @@
         <Logger name="com.alibaba.nacos.client.naming" level="WARN"/>
         <AsyncRoot level="INFO" includeLocation="true">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="FILE-INFO"/>
+            <!--<AppenderRef ref="FILE-INFO"/>
             <AppenderRef ref="FILE-ERROR"/>
-            <AppenderRef ref="Sentry" level="WARN"/>
+            <AppenderRef ref="Sentry" level="WARN"/>-->
         </AsyncRoot>
     </Loggers>
 </Configuration>

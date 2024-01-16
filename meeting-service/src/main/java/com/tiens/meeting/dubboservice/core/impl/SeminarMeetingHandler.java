@@ -55,6 +55,10 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         //处理开始时间
         startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
 
+        //锁定开始时间
+        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
+        subsCribeFlag = subsCribeFlag && DateUtil.date().isBefore(lockStartTime);
+
         ZoneId zoneId3 = ZoneId.of("GMT");
         DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
@@ -125,6 +129,9 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
         //处理开始时间
         startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
+        //锁定开始时间
+        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
+        subsCribeFlag = subsCribeFlag && DateUtil.date().isBefore(lockStartTime);
         ZoneId zoneId3 = ZoneId.of("GMT");
         DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
