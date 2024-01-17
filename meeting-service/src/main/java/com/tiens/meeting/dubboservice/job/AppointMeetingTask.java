@@ -4,12 +4,15 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Sets;
 import com.tiens.common.Result;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.imchatapi.vo.message.BatchAttachMessageVo;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
+import com.tiens.meeting.repository.po.MeetingAttendeePO;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
+import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import com.tiens.meeting.util.mdc.MDCLog;
@@ -18,6 +21,7 @@ import common.enums.MeetingResourceStateEnum;
 import common.enums.MeetingRoomStateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +52,9 @@ public class AppointMeetingTask {
     MeetingResourceDaoService meetingResourceDaoService;
     @Autowired
     HwMeetingCommonService hwMeetingCommonService;
+
+    @Autowired
+    MeetingAttendeeDaoService meetingAttendeeDaoService;
 
     @Value("${live.fromAccid}")
     String fromAccid;
@@ -79,12 +87,18 @@ public class AppointMeetingTask {
         }
 
         List<Long> roomIds = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
-
+        Set<@Nullable String> toAccids = Sets.newHashSet();
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
             BatchAttachMessageVo batchMessageVo = new BatchAttachMessageVo();
             batchMessageVo.setFromAccid(fromAccid);
-            batchMessageVo.setToAccids(
-                JSON.toJSONString(Collections.singletonList(meetingRoomInfoPO.getOwnerImUserId())));
+
+            toAccids.add(meetingRoomInfoPO.getOwnerImUserId());
+            //查询与会者集合
+            toAccids.addAll(meetingAttendeeDaoService.lambdaQuery().select(MeetingAttendeePO::getAttendeeUserId)
+                .eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomInfoPO.getHwMeetingId()).list().stream()
+                .map(MeetingAttendeePO::getAttendeeUserId).collect(Collectors.toList()));
+
+            batchMessageVo.setToAccids(JSON.toJSONString(toAccids));
             batchMessageVo.setPushcontent(pushContent);
             batchMessageVo.setAttach(
                 JSONUtil.createObj().set("pushContent", pushContent).set("push_type", "room_start_notice")
@@ -93,6 +107,7 @@ public class AppointMeetingTask {
             log.info("【定时任务：会议开始前30分钟】发送消息入参：{}", batchMessageVo);
             Result<?> result = messageService.batchSendAttachMessage(batchMessageVo);
             log.info("【定时任务：会议开始前30分钟】发送消息结果：{}", result);
+            toAccids.clear();
         }
 
         //修改分配资源状态及通知状态

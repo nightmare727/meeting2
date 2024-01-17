@@ -1,9 +1,12 @@
 package com.tiens.meeting.dubboservice.async;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.tiens.api.dto.MessagePayloadDTO;
 import com.tiens.api.dto.hwevent.EventInfo;
 import com.tiens.api.dto.hwevent.HwEventReq;
 import com.tiens.api.dto.hwevent.Payload;
@@ -16,8 +19,10 @@ import com.tiens.meeting.repository.service.MeetingHwEventCallbackDaoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -81,9 +86,19 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
          * 100 自定义消息类型
          */
         batchMessageVo.setType(100);
-        batchMessageVo.setBody(
-            JSONUtil.createObj().set("meetingRoomInfo", meetingRoomInfoPO).set("push_type", "room_info_push")
-                .toString());
+        /**
+         * 消息内容，最大长度 5000 字符，JSON 格式
+         */
+
+        HashMap<@Nullable String, @Nullable Object> body = Maps.newHashMap();
+
+        JSONObject roomPush = JSONUtil.createObj().set("subject", meetingRoomInfoPO.getSubject())
+            .set("meetingCode", meetingRoomInfoPO.getHwMeetingCode())
+            .set("startTime", DateUtil.formatDateTime(meetingRoomInfoPO.getShowStartTime()));
+
+        body.put("meetingRoomInfo", roomPush);
+        body.put("push_type", "room_info_push");
+        batchMessageVo.setBody(JSON.toJSONString(body));
         /**
          * 发消息时特殊指定的行为选项,Json格式，可用于指定消息的漫游，存云端历史，发送方多端同步，推送，消息抄送等特殊行为;option中字段不填时表示默认值 option示例:
          *
@@ -107,7 +122,9 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
         /**
          * 必须是JSON,不能超过2k字符。该参数与APNs推送的payload含义不同
          */
-//        batchMessageVo.setPayload();
+        MessagePayloadDTO messagePayloadDTO = new MessagePayloadDTO(body);
+
+        batchMessageVo.setPayload(JSON.toJSONString(messagePayloadDTO));
         /**
          * 开发者扩展字段，长度限制1024字符
          */
@@ -137,12 +154,16 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
          */
 //        batchMessageVo.setEnv();
 
-        List<List<String>> partition = Lists.partition(toAccIds, 100);
+        List<List<String>> partition = Lists.partition(toAccIds, 500);
         for (List<String> stringList : partition) {
             batchMessageVo.setToAccids(JSON.toJSONString(stringList));
             log.info("【批量发送点对点IM消息】调用入参：{}", batchMessageVo);
             Result<?> result = messageService.batchSendMessage(batchMessageVo);
             log.info("【批量发送点对点IM消息】结果返回：{}", result);
         }
+
+        //TODO 保存系统通知消息
+
     }
+
 }
