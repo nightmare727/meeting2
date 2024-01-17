@@ -35,6 +35,7 @@ public interface GlobalErrorCodeConstants {
     // ========== 服务端错误段 ==========
     ErrorCode INVALID_ACC_ID = new ErrorCode("430", "无效的accId", "moment_meeting_back_001");
 
+    ErrorCode VERIFICATION = new ErrorCode("431", "验签失败", "Verification failed");
     ErrorCode INTERNAL_SERVER_ERROR = new ErrorCode("500", "系统异常", "moment_meeting_back_002");
     ErrorCode NOT_FOUND_HOST_INFO = new ErrorCode("2000001", "主持人信息不存在！", "moment_meeting_back_003");
     ErrorCode EXIST_HOST_INFO = new ErrorCode("2000002", "主持人信息已存在！", "moment_meeting_back_004");

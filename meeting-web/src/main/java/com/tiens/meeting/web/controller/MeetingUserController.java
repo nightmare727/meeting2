@@ -2,6 +2,7 @@ package com.tiens.meeting.web.controller;
 
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.tiens.api.dto.MeetingResourceAwardDTO;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingHostUserVO;
@@ -95,5 +96,13 @@ public class MeetingUserController {
         });
         //查询登录认证
         return rpcMeetingRoomService.getCredential(accid);
+    }
+
+    @ResponseBody
+    @PostMapping("/addMeetingHostUser")
+    CommonResult addMeetingHostUser(@RequestBody MeetingResourceAwardDTO meetingResourceAwardDTO) {
+        CommonResult commonResult = rpcMeetingUserService.addMeetingHostUser(meetingResourceAwardDTO.getJoyoCode(),
+            meetingResourceAwardDTO.getResourceType());
+        return commonResult;
     }
 }
