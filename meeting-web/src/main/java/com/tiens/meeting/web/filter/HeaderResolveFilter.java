@@ -25,7 +25,7 @@ import static common.exception.enums.GlobalErrorCodeConstants.INVALID_ACC_ID;
  * @version:1.0
  */
 @Slf4j
-public class HeaderFilter implements Filter {
+public class HeaderResolveFilter implements Filter {
     @Reference
     RpcMeetingUserService rpcMeetingUserService;
 
@@ -52,6 +52,7 @@ public class HeaderFilter implements Filter {
         whiteListSet.add("/vmeeting/web/mtuser/getCredential");
         whiteListSet.add("/vmeeting/web/mtuser/queryMeetingHostUser");
         whiteListSet.add("/vmeeting/web/ping");
+        whiteListSet.add("/vmeeting/web/mtuser/addMeetingHostUser");
 
         //临时增加白名单，注意后期删除
 //        whiteListSet.add("/meeting/web/courses/increCoursePv");

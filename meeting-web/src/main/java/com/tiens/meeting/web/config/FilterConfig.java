@@ -1,36 +1,46 @@
 package com.tiens.meeting.web.config;
 
-import com.tiens.meeting.web.filter.HeaderFilter;
+import cn.hutool.crypto.SecureUtil;
+import cn.hutool.crypto.asymmetric.Sign;
+import cn.hutool.crypto.asymmetric.SignAlgorithm;
+import cn.hutool.crypto.digest.DigestAlgorithm;
+import com.google.common.collect.ImmutableMap;
+import com.tiens.meeting.web.filter.AuthFilter;
+import com.tiens.meeting.web.filter.HeaderResolveFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.servlet.Filter;
 
 @Configuration
 public class FilterConfig {
 
     /**
      * web应用启动的顺序是：listener->filter->servlet，先初始化listener，然后再来就filter的初始化，再接着才到我们的dispathServlet的初始化，因此，当我们需要在filter
-     * 里注入一个注解的bean时，就会注入失败，因为filter初始化时，注解的bean还没初始化，没法注入。
-     * 所以需要创建filter的时候 需要@Bean初始化一下
+     * 里注入一个注解的bean时，就会注入失败，因为filter初始化时，注解的bean还没初始化，没法注入。 所以需要创建filter的时候 需要@Bean初始化一下
      *
      * @return
      */
 
     @Bean
-    public FilterRegistrationBean registrationBean() {
-        FilterRegistrationBean<Filter> filter = new FilterRegistrationBean();
-        filter.setFilter(headerFilter());
+    public FilterRegistrationBean<HeaderResolveFilter> headerResolveFilter() {
+        FilterRegistrationBean<HeaderResolveFilter> filter = new FilterRegistrationBean();
+        filter.setFilter(new HeaderResolveFilter());
         filter.addUrlPatterns("/*");
-        filter.setName("headerFilter");
+        filter.setName("headerResolveFilter");
         filter.setOrder(FilterRegistrationBean.HIGHEST_PRECEDENCE);
         return filter;
     }
 
     @Bean
-    public HeaderFilter headerFilter() {
-        return new HeaderFilter();
+    public FilterRegistrationBean<AuthFilter> authFilter() {
+        FilterRegistrationBean<AuthFilter> filter = new FilterRegistrationBean();
+        filter.setFilter(new AuthFilter());
+        filter.addUrlPatterns("/mtuser/addMeetingHostUser");
+        filter.setName("authFilter");
+        filter.setOrder(1);
+        return filter;
     }
+
+
 
 }
