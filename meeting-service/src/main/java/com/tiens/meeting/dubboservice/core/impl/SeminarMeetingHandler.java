@@ -77,7 +77,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             CreateWebinarRequest request = new CreateWebinarRequest();
             OpenScheduleConfReq body = new OpenScheduleConfReq();
             //开启录制
-            body.withEnableRecording(YesNoEnum.Y);
+            body.withEnableRecording(YesNoEnum.N);
             //设置入会范围开关
             body.withCallRestriction(true);
             //观众入会范围

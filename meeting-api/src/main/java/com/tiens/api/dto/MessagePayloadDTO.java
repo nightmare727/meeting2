@@ -1,5 +1,7 @@
 package com.tiens.api.dto;
 
+import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -58,8 +60,6 @@ public class MessagePayloadDTO implements Serializable {
      */
     private HashMap<String, Object> fcmFieldV1;
 
-
-
     public MessagePayloadDTO(Map<String, Object> attach) {
         String pushTitle = "V-Moment";
 
@@ -91,6 +91,11 @@ public class MessagePayloadDTO implements Serializable {
         HashMap<String, Object> click_action = new HashMap<String, Object>();
         HashMap<String, Object> badge = new HashMap<String, Object>();
         HashMap<String, Object> androidConfig = new HashMap<String, Object>();
+        HashMap<String, Object> hwPushData = new HashMap<String, Object>();
+
+        hwPushData.put("push_data", JSONUtil.createObj().set("landingUrl", "TencentMeetingPage").set("landingType", "2")
+            .set("landingArgument", JSONUtil.createObj().set("a", "b")));
+
         // 用户设备离线时，Push 服务器对离线消息缓存机制，默认为-1，详见官方文档 AndroidConfig.collapse_key
         androidConfig.put("collapse_key", -1);
         // 透传消息投递优先级，详见官方文档AndroidConfig.urgency
@@ -98,15 +103,16 @@ public class MessagePayloadDTO implements Serializable {
         // 标识消息类型，用于标识高优先级透传场景，详见官方文档 AndroidConfig.category
         androidConfig.put("category", "IM");
         // 自定义消息负载，详见官方文档AndroidConfig.data
-        androidConfig.put("data", "");
+
+        androidConfig.put("data", JSON.toJSONString(hwPushData));
 
         badge.put("badge", new HashMap<String, Object>());
         // 消息点击行为。type为1：打开应用自定义页面，type为2：点击后打开特定URL，type为3：点击后打开应用
-        click_action.put("type", 1);
+        click_action.put("type", 3);
         // 消息点击行为。type为1：打开应用自定义页面，type为2：点击后打开特定URL，type为3：点击后打开应用
         hwField.put("click_action", click_action);
         // 通知栏样式，取值如下：0：默认样式1：大文本样式 3：Inbox样式
-        hwField.put("style", 1);
+        hwField.put("style", 0);
         // Android通知消息角标控制
         hwField.put("badge", badge);
         hwField.put("androidConfig", androidConfig);
