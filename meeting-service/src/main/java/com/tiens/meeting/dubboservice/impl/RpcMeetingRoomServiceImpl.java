@@ -9,6 +9,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.huaweicloud.sdk.meeting.v1.utils.HmacSHA256;
 import com.tiens.api.dto.*;
 import com.tiens.api.dto.hwevent.EventInfo;
@@ -976,13 +977,16 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer)
                 .orderByDesc(MeetingRoomInfoPO::getCreateTime).list();
         List<Long> meetingRoomIdList = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
+        Map<Long, List<MeetingAttendeePO>> roomIdAttendeeMap = Maps.newHashMap();
+        if (ObjectUtil.isNotEmpty(meetingRoomIdList)) {
+            roomIdAttendeeMap =
+                meetingAttendeeDaoService.lambdaQuery().in(MeetingAttendeePO::getMeetingRoomId, meetingRoomIdList)
+                    .list().stream().collect(Collectors.groupingBy(MeetingAttendeePO::getMeetingRoomId));
+        }
 
-        Map<Long, List<MeetingAttendeePO>> roomIdAttendeeMap =
-            meetingAttendeeDaoService.lambdaQuery().in(MeetingAttendeePO::getMeetingRoomId, meetingRoomIdList).list()
-                .stream().collect(Collectors.groupingBy(MeetingAttendeePO::getMeetingRoomId));
-
+        Map<Long, List<MeetingAttendeePO>> finalRoomIdAttendeeMap = roomIdAttendeeMap;
         List<MeetingRoomDetailDTO> collect =
-            list.stream().map(t -> packBaseMeetingRoomDetailDTO(t, roomIdAttendeeMap.get(t)))
+            list.stream().map(t -> packBaseMeetingRoomDetailDTO(t, finalRoomIdAttendeeMap.get(t)))
                 .collect(Collectors.toList());
         return CommonResult.success(collect);
     }

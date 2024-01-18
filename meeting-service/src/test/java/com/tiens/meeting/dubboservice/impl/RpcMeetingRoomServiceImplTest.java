@@ -149,7 +149,7 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void getHistoryMeetingRoomList() {
-        System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList("39b593338f584b128381170e4c480c6f", 12));
+        System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList("1", 12));
     }
 
     @Test
