@@ -146,8 +146,14 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         try {
             meetingHostUserDaoService.save(meetingHostUserPO);
         } catch (DuplicateKeyException e) {
-            log.error("accId 重复异常");
-            return CommonResult.error(GlobalErrorCodeConstants.EXIST_HOST_INFO);
+            //重复则修改
+            meetingHostUserDaoService.lambdaUpdate()
+                .eq(MeetingHostUserPO::getAccId, vmUserVO.getAccid())
+                .set(MeetingHostUserPO::getResourceType, resourceType)
+                .update();
+
+//            log.error("accId 重复异常");
+//            return CommonResult.error(GlobalErrorCodeConstants.EXIST_HOST_INFO);
         }
         //3、添加主持人信息到华为云用户列表中
         boolean result = hwMeetingUserService.addHwUser(vmUserVO);
