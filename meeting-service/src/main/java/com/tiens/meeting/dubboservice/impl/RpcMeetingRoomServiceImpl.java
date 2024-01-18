@@ -819,7 +819,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
         try {
 
-            if (lock.isLocked()) {
+            if (lock.isLocked() && !lock.isHeldByCurrentThread()) {
                 //资源锁定中,无法操作
                 log.error("【资源挂起释放】资源锁定中，无法进行操作，将异常返回，资源id:{},操作类型：{}", resourceId,
                     meetingResourceHandleEnum);
