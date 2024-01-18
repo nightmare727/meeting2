@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @Author: 蔚文杰
@@ -16,7 +17,7 @@ public class GeneralUtlis {
     private static final int BUFFER_SIZE = 1024 * 8;
 
     public static String read(HttpServletRequest request) throws IOException {
-        BufferedReader bufferedReader = request.getReader();
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8)) ;
         StringWriter writer = new StringWriter();
         write(bufferedReader, writer);
         return writer.getBuffer().toString();
