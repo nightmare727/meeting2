@@ -152,7 +152,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             OpenEditConfReq body = new OpenEditConfReq();
             body.withConferenceId(meetingRoomContextDTO.getMeetingCode());
             body.withSubject(meetingRoomContextDTO.getSubject());
-            body.withEnableRecording(YesNoEnum.Y);
+            body.withEnableRecording(YesNoEnum.N);
             body.withAudienceScope(2);
             body.withScope(2);
             body.withCallRestriction(true);
