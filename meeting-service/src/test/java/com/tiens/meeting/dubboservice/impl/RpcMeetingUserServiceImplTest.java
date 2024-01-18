@@ -8,7 +8,6 @@ import com.tiens.api.vo.MeetingHostUserVO;
 import com.tiens.api.vo.MeetingResourceTypeVO;
 import com.tiens.api.vo.VMUserVO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
-import com.tiens.meeting.ServiceApplication;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
@@ -19,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import com.tiens.meeting.ServiceApplication;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ class RpcMeetingUserServiceImplTest {
     @Autowired
     RpcMeetingUserService rpcMeetingUserService;
 
-    @Reference(version = "1.0",mock = "com.tiens.meeting.dubboservice.mock.DubboCommonUserServiceMock")
+    @Reference(version = "1.0")
     DubboCommonUserService dubboCommonUserService;
 
     @Test
@@ -53,12 +53,11 @@ class RpcMeetingUserServiceImplTest {
     void queryVMUser() {
         CommonResult<VMUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryVMUser("","7ed71cdb710f4414b6f494c64b473906");
         System.out.println(vmUserVOCommonResult);
-
     }
 
     @Test
     void addMeetingHostUser() {
-        CommonResult commonResult = rpcMeetingUserService.addMeetingHostUser("66837976", 3);
+        CommonResult commonResult = rpcMeetingUserService.addMeetingHostUser("67891601", 6);
         System.out.println(commonResult);
     }
 
