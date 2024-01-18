@@ -22,9 +22,9 @@ public class FilterConfig {
      */
 
     @Bean
-    public FilterRegistrationBean<HeaderResolveFilter> headerResolveFilter() {
+    public FilterRegistrationBean<HeaderResolveFilter> filterRegistrationBeanHeaderResolveFilter() {
         FilterRegistrationBean<HeaderResolveFilter> filter = new FilterRegistrationBean();
-        filter.setFilter(new HeaderResolveFilter());
+        filter.setFilter(headerResolveFilter());
         filter.addUrlPatterns("/*");
         filter.setName("headerResolveFilter");
         filter.setOrder(FilterRegistrationBean.HIGHEST_PRECEDENCE);
@@ -32,13 +32,23 @@ public class FilterConfig {
     }
 
     @Bean
-    public FilterRegistrationBean<AuthFilter> authFilter() {
+    public FilterRegistrationBean<AuthFilter> filterRegistrationBeanAuthFilter() {
         FilterRegistrationBean<AuthFilter> filter = new FilterRegistrationBean();
-        filter.setFilter(new AuthFilter());
+        filter.setFilter(authFilter());
         filter.addUrlPatterns("/mtuser/addMeetingHostUser");
         filter.setName("authFilter");
         filter.setOrder(1);
         return filter;
+    }
+
+    @Bean("authFilter")
+    AuthFilter authFilter() {
+        return new AuthFilter();
+    }
+
+    @Bean("headerResolveFilter")
+    HeaderResolveFilter headerResolveFilter() {
+        return new HeaderResolveFilter();
     }
 
 
