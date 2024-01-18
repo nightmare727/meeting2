@@ -1155,7 +1155,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult<List<RecordVO>> getMeetingRoomRecordList(Long meetingRoomId) {
 
         MeetingRoomInfoPO byId = meetingRoomInfoDaoService.getById(meetingRoomId);
-        if (ObjectUtil.isNull(byId)) {
+        if (ObjectUtil.isNull(byId) || byId.getRecordStatus() == 0) {
             return CommonResult.success(null);
         }
         List<RecordVO> recordVOS = hwMeetingCommonService.queryRecordFiles(byId.getHwMeetingId());
