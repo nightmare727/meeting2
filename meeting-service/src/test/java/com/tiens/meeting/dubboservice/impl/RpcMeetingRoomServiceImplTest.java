@@ -126,7 +126,7 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getMeetingRoom() {
         System.out.println(
-            rpcMeetingRoomService.getMeetingRoom(1738031692086599682L, "48cd6848a5ca47c883bd38a5c64287dd"));
+            rpcMeetingRoomService.getMeetingRoom(1747952616742137858L, "48cd6848a5ca47c883bd38a5c64287dd"));
     }
 
     @Test

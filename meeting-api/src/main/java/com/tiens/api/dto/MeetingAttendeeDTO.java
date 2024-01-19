@@ -1,6 +1,5 @@
 package com.tiens.api.dto;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -32,5 +31,10 @@ public class MeetingAttendeeDTO implements Serializable {
      * 来源 1：预约 2：中途加入
      */
     private Integer source;
+
+    /**
+     * 邀请人头像
+     */
+    private String attendeeUserHeadUrl;
 
 }

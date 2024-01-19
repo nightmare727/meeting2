@@ -4,20 +4,21 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Objects;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
+
 /**
  * 会议与会者表
+ *
  * @TableName meeting_attendee
  */
-@TableName(value ="meeting_attendee")
+@TableName(value = "meeting_attendee")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -46,6 +47,11 @@ public class MeetingAttendeePO implements Serializable {
      */
     @TableField(value = "attendee_user_name")
     private String attendeeUserName;
+    /**
+     * 邀请人头像
+     */
+    @TableField(value = "attendee_user_head_url")
+    private String attendeeUserHeadUrl;
     /**
      * 来源 1：预约 2：中途加入
      */

@@ -388,6 +388,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 List<MeetingAttendeePO> collect = attendees.stream().map(
                     t -> MeetingAttendeePO.builder().meetingRoomId(meetingRoomId).attendeeUserId(t.getAttendeeUserId())
                         .attendeeUserName(t.getAttendeeUserName()).source(MeetingUserJoinSourceEnum.APPOINT.getCode())
+                        .attendeeUserHeadUrl(t.getAttendeeUserHeadUrl())
                         .createTime(now).updateTime(now).build()).collect(Collectors.toList());
 
                 roomAsyncTaskService.batchSendIMMessage(meetingRoomInfoPO,
@@ -705,6 +706,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         DateTime now = DateUtil.date();
         List<MeetingAttendeePO> newMeetingAttendeeList = attendees.stream().map(
                 t -> MeetingAttendeePO.builder().attendeeUserId(t.getAttendeeUserId()).meetingRoomId(meetRoomId)
+                    .attendeeUserName(t.getAttendeeUserName()).attendeeUserHeadUrl(t.getAttendeeUserHeadUrl())
                     .source(MeetingUserJoinSourceEnum.APPOINT.getCode()).createTime(now).updateTime(now).build())
             .collect(Collectors.toList());
 
@@ -763,6 +765,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 meetingAttendeeVO.setMeetingRoomId(meetingRoomInfoPO.getId());
                 meetingAttendeeVO.setAttendeeUserId(t.getAttendeeUserId());
                 meetingAttendeeVO.setAttendeeUserName(t.getAttendeeUserName());
+                meetingAttendeeVO.setSource(t.getSource());
                 return meetingAttendeeVO;
             }).collect(Collectors.toList());
             result.setAttendees(collect);
