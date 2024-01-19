@@ -60,7 +60,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     private final HwMeetingCommonService hwMeetingCommonService;
     private final RpcMeetingUserService rpcMeetingUserService;
 
-    private RedissonClient redissonClient;
+    private final RedissonClient redissonClient;
 
     public static void main(String[] args) {
         ZoneId zoneId1 = ZoneId.of("GMT+09:00");
