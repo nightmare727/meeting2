@@ -72,7 +72,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             CreateWebinarRequest request = new CreateWebinarRequest();
             OpenScheduleConfReq body = new OpenScheduleConfReq();
             //开启录制
-            body.withEnableRecording(YesNoEnum.Y);
+            body.withEnableRecording(YesNoEnum.N);
             //设置入会范围开关
             body.withCallRestriction(true);
             //观众入会范围
@@ -143,7 +143,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             OpenEditConfReq body = new OpenEditConfReq();
             body.withConferenceId(meetingRoomContextDTO.getMeetingCode());
             body.withSubject(meetingRoomContextDTO.getSubject());
-            body.withEnableRecording(YesNoEnum.Y);
+            body.withEnableRecording(YesNoEnum.N);
             body.withAudienceScope(2);
             body.withScope(2);
             body.withCallRestriction(true);
