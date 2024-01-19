@@ -41,6 +41,12 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
     @Reference(version = "1.0")
     MessageService messageService;
 
+    String inviteImPrefixContent = "[会议]%s邀您参加会议";
+
+    String inviteContentImage = "https://v-moment-prod.jikeint.com/appstatic/dazhuanpan.png";
+
+    String inviteContent = "[会议]%s邀您参加会议";
+
     /**
      * 保存回调记录
      *
@@ -91,13 +97,23 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
          */
 
         HashMap<@Nullable String, @Nullable Object> body = Maps.newHashMap();
-
+/*
         JSONObject roomPush = JSONUtil.createObj().set("subject", meetingRoomInfoPO.getSubject())
             .set("meetingCode", meetingRoomInfoPO.getHwMeetingCode())
-            .set("startTime", DateUtil.formatDateTime(meetingRoomInfoPO.getShowStartTime()));
+            .set("startTime", DateUtil.formatDateTime(meetingRoomInfoPO.getShowStartTime()))*/
+        ;
+        JSONObject pushData = JSONUtil.createObj().set("contentImage", inviteContentImage)
+            .set("contentStr", String.format(inviteContent, meetingRoomInfoPO.getOwnerUserName()))
+            .set("im_prefix", String.format(inviteImPrefixContent, meetingRoomInfoPO.getOwnerUserName()))
+            .set("landingType", 2)
+            .set("landingUrl", "TencentMeetingPage")
+            .set("contentSubTitle",
+                "会议主题：" + meetingRoomInfoPO.getSubject() + "\n"
+                + "会议开始时间：" + DateUtil.formatDateTime(meetingRoomInfoPO.getShowStartTime()) + "\n"
+                + "会议号：" + meetingRoomInfoPO.getHwMeetingCode());
 
-        body.put("meetingRoomInfo", roomPush);
-        body.put("push_type", "room_info_push");
+        body.put("type", "212");
+        body.put("data", pushData);
         batchMessageVo.setBody(JSON.toJSONString(body));
         /**
          * 发消息时特殊指定的行为选项,Json格式，可用于指定消息的漫游，存云端历史，发送方多端同步，推送，消息抄送等特殊行为;option中字段不填时表示默认值 option示例:
@@ -118,7 +134,7 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
         /**
          * 推送文案，最长500个字符
          */
-        batchMessageVo.setPushcontent("会议消息点对点推送");
+        batchMessageVo.setPushcontent(String.format(inviteContent, meetingRoomInfoPO.getOwnerUserName()));
         /**
          * 必须是JSON,不能超过2k字符。该参数与APNs推送的payload含义不同
          */
