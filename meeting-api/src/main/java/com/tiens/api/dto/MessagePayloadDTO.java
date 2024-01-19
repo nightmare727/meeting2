@@ -133,7 +133,7 @@ public class MessagePayloadDTO implements Serializable {
         HashMap<String, Object> vivoFieldMap = new HashMap<String, Object>();
         HashMap<String, Object> vivoField = new HashMap<String, Object>();
         // 点击跳转类型 1：打开APP首页 2：打开链接 3：自定义 4:打开app内指定页面，默认为1
-        vivoField.put("skipType", 3);
+        vivoField.put("skipType", 1);
         // 跳转内容,与skipType对应
         vivoField.put("skipContent", "");
         // 消息类型 0：运营类消息，1：系统类消息。默认为0
@@ -141,13 +141,14 @@ public class MessagePayloadDTO implements Serializable {
         // 网络方式 -1：不限，1：wifi下发送，不填默认为-1
         vivoField.put("networkType", -1);
         // 推送模式 0：正式推送；1：测试推送，不填默认为0
-        vivoField.put("pushMode", "1");
+        vivoField.put("pushMode", "0");
         // 二级分类
         vivoField.put("category", "IM");
 
         vivoFieldMap.put("channel_id", "high_system");
         vivoFieldMap.put("pushTitle", "V-Moment");
         vivoFieldMap.put("vivoField", vivoField);
+        vivoFieldMap.put("push_data", pushData);
 
         this.setVivoField(vivoFieldMap);
 
@@ -176,6 +177,16 @@ public class MessagePayloadDTO implements Serializable {
         oppoFieldMap.put("oppoField", oppoField);
 
         this.setOppoField(oppoFieldMap);
+
+        /**
+         * 谷歌FCM推送消息
+         */
+        HashMap<String, Object> fcmFieldMap = new HashMap<String, Object>();
+        HashMap<String, Object> fcmField = new HashMap<String, Object>();
+        fcmField.put("channel_id", "vmoment_im");
+        fcmFieldMap.put("fcmField", fcmField);
+        fcmFieldMap.put("push_data", pushData);
+        this.setFcmFieldV1(fcmFieldMap);
     }
 
 }
