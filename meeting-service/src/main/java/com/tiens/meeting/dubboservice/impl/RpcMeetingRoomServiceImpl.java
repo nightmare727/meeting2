@@ -766,6 +766,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 meetingAttendeeVO.setAttendeeUserId(t.getAttendeeUserId());
                 meetingAttendeeVO.setAttendeeUserName(t.getAttendeeUserName());
                 meetingAttendeeVO.setSource(t.getSource());
+                meetingAttendeeVO.setAttendeeUserHeadUrl(t.getAttendeeUserHeadUrl());
                 return meetingAttendeeVO;
             }).collect(Collectors.toList());
             result.setAttendees(collect);
