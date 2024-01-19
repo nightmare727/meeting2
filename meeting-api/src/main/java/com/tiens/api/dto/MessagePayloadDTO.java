@@ -80,7 +80,7 @@ public class MessagePayloadDTO implements Serializable {
 
         apsField.put("alert", alert);
         apsField.put("category", "GAME_INVITATION");
-
+        apsField.put("push_data", pushData);
         apsFieldMap.put("apsField", apsField);
         apsFieldMap.put("channel_id", "high_system");
         apsFieldMap.put("pushTitle", pushTitle);
