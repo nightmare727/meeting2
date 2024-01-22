@@ -68,7 +68,7 @@ public class AppointMeetingTask {
 
     String meetingStartPrefixContent = "[会议]您参加的会议已开始";
 
-    String inviteContentImage = "https://v-moment-prod.jikeint.com/appstatic/dazhuanpan.png";
+    String inviteContentImage = "https://v-moment-prod.jikeint.com/appstatic/icon_meeting.png";
 
     String meetingStartContent = "[会议]您参加的会议已开始";
 

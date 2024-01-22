@@ -43,7 +43,7 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
 
     String inviteImPrefixContent = "[会议]%s邀您参加会议";
 
-    String inviteContentImage = "https://v-moment-prod.jikeint.com/appstatic/dazhuanpan.png";
+    String inviteContentImage = "https://v-moment-prod.jikeint.com/appstatic/icon_meeting.png";
 
     String inviteContent = "[会议]%s邀您参加会议";
 
