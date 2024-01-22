@@ -522,6 +522,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //每个用户只可同时存在2个预约的公用会议室，超出时，则主页创建入口，提示”只可以同时存在2个预约的会议室，不可再次预约“
             return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_MORE_THAN);
         }
+        //校验与会者人数
+        if (ObjectUtil.isNotEmpty(
+            meetingRoomContextDTO.getAttendees()) && meetingResourcePO.getSize() - 1 < meetingRoomContextDTO.getAttendees()
+            .size()) {
+            //与会者人数无法超过资源限定人数
+            return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_SIZE_ERROR);
+        }
         return CommonResult.success(meetingResourcePO);
     }
 
@@ -597,7 +604,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId()))) {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_USE_PERSONAL_RESOURCE_ERROR);
         }
-
+        //校验与会者人数
+        if (ObjectUtil.isNotEmpty(
+            meetingRoomContextDTO.getAttendees()) && meetingResourcePO.getSize() - 1 < meetingRoomContextDTO.getAttendees()
+            .size()) {
+            //与会者人数无法超过资源限定人数
+            return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_SIZE_ERROR);
+        }
         Tuple2<MeetingRoomInfoPO, MeetingResourcePO> of = Tuples.of(byId, meetingResourcePO);
         return CommonResult.success(of);
     }

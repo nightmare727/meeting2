@@ -5,10 +5,7 @@ import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
-import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
-import com.tiens.api.dto.CancelMeetingRoomDTO;
-import com.tiens.api.dto.FreeResourceListDTO;
-import com.tiens.api.dto.MeetingRoomContextDTO;
+import com.tiens.api.dto.*;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.dubboservice.job.AppointMeetingTask;
@@ -22,7 +19,6 @@ import lombok.SneakyThrows;
 import org.apache.dubbo.config.annotation.Reference;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -87,7 +84,7 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-01-22 11:30:00"));
+        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-01-28 11:30:00"));
         meetingRoomContextDTO.setLength(240);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
         meetingRoomContextDTO.setResourceId(348);
@@ -98,7 +95,16 @@ class RpcMeetingRoomServiceImplTest {
         meetingRoomContextDTO.setLevelCode(9);
         meetingRoomContextDTO.setImUserId("7a4037c1a8234ba286647f31aadfc4f1");
         meetingRoomContextDTO.setImUserName("文杰昵称");
+        List<MeetingAttendeeDTO> meetingAttendeeDTOS = Lists.newArrayList();
+        MeetingAttendeeDTO meetingAttendeeDTO = new MeetingAttendeeDTO();
+        meetingAttendeeDTO.setAttendeeUserId("cb4b8cc1be09409eb108baf982d7e196");
+        meetingAttendeeDTO.setAttendeeUserName("wenjie");
+        meetingAttendeeDTO.setAttendeeUserHeadUrl("wenjie_url");
 
+        meetingAttendeeDTOS.add(meetingAttendeeDTO);
+        meetingRoomContextDTO.setRemark("备注");
+        meetingRoomContextDTO.setAttendees(meetingAttendeeDTOS);
+        meetingRoomContextDTO.setRemark("测试备注");
         System.out.println(rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO));
     }
 
@@ -132,7 +138,7 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void cancelMeetingRoom() {
         CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
-        cancelMeetingRoomDTO.setMeetingRoomId(1734014601566973954L);
+        cancelMeetingRoomDTO.setMeetingRoomId(1749254721330843650L);
         System.out.println(rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO));
     }
 

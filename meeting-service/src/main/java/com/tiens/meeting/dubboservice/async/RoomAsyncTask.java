@@ -173,7 +173,7 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
         List<List<String>> partition = Lists.partition(toAccIds, 500);
         for (List<String> stringList : partition) {
             batchMessageVo.setToAccids(JSON.toJSONString(stringList));
-            log.info("【批量发送点对点IM消息】调用入参：{}", batchMessageVo);
+            log.info("【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(batchMessageVo));
             Result<?> result = messageService.batchSendMessage(batchMessageVo);
             log.info("【批量发送点对点IM消息】结果返回：{}", result);
         }
