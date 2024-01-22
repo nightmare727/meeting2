@@ -48,6 +48,8 @@ import reactor.util.function.Tuples;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -386,10 +388,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             if (ObjectUtil.isNotEmpty(attendees)) {
                 DateTime now = DateUtil.date();
                 List<MeetingAttendeePO> collect = attendees.stream().map(
-                    t -> MeetingAttendeePO.builder().meetingRoomId(meetingRoomId).attendeeUserId(t.getAttendeeUserId())
-                        .attendeeUserName(t.getAttendeeUserName()).source(MeetingUserJoinSourceEnum.APPOINT.getCode())
-                        .attendeeUserHeadUrl(t.getAttendeeUserHeadUrl())
-                        .createTime(now).updateTime(now).build()).collect(Collectors.toList());
+                        t -> MeetingAttendeePO.builder().meetingRoomId(meetingRoomId).attendeeUserId(t.getAttendeeUserId())
+                            .attendeeUserName(t.getAttendeeUserName()).source(MeetingUserJoinSourceEnum.APPOINT.getCode())
+                            .attendeeUserHeadUrl(t.getAttendeeUserHeadUrl()).createTime(now).updateTime(now).build())
+                    .collect(Collectors.toList());
 
                 roomAsyncTaskService.batchSendIMMessage(meetingRoomInfoPO,
                     attendees.stream().map(MeetingAttendeeDTO::getAttendeeUserId).collect(Collectors.toList()));
@@ -772,6 +774,18 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private MeetingRoomDetailDTO packBaseMeetingRoomDetailDTO(MeetingRoomInfoPO meetingRoomInfoPO,
         List<MeetingAttendeePO> list) {
         MeetingRoomDetailDTO result = BeanUtil.copyProperties(meetingRoomInfoPO, MeetingRoomDetailDTO.class);
+        String resourceType = result.getResourceType();
+        if (NumberUtil.isNumber(resourceType)) {
+            result.setResourceTypeWordKey(MeetingResourceEnum.getByCode(Integer.parseInt(resourceType)).getWordKey());
+        } else {
+            result.setResourceTypeWordKey(MeetingResourceEnum.specialResourceKey);
+            Pattern pattern = Pattern.compile("\\d+");
+            Matcher matcher = pattern.matcher(result.getResourceTypeDesc());
+            if (matcher.find()) {
+                result.setResourceTypeWordValue(Integer.parseInt(matcher.group()));
+            }
+        }
+
         if (ObjectUtil.isNotEmpty(list)) {
             List<MeetingAttendeeVO> collect = list.stream().map(t -> {
                 MeetingAttendeeVO meetingAttendeeVO = new MeetingAttendeeVO();

@@ -184,6 +184,7 @@ public class MessagePayloadDTO implements Serializable {
         HashMap<String, Object> fcmFieldMap = new HashMap<String, Object>();
         HashMap<String, Object> fcmField = new HashMap<String, Object>();
         fcmField.put("channel_id", "vmoment_im");
+        fcmFieldMap.put("pushTitle", "V-Moment");
         fcmFieldMap.put("fcmField", fcmField);
         fcmFieldMap.put("push_data", pushData);
         this.setFcmFieldV1(fcmFieldMap);

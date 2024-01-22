@@ -1,6 +1,5 @@
 package com.tiens.api.vo;
 
-import com.tiens.api.dto.MeetingAttendeeDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -101,6 +100,15 @@ public class MeetingRoomDetailDTO implements Serializable {
      * 资源类型描述
      */
     private String resourceTypeDesc;
+    /**
+     * 资源类型描述
+     */
+    private String resourceTypeWordKey;
+
+    /**
+     * 资源类型值
+     */
+    private Integer resourceTypeWordValue;
 
     /**
      * 主持人accid

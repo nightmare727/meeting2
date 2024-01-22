@@ -132,13 +132,16 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getMeetingRoom() {
         System.out.println(
-            rpcMeetingRoomService.getMeetingRoom(1747952616742137858L, "48cd6848a5ca47c883bd38a5c64287dd"));
+            rpcMeetingRoomService.getMeetingRoom(1748253468803543042L, "48cd6848a5ca47c883bd38a5c64287dd"));
     }
 
     @Test
     void cancelMeetingRoom() {
         CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
-        cancelMeetingRoomDTO.setMeetingRoomId(1749254721330843650L);
+        cancelMeetingRoomDTO.setMeetingRoomId(1749270850493820929L);
+
+
+
         System.out.println(rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO));
     }
 
