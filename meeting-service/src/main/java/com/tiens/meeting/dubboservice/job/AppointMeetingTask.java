@@ -202,9 +202,9 @@ public class AppointMeetingTask {
             List<List<String>> partition = Lists.partition(Lists.newArrayList(toAccids), 500);
             for (List<String> stringList : partition) {
                 batchMessageVo.setToAccids(JSON.toJSONString(stringList));
-                log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】调用入参：{}", batchMessageVo);
+                log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(batchMessageVo));
                 Result<?> result = messageService.batchSendMessage(batchMessageVo);
-                log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】结果返回：{}", result);
+                log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(result));
             }
 
 
