@@ -61,6 +61,11 @@ public class MessagePayloadDTO implements Serializable {
      */
     private HashMap<String, Object> fcmFieldV1;
 
+    /**
+     * 推送字段
+     */
+    private JSONObject push_data;
+
     public MessagePayloadDTO(Map<String, Object> attach) {
         String pushTitle = "V-Moment";
 
@@ -71,26 +76,26 @@ public class MessagePayloadDTO implements Serializable {
         /**
          * 苹果离线推送信息 组装
          */
-        HashMap<String, Object> apsFieldMap = new HashMap<String, Object>();
+//        HashMap<String, Object> apsFieldMap = new HashMap<String, Object>();
         HashMap<String, Object> apsField = new HashMap<String, Object>();
         HashMap<String, Object> alert = new HashMap<String, Object>();
 
         alert.put("title", pushTitle);
-        alert.put("body", attach);
+        alert.put("body", "推送的内容会议开始了~~~~~~~~~~~~~");
 
         apsField.put("alert", alert);
         apsField.put("category", "GAME_INVITATION");
         apsField.put("push_data", pushData);
-        apsFieldMap.put("apsField", apsField);
-        apsFieldMap.put("channel_id", "high_system");
-        apsFieldMap.put("pushTitle", pushTitle);
+//        apsFieldMap.put("apsField", apsField);
+//        apsFieldMap.put("channel_id", "high_system");
+//        apsFieldMap.put("pushTitle", pushTitle);
 
         this.setApsField(apsField);
 
         /**
          * 华为离线推送信息 组装
          */
-        HashMap<String, Object> hwFieldMap = new HashMap<String, Object>();
+//        HashMap<String, Object> hwFieldMap = new HashMap<String, Object>();
         HashMap<String, Object> hwField = new HashMap<String, Object>();
         HashMap<String, Object> click_action = new HashMap<String, Object>();
         HashMap<String, Object> badge = new HashMap<String, Object>();
@@ -120,17 +125,17 @@ public class MessagePayloadDTO implements Serializable {
         hwField.put("badge", badge);
         hwField.put("androidConfig", androidConfig);
         // 标题
-        hwFieldMap.put("pushTitle", pushTitle);
-        hwFieldMap.put("hwField", hwField);
-        hwFieldMap.put("channel_id", "high_system");
+//        hwFieldMap.put("pushTitle", pushTitle);
+//        hwFieldMap.put("hwField", hwField);
+//        hwFieldMap.put("channel_id", "high_system");
 
-        this.setHwField(hwFieldMap);
+        this.setHwField(hwField);
 
         /**
          * vivoField离线推送信息 组装
          */
 
-        HashMap<String, Object> vivoFieldMap = new HashMap<String, Object>();
+//        HashMap<String, Object> vivoFieldMap = new HashMap<String, Object>();
         HashMap<String, Object> vivoField = new HashMap<String, Object>();
         // 点击跳转类型 1：打开APP首页 2：打开链接 3：自定义 4:打开app内指定页面，默认为1
         vivoField.put("skipType", 1);
@@ -145,38 +150,38 @@ public class MessagePayloadDTO implements Serializable {
         // 二级分类
         vivoField.put("category", "IM");
 
-        vivoFieldMap.put("channel_id", "high_system");
-        vivoFieldMap.put("pushTitle", "V-Moment");
-        vivoFieldMap.put("vivoField", vivoField);
-        vivoFieldMap.put("push_data", pushData);
+//        vivoFieldMap.put("channel_id", "high_system");
+//        vivoFieldMap.put("pushTitle", "V-Moment");
+//        vivoFieldMap.put("vivoField", vivoField);
+//        vivoFieldMap.put("push_data", pushData);
 
-        this.setVivoField(vivoFieldMap);
-
+        this.setVivoField(vivoField);
+        this.setPush_data(pushData);
         /**
          * oppo离线推送信息 组装
          */
 
-        HashMap<String, Object> oppoFieldMap = new HashMap<String, Object>();
+//        HashMap<String, Object> oppoFieldMap = new HashMap<String, Object>();
         HashMap<String, Object> oppoField = new HashMap<String, Object>();
         // 指定下发的通道ID
-        oppoField.put("channel_id", "high_system");
+        oppoField.put("channel_id", "vmoment_im");
         // 点击通知栏后触发的动作类型。0（默认0.启动应用；1.跳转指定应用内页（action标签名）；2.跳转网页；4.跳转指定应用内页（全路径类名）；5.跳转Intent scheme URL: ""
         oppoField.put("click_action_type", "0");
         oppoField.put("click_action_activity", "");
         oppoField.put("click_action_url", "");
-        oppoField.put("action_parameters", hwPushData);
+        oppoField.put("action_parameters", JSON.toJSONString(hwPushData));
         // 通知栏样式
         oppoField.put("style", 1);
         // 子标题
-        oppoField.put("sub_title", "");
+        oppoField.put("sub_title", "推送的内容会议开始了~~~~~~~~~~~~~");
         // 推送的网络环境类型
         oppoField.put("network_type", 0);
 
-        oppoFieldMap.put("channel_id", "high_system");
-        oppoFieldMap.put("pushTitle", "V-Moment");
-        oppoFieldMap.put("oppoField", oppoField);
+//        oppoFieldMap.put("channel_id", "high_system");
+//        oppoFieldMap.put("pushTitle", "V-Moment");
+//        oppoFieldMap.put("oppoField", oppoField);
 
-        this.setOppoField(oppoFieldMap);
+        this.setOppoField(oppoField);
 
         /**
          * 谷歌FCM推送消息
@@ -184,10 +189,10 @@ public class MessagePayloadDTO implements Serializable {
         HashMap<String, Object> fcmFieldMap = new HashMap<String, Object>();
         HashMap<String, Object> fcmField = new HashMap<String, Object>();
         fcmField.put("channel_id", "vmoment_im");
-        fcmFieldMap.put("pushTitle", "V-Moment");
-        fcmFieldMap.put("fcmField", fcmField);
-        fcmFieldMap.put("push_data", pushData);
-        this.setFcmFieldV1(fcmFieldMap);
+//        fcmFieldMap.put("pushTitle", "V-Moment");
+//        fcmFieldMap.put("fcmField", fcmField);
+//        fcmFieldMap.put("push_data", pushData);
+        this.setFcmField(fcmField);
     }
 
 }
