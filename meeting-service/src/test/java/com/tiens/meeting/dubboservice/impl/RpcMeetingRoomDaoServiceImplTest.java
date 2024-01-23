@@ -14,6 +14,7 @@ import common.util.cache.CacheKeyUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.redisson.api.RAtomicLong;
+import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -80,7 +81,9 @@ class RpcMeetingRoomDaoServiceImplTest {
 
     @Test
     void testAutoWiredMap() {
-        System.out.println(hwMeetingRoomHandlers);
+        RMap<String, String> languageKeyMap = redissonClient.getMap(CacheKeyUtil.getLanguageKey("zh-CN"));
+        String s = languageKeyMap.get("hello");
+        System.out.println(s);
     }
 
     @Test

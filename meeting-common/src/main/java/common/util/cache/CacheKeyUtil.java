@@ -14,6 +14,7 @@ public class CacheKeyUtil {
     private static final String IM_USER_KEY_PREFIX = "im-meeting-user:";
     private static final String HW_USER_KEY_PREFIX = "im-hw-user-flag";
     private static final String HW_ROOM_EVENT_SYNC_PREFIX = "hw_room_event_count:";
+    private static final String LANGUAGE_ID_PREFIX = "language_word:";
 
     private static final String HW_ROOM_RESOURCE_LOCK_PREFIX = "room_resource_lock:";
 
@@ -50,6 +51,16 @@ public class CacheKeyUtil {
     public static String getHwMeetingRoomMaxSyncKey(String meetingRoomCode) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(HW_ROOM_EVENT_SYNC_PREFIX).append(meetingRoomCode)
             .toString();
+    }
+
+    /**
+     * 查询多语言词条
+     *
+     * @param languageId
+     * @return
+     */
+    public static String getLanguageKey(String languageId) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(LANGUAGE_ID_PREFIX).append(languageId).toString();
     }
 
 }

@@ -170,5 +170,9 @@ public class MeetingRoomDetailDTO implements Serializable {
      * 备注
      */
     private String remark;
+    /**
+     * 语言编码
+     */
+    private String languageId;
 
 }

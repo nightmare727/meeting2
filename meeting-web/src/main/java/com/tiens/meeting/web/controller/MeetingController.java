@@ -35,7 +35,7 @@ import java.util.List;
 @RequestMapping(value = "/room")
 public class MeetingController {
 
-    @Reference(version = "1.0",timeout = 20000)
+    @Reference(version = "1.0", timeout = 20000)
     RpcMeetingRoomService rpcMeetingRoomService;
 
     /**
@@ -74,8 +74,7 @@ public class MeetingController {
      */
     @ResponseBody
     @PostMapping("/enterMeetingRoom")
-    public CommonResult enterMeetingRoom(
-        @RequestBody JoinMeetingRoomDTO joinMeetingRoomDTO) {
+    public CommonResult enterMeetingRoom(@RequestBody JoinMeetingRoomDTO joinMeetingRoomDTO) {
         return rpcMeetingRoomService.enterMeetingRoom(joinMeetingRoomDTO);
     }
 
@@ -104,10 +103,12 @@ public class MeetingController {
     @PostMapping("/createMeetingRoom")
     CommonResult<MeetingRoomDetailDTO> createMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
         @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
+        @RequestHeader(value = "language_id", defaultValue = "zh-CN") String languageId,
         @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) throws Exception {
         meetingRoomContextDTO.setImUserId(finalUserId);
         meetingRoomContextDTO.setLevelCode(levelCode);
         meetingRoomContextDTO.setImUserName(userName);
+        meetingRoomContextDTO.setLanguageId(languageId);
         return rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO);
     }
 

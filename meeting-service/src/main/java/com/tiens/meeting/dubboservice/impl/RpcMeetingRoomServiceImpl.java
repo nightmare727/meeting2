@@ -45,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -461,7 +462,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .resourceTypeDesc(resourceTypeDesc).ownerImUserId(meetingRoomContextDTO.getImUserId())
             .timeZoneId(meetingRoomContextDTO.getTimeZoneID())
             .timeZoneOffset(meetingTimeZoneConfigPO.getTimeZoneOffset()).vmrMode(meetingRoomContextDTO.getVmrMode())
-            .ownerUserName(meetingRoomContextDTO.getImUserName()).subject(meetingRoomContextDTO.getSubject()).build();
+            .ownerUserName(meetingRoomContextDTO.getImUserName()).subject(meetingRoomContextDTO.getSubject())
+            .remark(meetingRoomContextDTO.getRemark()).languageId(meetingRoomContextDTO.getLanguageId())
+            .build();
         if (ObjectUtil.isNotNull(meetingRoom)) {
             build.setHwMeetingId(meetingRoom.getHwMeetingId());
             build.setHwMeetingCode(meetingRoom.getHwMeetingCode());
@@ -802,7 +805,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         return result;
     }
-
+    public static void main(String[] args) {
+        Object[] params = new Object[]{"1234"};
+        String msg = MessageFormat.format("验证码:{0},您正在登录管理后台，1分钟内输入有效。", params);
+        System.out.println(msg);
+    }
     /**
      * 取消会议
      *
