@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.tiens.api.dto.MessagePayloadDTO;
@@ -140,7 +141,7 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
          */
         MessagePayloadDTO messagePayloadDTO = new MessagePayloadDTO(body);
 
-        batchMessageVo.setPayload(JSON.toJSONString(messagePayloadDTO));
+        batchMessageVo.setPayload(JSON.toJSONString(messagePayloadDTO, SerializerFeature.DisableCircularReferenceDetect));
         /**
          * 开发者扩展字段，长度限制1024字符
          */

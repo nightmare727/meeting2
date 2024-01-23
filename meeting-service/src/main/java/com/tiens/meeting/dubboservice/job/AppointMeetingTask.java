@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -79,9 +80,9 @@ public class AppointMeetingTask {
 
         //1、预约提前30分钟锁定资源
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
-            .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
-            .eq(MeetingRoomInfoPO::getNotifyRoomStartStatus, 0).le(MeetingRoomInfoPO::getLockStartTime, DateUtil.date())
-            .list();
+                .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
+                .eq(MeetingRoomInfoPO::getNotifyRoomStartStatus, 0).le(MeetingRoomInfoPO::getLockStartTime, DateUtil.date())
+                .list();
         if (CollectionUtil.isEmpty(list)) {
             log.info("【定时任务：会议开始前30分钟】 当前无需要通知的消息");
             return;
@@ -92,7 +93,7 @@ public class AppointMeetingTask {
             MeetingResourcePO byId = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
             if (!byId.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
                 log.info("【定时任务：会议开始前30分钟】 执行分配资源，ownerImUserId：{},vmrId:{}", ownerImUserId,
-                    byId.getVmrId());
+                        byId.getVmrId());
                 hwMeetingCommonService.associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
             }
         }
@@ -107,8 +108,8 @@ public class AppointMeetingTask {
 
             //查询与会者集合
             toAccids.addAll(meetingAttendeeDaoService.lambdaQuery().select(MeetingAttendeePO::getAttendeeUserId)
-                .eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomInfoPO.getHwMeetingId()).list().stream()
-                .map(MeetingAttendeePO::getAttendeeUserId).collect(Collectors.toList()));
+                    .eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomInfoPO.getHwMeetingId()).list().stream()
+                    .map(MeetingAttendeePO::getAttendeeUserId).collect(Collectors.toList()));
 
             BatchMessageVo batchMessageVo = new BatchMessageVo();
             batchMessageVo.setFromAccid(meetingRoomInfoPO.getOwnerImUserId());
@@ -134,11 +135,11 @@ public class AppointMeetingTask {
             .set("startTime", DateUtil.formatDateTime(meetingRoomInfoPO.getShowStartTime()))*/
             ;
             JSONObject pushData =
-                JSONUtil.createObj().set("contentImage", inviteContentImage).set("contentStr", meetingStartContent)
-                    .set("im_prefix", meetingStartPrefixContent).set("landingType", 2)
-                    .set("landingUrl", "TencentMeetingPage").set("contentSubTitle",
-                        "会议主题：" + meetingRoomInfoPO.getSubject() + "\n" + "会议开始时间：" + DateUtil.formatDateTime(
-                            meetingRoomInfoPO.getShowStartTime()) + "\n" + "会议号：" + meetingRoomInfoPO.getHwMeetingCode());
+                    JSONUtil.createObj().set("contentImage", inviteContentImage).set("contentStr", meetingStartContent)
+                            .set("im_prefix", meetingStartPrefixContent).set("landingType", 2)
+                            .set("landingUrl", "TencentMeetingPage").set("contentSubTitle",
+                            "会议主题：" + meetingRoomInfoPO.getSubject() + "\n" + "会议开始时间：" + DateUtil.formatDateTime(
+                                    meetingRoomInfoPO.getShowStartTime()) + "\n" + "会议号：" + meetingRoomInfoPO.getHwMeetingCode());
 
             body.put("type", "212");
             body.put("data", pushData);
@@ -169,7 +170,7 @@ public class AppointMeetingTask {
              */
             MessagePayloadDTO messagePayloadDTO = new MessagePayloadDTO(body);
 
-            batchMessageVo.setPayload(JSON.toJSONString(messagePayloadDTO));
+            batchMessageVo.setPayload(JSON.toJSONString(messagePayloadDTO, SerializerFeature.DisableCircularReferenceDetect));
             /**
              * 开发者扩展字段，长度限制1024字符
              */
@@ -223,7 +224,7 @@ public class AppointMeetingTask {
 
         //修改分配资源状态及通知状态
         boolean update = meetingRoomInfoDaoService.lambdaUpdate().set(MeetingRoomInfoPO::getNotifyRoomStartStatus, 1)
-            .set(MeetingRoomInfoPO::getAssignResourceStatus, 1).in(MeetingRoomInfoPO::getId, roomIds).update();
+                .set(MeetingRoomInfoPO::getAssignResourceStatus, 1).in(MeetingRoomInfoPO::getId, roomIds).update();
 
         log.info("【定时任务：会议开始前30分钟】锁定资源分配完成，roomIds:{},result:{}", roomIds, update);
 
