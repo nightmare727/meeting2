@@ -81,7 +81,7 @@ public class MessagePayloadDTO implements Serializable {
         HashMap<String, Object> alert = new HashMap<String, Object>();
 
         alert.put("title", pushTitle);
-        alert.put("body", "推送的内容会议开始了~~~~~~~~~~~~~");
+        alert.put("body", "会议开始了");
 
         apsField.put("alert", alert);
         apsField.put("category", "GAME_INVITATION");
@@ -173,7 +173,7 @@ public class MessagePayloadDTO implements Serializable {
         oppoField.put("action_parameters", JSON.toJSONString(hwPushData));
         // 通知栏样式
         // 子标题
-        oppoField.put("sub_title", "推送的内容会议开始了~~~~~~~~~~~~~");
+        oppoField.put("sub_title", "会议开始了");
         // 推送的网络环境类型
         oppoField.put("network_type", 0);
 

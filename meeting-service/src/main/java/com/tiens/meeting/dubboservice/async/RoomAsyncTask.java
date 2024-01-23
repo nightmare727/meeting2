@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.jtmm.website.api.ImLanguageSourceService;
 import com.tiens.api.dto.MessagePayloadDTO;
 import com.tiens.api.dto.hwevent.EventInfo;
 import com.tiens.api.dto.hwevent.HwEventReq;
@@ -41,6 +42,9 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
 
     @Reference(version = "1.0")
     MessageService messageService;
+
+    @Reference
+    ImLanguageSourceService imLanguageSourceService;
 
     String inviteImPrefixContent = "[会议]%s邀您参加会议";
 
@@ -110,8 +114,10 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
             .set("landingUrl", "TencentMeetingPage")
             .set("contentSubTitle",
                 "会议主题：" + meetingRoomInfoPO.getSubject() + "\n"
-                + "会议开始时间：" + DateUtil.formatDateTime(meetingRoomInfoPO.getShowStartTime()) + "\n"
-                + "会议号：" + meetingRoomInfoPO.getHwMeetingCode());
+                    + "会议时间：" + DateUtil.formatDateTime(
+                    meetingRoomInfoPO.getShowStartTime()) + "-" + DateUtil.formatDateTime(
+                    meetingRoomInfoPO.getShowEndTime()) + "\n"
+                    + "会议号：" + meetingRoomInfoPO.getHwMeetingCode());
 
         body.put("type", "212");
         body.put("data", pushData);
@@ -141,7 +147,8 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
          */
         MessagePayloadDTO messagePayloadDTO = new MessagePayloadDTO(body);
 
-        batchMessageVo.setPayload(JSON.toJSONString(messagePayloadDTO, SerializerFeature.DisableCircularReferenceDetect));
+        batchMessageVo.setPayload(
+            JSON.toJSONString(messagePayloadDTO, SerializerFeature.DisableCircularReferenceDetect));
         /**
          * 开发者扩展字段，长度限制1024字符
          */
