@@ -167,11 +167,11 @@ public class MessagePayloadDTO implements Serializable {
         oppoField.put("channel_id", "vmoment_im");
         // 点击通知栏后触发的动作类型。0（默认0.启动应用；1.跳转指定应用内页（action标签名）；2.跳转网页；4.跳转指定应用内页（全路径类名）；5.跳转Intent scheme URL: ""
         oppoField.put("click_action_type", "0");
-        oppoField.put("click_action_activity", "");
-        oppoField.put("click_action_url", "");
+//        oppoField.put("click_action_activity", "");
+//        oppoField.put("click_action_url", "");
+        oppoField.put("style", 1);
         oppoField.put("action_parameters", JSON.toJSONString(hwPushData));
         // 通知栏样式
-        oppoField.put("style", 1);
         // 子标题
         oppoField.put("sub_title", "推送的内容会议开始了~~~~~~~~~~~~~");
         // 推送的网络环境类型
