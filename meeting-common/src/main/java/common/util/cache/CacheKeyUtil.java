@@ -14,7 +14,7 @@ public class CacheKeyUtil {
     private static final String IM_USER_KEY_PREFIX = "im-meeting-user:";
     private static final String HW_USER_KEY_PREFIX = "im-hw-user-flag";
     private static final String HW_ROOM_EVENT_SYNC_PREFIX = "hw_room_event_count:";
-    private static final String LANGUAGE_ID_PREFIX = "language_word:";
+    private static final String LANGUAGE_ID_PREFIX = "language-word:";
 
     private static final String HW_ROOM_RESOURCE_LOCK_PREFIX = "room_resource_lock:";
 
