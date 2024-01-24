@@ -66,6 +66,15 @@ public class MessagePayloadDTO implements Serializable {
      */
     private JSONObject push_data;
 
+    //--小米参数
+    private String channel_id;
+
+    private String channel_name;
+
+    private String notify_foreground;
+
+    private String notify_effect;
+
     public MessagePayloadDTO(Map<String, Object> attach) {
         String pushTitle = "V-Moment";
 
@@ -193,6 +202,15 @@ public class MessagePayloadDTO implements Serializable {
 //        fcmFieldMap.put("fcmField", fcmField);
 //        fcmFieldMap.put("push_data", pushData);
         this.setFcmField(fcmField);
+
+        /**
+         * 小米推送消息
+         */
+
+        this.setChannel_id("114533");
+        this.setChannel_name("channel_name");
+        this.setNotify_foreground("1");
+        this.setNotify_effect("1");
     }
 
 }

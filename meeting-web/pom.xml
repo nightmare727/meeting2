@@ -11,6 +11,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.huaweicloud.sdk</groupId>
+            <artifactId>huaweicloud-sdk-iam</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.jtmm.third.party</groupId>
             <artifactId>wechat-company</artifactId>
         </dependency>

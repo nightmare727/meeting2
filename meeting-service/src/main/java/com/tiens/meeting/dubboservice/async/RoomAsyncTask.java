@@ -15,13 +15,19 @@ import com.tiens.api.dto.hwevent.Payload;
 import com.tiens.common.Result;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.imchatapi.vo.message.BatchMessageVo;
+import com.tiens.meeting.dubboservice.bo.PushMessageDto;
 import com.tiens.meeting.repository.po.MeetingHwEventCallbackPO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingHwEventCallbackDaoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -45,6 +51,12 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
 
     @Reference
     ImLanguageSourceService imLanguageSourceService;
+
+    @Autowired
+    RocketMQTemplate rocketMQTemplate;
+
+    @Value("${rocketmq.producer.push_message_topic}")
+    String pushMessageTopic;
 
     String inviteImPrefixContent = "[会议]%s邀您参加会议";
 
@@ -178,9 +190,24 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
          */
 //        batchMessageVo.setEnv();
 
+        PushMessageDto pushMessageDto = new PushMessageDto();
+        pushMessageDto.setAccId(meetingRoomInfoPO.getOwnerImUserId());
+        pushMessageDto.setMsgType(1);
+        pushMessageDto.setTitle("您有一个预约会议");
+        pushMessageDto.setContent("xxxx 内容");
+        pushMessageDto.setBody(JSON.toJSONString(body, SerializerFeature.DisableCircularReferenceDetect));
+        pushMessageDto.setPayload(
+            JSON.toJSONString(messagePayloadDTO, SerializerFeature.DisableCircularReferenceDetect));
+        pushMessageDto.setPushContent(String.format(inviteContent, meetingRoomInfoPO.getOwnerUserName()));
+//        pushMessageDto.setExt();
+
         List<List<String>> partition = Lists.partition(toAccIds, 500);
         for (List<String> stringList : partition) {
             batchMessageVo.setToAccids(JSON.toJSONString(stringList));
+
+            Message<String> message = MessageBuilder.withPayload(JSON.toJSONString(pushMessageDto)).build();
+//            rocketMQTemplate.syncSend(pushMessageTopic, message);
+
             log.info("【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(batchMessageVo));
             Result<?> result = messageService.batchSendMessage(batchMessageVo);
             log.info("【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(result));

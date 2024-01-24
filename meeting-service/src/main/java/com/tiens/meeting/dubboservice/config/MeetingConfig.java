@@ -25,6 +25,7 @@ public class MeetingConfig {
      * 会议图标
      */
     private String meetingIcon;
+
     /**
      * 会议邀请标题key
      */
@@ -46,7 +47,6 @@ public class MeetingConfig {
      * 会议开始前置标题key
      */
     private String meetingStartPrefixContentKey;
-
 
     /**
      * 会议开始推送子标题key
