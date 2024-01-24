@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.tiens.api.dto.MessagePayloadDTO;
@@ -159,7 +160,7 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
         pushMessageDto.setPushContent(
             languageService.getLanguageValue(languageId, meetingConfig.getInviteContentKey()));
 
-        Message<String> message = MessageBuilder.withPayload(JSON.toJSONString(pushMessageDto)).build();
+        Message<String> message = MessageBuilder.withPayload(JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect)).build();
         log.info("【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(pushMessageDto));
         SendResult sendResult = rocketMQTemplate.syncSend(pushMessageTopic, message);
         log.info("【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(sendResult));
