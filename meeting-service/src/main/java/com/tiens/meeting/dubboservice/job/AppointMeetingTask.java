@@ -3,6 +3,7 @@ package com.tiens.meeting.dubboservice.job;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
@@ -149,8 +150,9 @@ public class AppointMeetingTask {
                         languageId,
                         meetingConfig.getMeetingTimeKey()) + "：" + meetingTime + "\n" + languageService.getLanguageValue(
                         languageId,
-                        meetingConfig.getMeetingCodeKey()) + "：" + meetingRoomInfoPO.getHwMeetingCode() + "\n" + languageService.getLanguageValue(
-                        languageId, meetingConfig.getMeetingPwdKey()) + "：" + invitePwd);
+                        meetingConfig.getMeetingCodeKey()) + "：" + meetingRoomInfoPO.getHwMeetingCode() + "\n" + (
+                        StrUtil.isNotBlank(invitePwd) ? "\n" + languageService.getLanguageValue(languageId,
+                            meetingConfig.getMeetingPwdKey()) + "：" + invitePwd : ""));
 
             body.put("type", "212");
             body.put("data", pushData);

@@ -2,6 +2,7 @@ package com.tiens.meeting.dubboservice.async;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
@@ -124,14 +125,14 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
                     meetingConfig.getMeetingTitleKey()) + "：" + meetingRoomInfoPO.getSubject() + "\n" + languageService.getLanguageValue(
                     languageId,
                     meetingConfig.getMeetingTimeKey()) + "：" + meetingTime + "\n" + languageService.getLanguageValue(
-                    languageId,
-                    meetingConfig.getMeetingCodeKey()) + "：" + meetingRoomInfoPO.getHwMeetingCode() + "\n" + languageService.getLanguageValue(
-                    languageId, meetingConfig.getMeetingPwdKey()) + "：" + invitePwd);
+                    languageId, meetingConfig.getMeetingCodeKey()) + "：" + meetingRoomInfoPO.getHwMeetingCode() + (
+                    StrUtil.isNotBlank(invitePwd) ? "\n" + languageService.getLanguageValue(languageId,
+                        meetingConfig.getMeetingPwdKey()) + "：" + invitePwd : ""));
 
         body.put("type", "212");
         body.put("data", pushData);
-        body.put("pushTitle",languageService.getLanguageValue(
-            languageId, meetingConfig.getMeetingInvitePushSubTitleKey()));
+        body.put("pushTitle",
+            languageService.getLanguageValue(languageId, meetingConfig.getMeetingInvitePushSubTitleKey()));
         /**
          * 必须是JSON,不能超过2k字符。该参数与APNs推送的payload含义不同
          */
@@ -144,7 +145,8 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
         //会议时间
         languageWordBOS.add(new LanguageWordBO(meetingConfig.getMeetingTimeKey(), meetingTime));
         //会议号
-        languageWordBOS.add(new LanguageWordBO(meetingConfig.getMeetingCodeKey(),meetingRoomInfoPO.getHwMeetingCode()));
+        languageWordBOS.add(
+            new LanguageWordBO(meetingConfig.getMeetingCodeKey(), meetingRoomInfoPO.getHwMeetingCode()));
 
         PushMessageDto pushMessageDto = new PushMessageDto();
         pushMessageDto.setAccId(meetingRoomInfoPO.getOwnerImUserId());
