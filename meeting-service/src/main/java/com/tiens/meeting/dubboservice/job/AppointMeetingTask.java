@@ -129,7 +129,7 @@ public class AppointMeetingTask {
             .set("meetingCode", meetingRoomInfoPO.getHwMeetingCode())
             .set("startTime", DateUtil.formatDateTime(meetingRoomInfoPO.getShowStartTime()))*/
             ;
-            SimpleDateFormat YMDFormat = new SimpleDateFormat("yyyy/mm/dd");
+            SimpleDateFormat YMDFormat = new SimpleDateFormat("yyyy/MM/dd");
             SimpleDateFormat HMFormat = new SimpleDateFormat("HH:mm");
             //邀请密码
             String invitePwd =
