@@ -185,18 +185,32 @@ public class MeetingRoomInfoPO implements Serializable {
     @TableField(value = "subject")
     private String subject;
 
-
     /**
      * 备注
      */
     @TableField(value = "remark")
     private String remark;
 
-
     @TableField(value = "language_id")
     private String languageId;
 
-
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 嘉宾密码（4-16位长度的纯 数字）。
+     */
+    @TableField(exist = false)
+    private String guestPwd;
+    /**
+     * 观众入会密码（网络研讨会专有）
+     */
+    @TableField(exist = false)
+    private String audiencePasswd;
+
+    /**
+     * 与会者密码（云会议专有）
+     */
+    @TableField(exist = false)
+    private String generalPwd;
 }

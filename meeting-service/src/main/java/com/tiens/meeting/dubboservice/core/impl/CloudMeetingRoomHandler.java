@@ -118,11 +118,24 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             //会议的UUID-只有创建立即开始的会议才返回UUID，如果是预约未来的会议，不会返回UUID
             String confUUID = conferenceInfo.getConfUUID();
             String conferenceState = conferenceInfo.getConferenceState();
-            String chairPwd =
-                conferenceInfo.getPasswordEntry().stream().filter(t -> t.getConferenceRole().equals("chair"))
-                    .findFirst().get().getPassword();
+            //主持人密码
+            String chairPwd = "";
+            String generalPwd = "";
+            for (PasswordEntry passwordEntry : conferenceInfo.getPasswordEntry()) {
+                if (passwordEntry.getConferenceRole().equals("chair")) {
+                    chairPwd = passwordEntry.getPassword();
+                } else if (passwordEntry.getConferenceRole().equals("general")) {
+                    generalPwd = passwordEntry.getPassword();
+                }
+            }
+            MeetingRoomModel meetingRoomModel = new MeetingRoomModel();
+            meetingRoomModel.setHwMeetingId(confUUID);
+            meetingRoomModel.setHwMeetingCode(conferenceID);
+            meetingRoomModel.setState(conferenceState);
+            meetingRoomModel.setChairmanPwd(chairPwd);
+            meetingRoomModel.setGeneralPwd(generalPwd);
 
-            return new MeetingRoomModel(confUUID, conferenceID, conferenceState, chairPwd);
+            return meetingRoomModel;
         } catch (Exception e) {
             log.error("创建云会议、预约会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);

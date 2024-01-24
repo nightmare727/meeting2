@@ -78,4 +78,9 @@ public class MeetingConfig {
      */
     private String inviteTopicKey;
 
+    /**
+     * 会议密码
+     */
+    private String meetingPwdKey;
+
 }

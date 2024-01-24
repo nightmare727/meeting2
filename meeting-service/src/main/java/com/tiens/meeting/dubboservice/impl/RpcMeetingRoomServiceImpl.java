@@ -463,12 +463,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .timeZoneId(meetingRoomContextDTO.getTimeZoneID())
             .timeZoneOffset(meetingTimeZoneConfigPO.getTimeZoneOffset()).vmrMode(meetingRoomContextDTO.getVmrMode())
             .ownerUserName(meetingRoomContextDTO.getImUserName()).subject(meetingRoomContextDTO.getSubject())
-            .remark(meetingRoomContextDTO.getRemark()).languageId(meetingRoomContextDTO.getLanguageId())
-            .build();
+            .remark(meetingRoomContextDTO.getRemark()).languageId(meetingRoomContextDTO.getLanguageId()).build();
         if (ObjectUtil.isNotNull(meetingRoom)) {
             build.setHwMeetingId(meetingRoom.getHwMeetingId());
             build.setHwMeetingCode(meetingRoom.getHwMeetingCode());
-            build.setHostPwd(meetingRoom.getHostPwd());
+            build.setHostPwd(meetingRoom.getChairmanPwd());
+            build.setGeneralPwd(meetingRoom.getGeneralPwd());
+            build.setAudiencePasswd(meetingRoom.getAudiencePasswd());
+            build.setGuestPwd(meetingRoom.getGuestPwd());
         }
 
         if (!publicFlag) {
@@ -663,10 +665,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 hwMeetingCommonService.disassociateVmr(currentUseImUserId,
                     Collections.singletonList(meetingResourcePO.getVmrId()));
             }
+            MeetingRoomModel meetingRoom = new MeetingRoomModel();
+            meetingRoom.setHwMeetingId(oldMeetingRoomInfoPO.getHwMeetingId());
+            meetingRoom.setHwMeetingCode(oldMeetingRoomInfoPO.getHwMeetingCode());
+            meetingRoom.setState("");
+            meetingRoom.setChairmanPwd(oldMeetingRoomInfoPO.getHostPwd());
+//            meetingRoom.setGuestPwd();
+//            meetingRoom.setAudiencePasswd();
+//            meetingRoom.setGeneralPwd();
 
-            MeetingRoomModel meetingRoom =
-                new MeetingRoomModel(oldMeetingRoomInfoPO.getHwMeetingId(), oldMeetingRoomInfoPO.getHwMeetingCode(), "",
-                    oldMeetingRoomInfoPO.getHostPwd());
             if (hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
                 .existMeetingRoom(oldMeetingRoomInfoPO.getHwMeetingCode())) {
                 //存在会议，则编辑
@@ -805,11 +812,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         return result;
     }
+
     public static void main(String[] args) {
-        Object[] params = new Object[]{"1234"};
+        Object[] params = new Object[] {"1234"};
         String msg = MessageFormat.format("验证码:{0},您正在登录管理后台，1分钟内输入有效。", params);
         System.out.println(msg);
     }
+
     /**
      * 取消会议
      *

@@ -12,13 +12,13 @@ import java.util.List;
  * @Version 1.0
  * @Company: tiens
  */
-@Async
 public interface RoomAsyncTaskService {
     /**
      * 保存回调记录
      *
      * @param hwEventReq
      */
+    @Async
     void saveHwEventLog(HwEventReq hwEventReq);
 
     /**

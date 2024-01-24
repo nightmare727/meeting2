@@ -99,8 +99,15 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             //会议id
             String conferenceId = response.getConferenceId();
             String state = response.getState().getValue();
+            MeetingRoomModel meetingRoomModel = new MeetingRoomModel();
+            meetingRoomModel.setHwMeetingId("");
+            meetingRoomModel.setHwMeetingCode(conferenceId);
+            meetingRoomModel.setState(state);
+            meetingRoomModel.setChairmanPwd(response.getChairPasswd());
+            meetingRoomModel.setGuestPwd(response.getGuestPasswd());
+            meetingRoomModel.setAudiencePasswd(response.getAudiencePasswd());
 
-            return new MeetingRoomModel("", conferenceId, state, response.getChairPasswd());
+            return meetingRoomModel;
         } catch (Exception e) {
             log.error("创建网络研讨会会议、预约会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);

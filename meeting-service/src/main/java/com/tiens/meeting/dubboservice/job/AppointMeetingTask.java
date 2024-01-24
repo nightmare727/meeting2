@@ -2,18 +2,20 @@ package com.tiens.meeting.dubboservice.job;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.tiens.api.dto.MessagePayloadDTO;
-import com.tiens.common.Result;
 import com.tiens.imchatapi.api.message.MessageService;
-import com.tiens.imchatapi.vo.message.BatchMessageVo;
+import com.tiens.meeting.dubboservice.bo.LanguageWordBO;
+import com.tiens.meeting.dubboservice.bo.PushMessageDto;
+import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
+import com.tiens.meeting.dubboservice.core.LanguageService;
 import com.tiens.meeting.repository.po.MeetingAttendeePO;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
@@ -26,16 +28,18 @@ import common.enums.MeetingResourceStateEnum;
 import common.enums.MeetingRoomStateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -62,16 +66,17 @@ public class AppointMeetingTask {
     @Autowired
     MeetingAttendeeDaoService meetingAttendeeDaoService;
 
-    @Value("${live.fromAccid}")
-    String fromAccid;
-    @Value("${live.startPushContent}")
-    String pushContent;
+    @Autowired
+    MeetingConfig meetingConfig;
 
-    String meetingStartPrefixContent = "[会议]您参加的会议已开始";
+    @Autowired
+    LanguageService languageService;
 
-    String inviteContentImage = "https://v-moment-prod.jikeint.com/appstatic/icon_meeting.png";
+    @Autowired
+    RocketMQTemplate rocketMQTemplate;
 
-    String meetingStartContent = "[会议]您参加的会议已开始";
+    @Value("${rocketmq.producer.push_message_topic}")
+    String pushMessageTopic;
 
     @XxlJob("AppointMeetingJobHandler")
     @Transactional(rollbackFor = Exception.class)
@@ -111,19 +116,7 @@ public class AppointMeetingTask {
                 .eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomInfoPO.getHwMeetingId()).list().stream()
                 .map(MeetingAttendeePO::getAttendeeUserId).collect(Collectors.toList()));
 
-            BatchMessageVo batchMessageVo = new BatchMessageVo();
-            batchMessageVo.setFromAccid(meetingRoomInfoPO.getOwnerImUserId());
-            /**
-             * 0 表示文本消息,
-             * 1 表示图片，
-             * 2 表示语音，
-             * 3 表示视频，
-             * 4 表示地理位置信息，
-             * 6 表示文件，
-             * 10 表示提示消息，
-             * 100 自定义消息类型
-             */
-            batchMessageVo.setType(100);
+            String languageId = meetingRoomInfoPO.getLanguageId();
             /**
              * 消息内容，最大长度 5000 字符，JSON 格式
              */
@@ -134,96 +127,65 @@ public class AppointMeetingTask {
             .set("meetingCode", meetingRoomInfoPO.getHwMeetingCode())
             .set("startTime", DateUtil.formatDateTime(meetingRoomInfoPO.getShowStartTime()))*/
             ;
+            SimpleDateFormat YMDFormat = new SimpleDateFormat("yyyy/mm/dd");
+            SimpleDateFormat HMFormat = new SimpleDateFormat("HH:mm");
+            //邀请密码
+            String invitePwd =
+                ObjectUtil.defaultIfBlank(meetingRoomInfoPO.getGeneralPwd(), meetingRoomInfoPO.getAudiencePasswd());
+            //会议时间
+            String meetingTime =
+                DateUtil.format(meetingRoomInfoPO.getShowStartTime(), YMDFormat) + " " + DateUtil.format(
+                    meetingRoomInfoPO.getShowStartTime(), HMFormat) + "-" + DateUtil.format(
+                    meetingRoomInfoPO.getShowEndTime(), HMFormat) + "(GMT+08:00)";
 
-            JSONObject pushData = JSONUtil.createObj().set("contentImage", inviteContentImage)
-                .set("contentStr", String.format(meetingStartContent, meetingRoomInfoPO.getOwnerUserName()))
-                .set("im_prefix", String.format(meetingStartPrefixContent, meetingRoomInfoPO.getOwnerUserName()))
+            JSONObject pushData = JSONUtil.createObj().set("contentImage", meetingConfig.getMeetingIcon())
+                .set("contentStr",
+                    languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartContentKey()))
+                .set("im_prefix",
+                    languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartPrefixContentKey()))
                 .set("landingType", 2).set("landingUrl", "TencentMeetingPage").set("contentSubTitle",
-                    "会议主题：" + meetingRoomInfoPO.getSubject() + "\n" + "会议时间：" + DateUtil.formatDateTime(
-                        meetingRoomInfoPO.getShowStartTime()) + "-" + DateUtil.formatDateTime(
-                        meetingRoomInfoPO.getShowEndTime()) + "\n" + "会议号：" + meetingRoomInfoPO.getHwMeetingCode());
+                    languageService.getLanguageValue(languageId,
+                        meetingConfig.getMeetingTitleKey()) + "：" + meetingRoomInfoPO.getSubject() + "\n" + languageService.getLanguageValue(
+                        languageId,
+                        meetingConfig.getMeetingTimeKey()) + "：" + meetingTime + "\n" + languageService.getLanguageValue(
+                        languageId,
+                        meetingConfig.getMeetingCodeKey()) + "：" + meetingRoomInfoPO.getHwMeetingCode() + "\n" + languageService.getLanguageValue(
+                        languageId, meetingConfig.getMeetingPwdKey()) + "：" + invitePwd);
 
             body.put("type", "212");
             body.put("data", pushData);
-            batchMessageVo.setBody(JSON.toJSONString(body));
-            /**
-             * 发消息时特殊指定的行为选项,Json格式，可用于指定消息的漫游，存云端历史，发送方多端同步，推送，消息抄送等特殊行为;option中字段不填时表示默认值 option示例:
-             *
-             * {"push":false,"roam":true,"history":false,"sendersync":true,"route":false,"badge":false,
-             * "needPushNick":true}
-             *
-             * 字段说明：
-             * 1. roam: 该消息是否需要漫游，默认true（需要app开通漫游消息功能）；
-             * 2. history: 该消息是否存云端历史，默认true；
-             * 3. sendersync: 该消息是否需要发送方多端同步，默认true；
-             * 4. push: 该消息是否需要APNS推送或安卓系统通知栏推送，默认true；
-             * 5. route: 该消息是否需要抄送第三方；默认true (需要app开通消息抄送功能);
-             * 6. badge:该消息是否需要计入到未读计数中，默认true;
-             * 7. needPushNick: 推送文案是否需要带上昵称，不设置该参数时默认true;
-             * 8. persistent: 是否需要存离线消息，不设置该参数时默认true。
-             */
-//        batchMessageVo.setOption();
-            /**
-             * 推送文案，最长500个字符
-             */
-            batchMessageVo.setPushcontent(meetingStartContent);
+            body.put("pushTitle",
+                languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartPushSubTitleKey()));
             /**
              * 必须是JSON,不能超过2k字符。该参数与APNs推送的payload含义不同
              */
             MessagePayloadDTO messagePayloadDTO = new MessagePayloadDTO(body);
+            ArrayList<@Nullable LanguageWordBO> languageWordBOS = Lists.newArrayList();
+            //邀请您参加V-Meeting会议
+            languageWordBOS.add(new LanguageWordBO(meetingConfig.getInviteTopicKey(), ""));
+            //会议主题
+            languageWordBOS.add(new LanguageWordBO(meetingConfig.getMeetingTitleKey(), meetingRoomInfoPO.getSubject()));
+            //会议时间
+            languageWordBOS.add(new LanguageWordBO(meetingConfig.getMeetingTimeKey(), meetingTime));
+            //会议号
+            languageWordBOS.add(
+                new LanguageWordBO(meetingConfig.getMeetingCodeKey(), meetingRoomInfoPO.getHwMeetingCode()));
 
-            batchMessageVo.setPayload(
-                JSON.toJSONString(messagePayloadDTO, SerializerFeature.DisableCircularReferenceDetect));
-            /**
-             * 开发者扩展字段，长度限制1024字符
-             */
-//        batchMessageVo.setExt();
-            /**
-             * 可选，反垃圾业务ID，实现“单条消息配置对应反垃圾”，若不填则使用原来的反垃圾配置
-             */
-//        batchMessageVo.setBid();
-            /**
-             * 可选，单条消息是否使用易盾反垃圾，可选值为0。
-             * 0：（在开通易盾的情况下）不使用易盾反垃圾而是使用通用反垃圾，包括自定义消息。
-             * 若不填此字段，即在默认情况下，若应用开通了易盾反垃圾功能，则使用易盾反垃圾来进行垃圾消息的判断
-             */
-            batchMessageVo.setUseYidun(0);
-            /**
-             * 可选，易盾反垃圾增强反作弊专属字段，限制json，长度限制1024字符
-             */
-//        batchMessageVo.setYidunAntiCheating();
-            /**
-             * 是否需要返回消息ID
-             * false：不返回消息ID（默认值）
-             * true：返回消息ID（toAccids包含的账号数量不可以超过100个）
-             */
-            batchMessageVo.setReturnMsgid(true);
-            /**
-             * 所属环境，根据env可以配置不同的抄送地址
-             */
-//        batchMessageVo.setEnv();
+            PushMessageDto pushMessageDto = new PushMessageDto();
+            pushMessageDto.setAccId(meetingRoomInfoPO.getOwnerImUserId());
+            pushMessageDto.setTo(Lists.newArrayList(toAccids));
+            pushMessageDto.setMsgType(1);
+            pushMessageDto.setTitle(meetingConfig.getMeetingStartContentKey());
+            pushMessageDto.setContent(languageWordBOS);
+            pushMessageDto.setBody(body);
+            pushMessageDto.setPayload(messagePayloadDTO);
+            pushMessageDto.setPushContent(
+                languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartContentKey()));
 
-            List<List<String>> partition = Lists.partition(Lists.newArrayList(toAccids), 500);
-            for (List<String> stringList : partition) {
-                batchMessageVo.setToAccids(JSON.toJSONString(stringList));
-                log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】调用入参：{}",
-                    JSON.toJSONString(batchMessageVo));
-                Result<?> result = messageService.batchSendMessage(batchMessageVo);
-                log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(result));
-            }
-
-
-
-            /*batchMessageVo.setToAccids(JSON.toJSONString(toAccids));
-            batchMessageVo.setPushcontent(pushContent);
-            batchMessageVo.setAttach(
-                JSONUtil.createObj().set("pushContent", pushContent).set("push_type", "room_start_notice")
-                    .set("meetingCode", meetingRoomInfoPO.getHwMeetingCode()).toString());
-            //batchMessageVo.setPayload("");//不传ios收不到
-            log.info("【定时任务：会议开始前30分钟】发送消息入参：{}", batchMessageVo);
-            Result<?> result = messageService.batchSendAttachMessage(batchMessageVo);
-            log.info("【定时任务：会议开始前30分钟】发送消息结果：{}", result);*/
-            toAccids.clear();
+            Message<String> message = MessageBuilder.withPayload(JSON.toJSONString(pushMessageDto)).build();
+            log.info("【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(pushMessageDto));
+            SendResult sendResult = rocketMQTemplate.syncSend(pushMessageTopic, message);
+            log.info("【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(sendResult));
         }
 
         //修改分配资源状态及通知状态

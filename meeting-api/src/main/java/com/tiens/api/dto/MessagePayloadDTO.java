@@ -81,6 +81,8 @@ public class MessagePayloadDTO implements Serializable {
         JSONObject pushData = JSONUtil.createObj().set("landingUrl", "TencentMeetingPage").set("landingType", "2")
             .set("landingArgument", JSONUtil.createObj().set("a", "b"));
 
+        String pushSubTitle = attach.get("pushTitle").toString();
+
         this.setPushTitle(pushTitle);
         /**
          * 苹果离线推送信息 组装
@@ -90,7 +92,7 @@ public class MessagePayloadDTO implements Serializable {
         HashMap<String, Object> alert = new HashMap<String, Object>();
 
         alert.put("title", pushTitle);
-        alert.put("body", "会议开始了");
+        alert.put("body", pushSubTitle);
 
         apsField.put("alert", alert);
         apsField.put("category", "GAME_INVITATION");
@@ -182,7 +184,7 @@ public class MessagePayloadDTO implements Serializable {
         oppoField.put("action_parameters", JSON.toJSONString(hwPushData));
         // 通知栏样式
         // 子标题
-        oppoField.put("sub_title", "会议开始了");
+        oppoField.put("sub_title", pushSubTitle);
         // 推送的网络环境类型
         oppoField.put("network_type", 0);
 

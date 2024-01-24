@@ -57,10 +57,12 @@ public class CacheKeyUtil {
      * 查询多语言词条
      *
      * @param languageId
+     * @param languageKey
      * @return
      */
-    public static String getLanguageKey(String languageId) {
-        return new StringBuilder(BASE_CACHE_PREFIX).append(LANGUAGE_ID_PREFIX).append(languageId).toString();
+    public static String getLanguageKey(String languageId, String languageKey) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(LANGUAGE_ID_PREFIX).append(languageId).append(SPIT)
+            .append(languageKey).toString();
     }
 
 }
