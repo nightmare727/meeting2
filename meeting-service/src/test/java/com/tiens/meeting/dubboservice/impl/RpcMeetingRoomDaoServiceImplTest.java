@@ -95,9 +95,9 @@ class RpcMeetingRoomDaoServiceImplTest {
 
     @Test
     void testAutoWiredMap() {
-        RMap<String, String> languageKeyMap = redissonClient.getMap(CacheKeyUtil.getLanguageKey("zh-CN"));
-        String s = languageKeyMap.get("hello");
-        System.out.println(s);
+//        RMap<String, String> languageKeyMap = redissonClient.getMap(CacheKeyUtil.getLanguageKey("zh-CN"));
+//        String s = languageKeyMap.get("hello");
+//        System.out.println(s);
     }
 
     @Test

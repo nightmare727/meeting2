@@ -153,7 +153,7 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getFutureAndRunningMeetingRoomList() {
         System.out.println(
-            rpcMeetingRoomService.getFutureAndRunningMeetingRoomList("cb4b8cc1be09409eb108baf982d7e196"));
+            rpcMeetingRoomService.getFutureAndRunningMeetingRoomList("a19367142fdd4278bb5009aae35ee7af"));
     }
 
     @Test
