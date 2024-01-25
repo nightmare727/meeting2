@@ -185,10 +185,11 @@ public class AppointMeetingTask {
             pushMessageDto.setPushContent(
                 languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartContentKey()));
 
-            Message<String> message = MessageBuilder.withPayload(JSON.toJSONString(pushMessageDto)).build();
-            log.info("【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect));
+            Message<String> message = MessageBuilder.withPayload(
+                JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect)).build();
+            log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(pushMessageDto));
             SendResult sendResult = rocketMQTemplate.syncSend(pushMessageTopic, message);
-            log.info("【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(sendResult));
+            log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(sendResult));
         }
 
         //修改分配资源状态及通知状态
