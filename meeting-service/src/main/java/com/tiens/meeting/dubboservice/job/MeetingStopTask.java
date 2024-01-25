@@ -2,6 +2,7 @@ package com.tiens.meeting.dubboservice.job;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSON;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.impl.RpcMeetingRoomServiceImpl;
@@ -65,6 +66,7 @@ public class MeetingStopTask {
             log.info("【定时任务：会议定时结束】:当前无需要处理的数据");
             return;
         }
+        log.info("【定时任务：会议定时结束】 结束的会议参数:{}", JSON.toJSONString(list));
         //会议已经结束，修改会议状态
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
             //手动结束会议
@@ -94,6 +96,6 @@ public class MeetingStopTask {
             }
 
         }
-        log.info("会议定时结束完成，共执行：{}条", list.size());
+        log.info("【定时任务：会议定时结束】会议定时结束完成，共执行：{}条", list.size());
     }
 }

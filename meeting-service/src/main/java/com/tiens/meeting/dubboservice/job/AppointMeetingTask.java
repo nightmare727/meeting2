@@ -94,6 +94,12 @@ public class AppointMeetingTask {
             log.info("【定时任务：会议开始前30分钟】 当前无需要通知的消息");
             return;
         }
+        log.info("【定时任务：会议开始前30分钟】 处理会议列表:{}", JSON.toJSONString(list));
+
+        List<Long> roomIds = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
+        //修改分配资源状态及通知状态
+        boolean update = meetingRoomInfoDaoService.lambdaUpdate().set(MeetingRoomInfoPO::getNotifyRoomStartStatus, 1)
+            .set(MeetingRoomInfoPO::getAssignResourceStatus, 1).in(MeetingRoomInfoPO::getId, roomIds).update();
 
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
             String ownerImUserId = meetingRoomInfoPO.getOwnerImUserId();
@@ -105,7 +111,9 @@ public class AppointMeetingTask {
             }
         }
 
-        List<Long> roomIds = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
+        log.info("【定时任务：会议开始前30分钟】锁定资源分配完成，roomIds:{},result:{}", roomIds, update);
+
+        //发送通知
         Set<@Nullable String> toAccids = Sets.newHashSet();
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
 //            BatchAttachMessageVo batchMessageVo = new BatchAttachMessageVo();
@@ -190,12 +198,6 @@ public class AppointMeetingTask {
             SendResult sendResult = rocketMQTemplate.syncSend(pushMessageTopic, message);
             log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(sendResult));
         }
-
-        //修改分配资源状态及通知状态
-        boolean update = meetingRoomInfoDaoService.lambdaUpdate().set(MeetingRoomInfoPO::getNotifyRoomStartStatus, 1)
-            .set(MeetingRoomInfoPO::getAssignResourceStatus, 1).in(MeetingRoomInfoPO::getId, roomIds).update();
-
-        log.info("【定时任务：会议开始前30分钟】锁定资源分配完成，roomIds:{},result:{}", roomIds, update);
 
     }
 }

@@ -63,7 +63,7 @@ public class MeetingStopNoticeTask {
             log.info("【定时任务：会议结束前30分钟】:当前无需要通知的消息");
             return;
         }
-
+        log.info("【定时任务：会议结束前30分钟】:当前需要通知的会议列表:{}",JSON.toJSONString(list));
         List<String> toAccIds =
             list.stream().map(MeetingRoomInfoPO::getOwnerImUserId).distinct().collect(Collectors.toList());
 
