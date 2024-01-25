@@ -141,17 +141,14 @@ public class AppointMeetingTask {
                     meetingRoomInfoPO.getShowEndTime(), HMFormat) + "(GMT+08:00)";
 
             JSONObject pushData = JSONUtil.createObj().set("contentImage", meetingConfig.getMeetingIcon())
-                .set("contentStr",
-                    languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartContentKey()))
-                .set("im_prefix",
-                    languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartPrefixContentKey()))
+                .set("contentStr", languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartContentKey()))
+                .set("im_prefix", languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartPrefixContentKey()))
                 .set("landingType", 2).set("landingUrl", "TencentMeetingPage").set("contentSubTitle",
                     languageService.getLanguageValue(languageId,
                         meetingConfig.getMeetingTitleKey()) + "：" + meetingRoomInfoPO.getSubject() + "\n" + languageService.getLanguageValue(
                         languageId,
                         meetingConfig.getMeetingTimeKey()) + "：" + meetingTime + "\n" + languageService.getLanguageValue(
-                        languageId,
-                        meetingConfig.getMeetingCodeKey()) + "：" + meetingRoomInfoPO.getHwMeetingCode() + "\n" + (
+                        languageId, meetingConfig.getMeetingCodeKey()) + "：" + meetingRoomInfoPO.getHwMeetingCode() + (
                         StrUtil.isNotBlank(invitePwd) ? "\n" + languageService.getLanguageValue(languageId,
                             meetingConfig.getMeetingPwdKey()) + "：" + invitePwd : ""));
 
