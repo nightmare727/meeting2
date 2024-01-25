@@ -18,6 +18,8 @@ public class CacheKeyUtil {
 
     private static final String HW_ROOM_RESOURCE_LOCK_PREFIX = "room_resource_lock:";
 
+    private static final String HW_ROOM_STOP_LOCK_PREFIX = "room_stop_lock:";
+
     public static String getUserInfoKey(String imUserId) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(IM_USER_KEY_PREFIX).append(imUserId).toString();
     }
@@ -40,6 +42,16 @@ public class CacheKeyUtil {
      */
     public static String getResourceLockKey(Integer resourceId) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(HW_ROOM_RESOURCE_LOCK_PREFIX).append(resourceId).toString();
+    }
+
+    /**
+     * 会议结束分布式锁
+     *
+     * @param
+     * @return
+     */
+    public static String getMeetingStopLockKey(String meetingCode) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(HW_ROOM_STOP_LOCK_PREFIX).append(meetingCode).toString();
     }
 
     /**

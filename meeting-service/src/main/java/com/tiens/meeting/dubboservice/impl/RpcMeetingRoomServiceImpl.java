@@ -732,8 +732,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<MeetingAttendeePO> newMeetingAttendeeList = attendees.stream().map(
                 t -> MeetingAttendeePO.builder().attendeeUserId(t.getAttendeeUserId()).meetingRoomId(meetRoomId)
                     .attendeeUserName(t.getAttendeeUserName()).attendeeUserHeadUrl(t.getAttendeeUserHeadUrl())
-                    .source(MeetingUserJoinSourceEnum.APPOINT.getCode()).createTime(now).updateTime(now).build())
-            .distinct()
+                    .source(MeetingUserJoinSourceEnum.APPOINT.getCode()).createTime(now).updateTime(now).build()).distinct()
             .collect(Collectors.toList());
 
         List<MeetingAttendeePO> oldMeetingAttendeeList =
@@ -865,17 +864,17 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     public Boolean publicResourceHoldHandle(Integer resourceId, MeetingResourceHandleEnum meetingResourceHandleEnum) {
         log.info("【资源挂起释放】当前资源：{} ，进行挂起释放操作：{}", resourceId, meetingResourceHandleEnum);
-//        RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
+        RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
         try {
 
-//            if (lock.isLocked() && !lock.isHeldByCurrentThread()) {
-//                //资源锁定中,无法操作
-//                log.error("【资源挂起释放】资源锁定中，无法进行操作，将异常返回，资源id:{},操作类型：{}", resourceId,
-//                    meetingResourceHandleEnum);
-//                throw new ServiceException(GlobalErrorCodeConstants.RESOURCE_OPERATED_ERROR);
-//            }
-//            //资源维度锁定
-//            lock.lock(10, TimeUnit.SECONDS);
+            if (lock.isLocked() && !lock.isHeldByCurrentThread()) {
+                //资源锁定中,无法操作
+                log.error("【资源挂起释放】资源锁定中，无法进行操作，将异常返回，资源id:{},操作类型：{}", resourceId,
+                    meetingResourceHandleEnum);
+                throw new ServiceException(GlobalErrorCodeConstants.RESOURCE_OPERATED_ERROR);
+            }
+            //资源维度锁定
+            lock.lock(10, TimeUnit.SECONDS);
 
             MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
             Integer status = meetingResourcePO.getStatus();
@@ -950,10 +949,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 e);
             throw e;
         } finally {
-//            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
-//                log.info("【资源挂起释放】释放资源锁：资源id：{}", resourceId);
-//                lock.unlock();
-//            }
+            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+                log.info("【资源挂起释放】释放资源锁：资源id：{}", resourceId);
+                lock.unlock();
+            }
         }
     }
 
@@ -1169,20 +1168,37 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             log.info("【企业级华为云事件】华为云会议事件开始会议id：{}，结果：{}", meetingID, update);
 
         } else if ("meeting.end".equals(event) || "meeting.conclude".equals(event)) {
-            //会议结束是一场会开会结束时触发，会议关闭是预约记录删除的时候触发
-            //会议结束事件-当企业下的某个会议结束，服务端会推送会议结束事件消息的post请求到企业开发者回调URL。会议结束后，如果会议预定的结束时间还没到，可以再次加入该会议。
-            //会议关闭事件
-            boolean update = meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
-                .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
-                .set(MeetingRoomInfoPO::getRelEndTime, DateUtil.date(timestamp)).update();
-            //回收资源
-            Boolean operateResult =
-                publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_DOWN);
-            if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
-                hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
-                    Collections.singletonList(meetingResourcePO.getVmrId()));
+            RLock lock = redissonClient.getLock(CacheKeyUtil.getMeetingStopLockKey(meetingID));
+            if (!lock.isLocked()) {
+                try {
+                    //资源维度锁定
+                    lock.lock(10, TimeUnit.SECONDS);
+                    //会议结束是一场会开会结束时触发，会议关闭是预约记录删除的时候触发
+                    //会议结束事件-当企业下的某个会议结束，服务端会推送会议结束事件消息的post请求到企业开发者回调URL。会议结束后，如果会议预定的结束时间还没到，可以再次加入该会议。
+                    //会议关闭事件
+                    boolean update =
+                        meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                            .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
+                            .set(MeetingRoomInfoPO::getRelEndTime, DateUtil.date(timestamp)).update();
+                    //回收资源
+                    Boolean operateResult =
+                        publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(),
+                            MeetingResourceHandleEnum.HOLD_DOWN);
+                    if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
+                        hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
+                            Collections.singletonList(meetingResourcePO.getVmrId()));
+                    }
+                    log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
+                } finally {
+                    if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+                        log.info("【企业级华为云事件】释放会议锁：会议号：{}", meetingID);
+                        lock.unlock();
+                    }
+                }
+
+            } else {
+                log.info("【企业级华为云事件】会议结束触发锁占用逻辑,执行跳过操作, 会议号:{}", meetingID);
             }
-            log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
         } else if ("record.finish".equals(event)) {
             //录制结束事件-当企业下的某个会议结束，服务端会推送录制结束事件消息的post请求到企业开发者回调URL
             boolean update = meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
