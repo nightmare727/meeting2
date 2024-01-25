@@ -865,17 +865,17 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     public Boolean publicResourceHoldHandle(Integer resourceId, MeetingResourceHandleEnum meetingResourceHandleEnum) {
         log.info("【资源挂起释放】当前资源：{} ，进行挂起释放操作：{}", resourceId, meetingResourceHandleEnum);
-        RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
+//        RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
         try {
 
-            if (lock.isLocked() && !lock.isHeldByCurrentThread()) {
-                //资源锁定中,无法操作
-                log.error("【资源挂起释放】资源锁定中，无法进行操作，将异常返回，资源id:{},操作类型：{}", resourceId,
-                    meetingResourceHandleEnum);
-                throw new ServiceException(GlobalErrorCodeConstants.RESOURCE_OPERATED_ERROR);
-            }
-            //资源维度锁定
-            lock.lock(10, TimeUnit.SECONDS);
+//            if (lock.isLocked() && !lock.isHeldByCurrentThread()) {
+//                //资源锁定中,无法操作
+//                log.error("【资源挂起释放】资源锁定中，无法进行操作，将异常返回，资源id:{},操作类型：{}", resourceId,
+//                    meetingResourceHandleEnum);
+//                throw new ServiceException(GlobalErrorCodeConstants.RESOURCE_OPERATED_ERROR);
+//            }
+//            //资源维度锁定
+//            lock.lock(10, TimeUnit.SECONDS);
 
             MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
             Integer status = meetingResourcePO.getStatus();
@@ -950,10 +950,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 e);
             throw e;
         } finally {
-            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
-                log.info("【资源挂起释放】释放资源锁：资源id：{}", resourceId);
-                lock.unlock();
-            }
+//            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+//                log.info("【资源挂起释放】释放资源锁：资源id：{}", resourceId);
+//                lock.unlock();
+//            }
         }
     }
 
