@@ -200,17 +200,17 @@ public class MeetingRoomInfoPO implements Serializable {
     /**
      * 嘉宾密码（4-16位长度的纯 数字）。
      */
-    @TableField(exist = false)
+    @TableField(value = "guest_pwd")
     private String guestPwd;
     /**
      * 观众入会密码（网络研讨会专有）
      */
-    @TableField(exist = false)
+    @TableField(value = "audience_passwd")
     private String audiencePasswd;
 
     /**
      * 与会者密码（云会议专有）
      */
-    @TableField(exist = false)
+    @TableField(value = "general_pwd")
     private String generalPwd;
 }
