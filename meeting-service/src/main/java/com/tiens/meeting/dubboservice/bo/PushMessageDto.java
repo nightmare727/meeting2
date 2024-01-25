@@ -39,4 +39,8 @@ public class PushMessageDto {
      * 自定义内容
      */
     private Object ext;
+    /**
+     * 1:会议预约  2:会议开始
+     */
+    private Integer subtype;
 }

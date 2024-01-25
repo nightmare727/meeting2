@@ -115,7 +115,7 @@ public class AppointMeetingTask {
 
             //查询与会者集合
             toAccids.addAll(meetingAttendeeDaoService.lambdaQuery().select(MeetingAttendeePO::getAttendeeUserId)
-                .eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomInfoPO.getHwMeetingId()).list().stream()
+                .eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomInfoPO.getId()).list().stream()
                 .map(MeetingAttendeePO::getAttendeeUserId).collect(Collectors.toList()));
 
             String languageId = meetingRoomInfoPO.getLanguageId();
@@ -141,8 +141,10 @@ public class AppointMeetingTask {
                     meetingRoomInfoPO.getShowEndTime(), HMFormat) + "(GMT+08:00)";
 
             JSONObject pushData = JSONUtil.createObj().set("contentImage", meetingConfig.getMeetingIcon())
-                .set("contentStr", languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartContentKey()))
-                .set("im_prefix", languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartPrefixContentKey()))
+                .set("contentStr",
+                    languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartContentKey()))
+                .set("im_prefix",
+                    languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartPrefixContentKey()))
                 .set("landingType", 2).set("landingUrl", "TencentMeetingPage").set("contentSubTitle",
                     languageService.getLanguageValue(languageId,
                         meetingConfig.getMeetingTitleKey()) + "：" + meetingRoomInfoPO.getSubject() + "\n" + languageService.getLanguageValue(
@@ -181,7 +183,7 @@ public class AppointMeetingTask {
             pushMessageDto.setPayload(messagePayloadDTO);
             pushMessageDto.setPushContent(
                 languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartContentKey()));
-
+            pushMessageDto.setSubtype(2);
             Message<String> message = MessageBuilder.withPayload(
                 JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect)).build();
             log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(pushMessageDto));

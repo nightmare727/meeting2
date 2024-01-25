@@ -159,7 +159,7 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
         pushMessageDto.setPayload(messagePayloadDTO);
         pushMessageDto.setPushContent(
             languageService.getLanguageValue(languageId, meetingConfig.getInviteContentKey()));
-
+        pushMessageDto.setSubtype(1);
         Message<String> message = MessageBuilder.withPayload(JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect)).build();
         log.info("【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(pushMessageDto));
         SendResult sendResult = rocketMQTemplate.syncSend(pushMessageTopic, message);
