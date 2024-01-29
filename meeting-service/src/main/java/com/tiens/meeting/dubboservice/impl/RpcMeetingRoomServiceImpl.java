@@ -509,7 +509,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 Collections.singletonList(meetingResourcePO.getExpireDate()));
         }
 
-
         FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
         if (!getFreeResourceList(freeResourceListDTO).getData().stream().anyMatch(t -> t.getId().equals(resourceId))) {
             //判断资源是否已被使用
@@ -591,7 +590,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //默认-'Schedule',会议状态非预约
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_MOD_MEETING_ROOM);
         }
-
 
         Integer oldResourceId = byId.getResourceId();
 
@@ -1135,6 +1133,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     @Override
+    @Transactional
     public CommonResult<String> updateMeetingRoomStatus(HwEventReq hwEventReq) {
         log.info("【企业级华为云事件】推送入入参：{}", hwEventReq);
 
