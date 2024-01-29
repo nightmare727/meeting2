@@ -166,7 +166,9 @@ public class MeetingController {
      */
     @ResponseBody
     @PostMapping("/cancelMeetingRoom")
-    CommonResult cancelMeetingRoom(@RequestBody CancelMeetingRoomDTO cancelMeetingRoomDTO) {
+    CommonResult cancelMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
+        @RequestBody CancelMeetingRoomDTO cancelMeetingRoomDTO) {
+        cancelMeetingRoomDTO.setImUserId(finalUserId);
         return rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
     }
 

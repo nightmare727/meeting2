@@ -618,6 +618,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //与会者人数无法超过资源限定人数
             return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_SIZE_ERROR);
         }
+
+        //校验操作权限
+        String imUserId = meetingRoomContextDTO.getImUserId();
+        String ownerImUserId = byId.getOwnerImUserId();
+        if (!ownerImUserId.equals(imUserId)) {
+            //非主持人本人，无法编辑
+            return CommonResult.error(GlobalErrorCodeConstants.OPERATE_AUTH_ERROR);
+        }
+
         Tuple2<MeetingRoomInfoPO, MeetingResourcePO> of = Tuples.of(byId, meetingResourcePO);
         return CommonResult.success(of);
     }
@@ -838,6 +847,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (!MeetingRoomStateEnum.Schedule.getState().equals(state)) {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_MEETING_ROOM);
         }
+        String imUserId = cancelMeetingRoomDTO.getImUserId();
+        if (ObjectUtil.isNotEmpty(imUserId) && byId.getOwnerImUserId().equals(imUserId)) {
+            return CommonResult.error(GlobalErrorCodeConstants.OPERATE_AUTH_ERROR);
+        }
+
         Integer resourceId = byId.getResourceId();
         MeetingResourcePO byId1 = meetingResourceDaoService.getById(resourceId);
         Integer vmrMode = byId.getVmrMode();
@@ -1181,9 +1195,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                             .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
                             .set(MeetingRoomInfoPO::getRelEndTime, DateUtil.date(timestamp)).update();
                     //回收资源
-                    Boolean operateResult =
-                        publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(),
-                            MeetingResourceHandleEnum.HOLD_DOWN);
+                    Boolean operateResult = publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(),
+                        MeetingResourceHandleEnum.HOLD_DOWN);
                     if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
                         hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
                             Collections.singletonList(meetingResourcePO.getVmrId()));

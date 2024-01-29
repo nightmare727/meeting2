@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.redisson.client.protocol.convertor.StreamIdConvertor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -179,7 +180,29 @@ public class MeetingClientTest {
         System.out.println("差集2：" + CollectionUtil.subtractToList(integers2, integers1));
 
     }
+//    会议主题:user_CB4B8CC1
+//    会议时间:2024/01/29 12:00-13:00(GMT+08:00)
+//    点击链接入会，或添加至会议列表:https://m-dev2.jikeint.com/conference/sharingConference?confId=965736955&nickName=user_CB4B8CC1&title=user_CB4B8CC1&lang=zh-CN&hostPwd=785777&guestPwd=&startTime=1706500800000&endTime=1706504400000
+//
+//    会议号 : 965736955
+    @Test
+    @DisplayName("createWebSocketToken")
+    public void createWebSocketToken() {
+        String code= "965736955";
+        String pwd = "785777";
 
+        TokenInfo data = getCreateConfToken(code, pwd).getData();
+        System.out.println(JSON.toJSONString(data));
+
+    }
+    public CreateConfTokenResponse getCreateConfToken(String meetingCode, String hostPwd) {
+        CreateConfTokenRequest request = new CreateConfTokenRequest();
+        request.withConferenceID(meetingCode);
+        request.withXPassword(hostPwd);
+        request.withXLoginType(1);
+        CreateConfTokenResponse response = managerClient.createConfToken(request);
+        return response;
+    }
     @Data
     @AllArgsConstructor
     @NoArgsConstructor

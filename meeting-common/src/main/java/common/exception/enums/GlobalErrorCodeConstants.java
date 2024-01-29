@@ -76,6 +76,9 @@ public interface GlobalErrorCodeConstants {
     ErrorCode MORE_THAN_RESOURCE_SIZE_ERROR =
         new ErrorCode("2000022", "与会者人数超出资源最大限制", "moment_meeting_156");
 
+    ErrorCode OPERATE_AUTH_ERROR =
+        new ErrorCode("2000023", "无权限进行此操作，如需使用请联系管理员", "moment_meeting_037");
+
     //词条从moment_meeting_back_039 开始
 
     /**
