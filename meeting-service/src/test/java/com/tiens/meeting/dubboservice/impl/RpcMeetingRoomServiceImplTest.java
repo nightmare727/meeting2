@@ -138,9 +138,9 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void cancelMeetingRoom() {
         CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
-        cancelMeetingRoomDTO.setMeetingRoomId(1749270850493820929L);
+        cancelMeetingRoomDTO.setMeetingRoomId(1751846457861304321L);
 
-
+        cancelMeetingRoomDTO.setImUserId("8ff6a6c6bec64761a72fa23df6e72a0d");
 
         System.out.println(rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO));
     }

@@ -848,7 +848,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_MEETING_ROOM);
         }
         String imUserId = cancelMeetingRoomDTO.getImUserId();
-        if (ObjectUtil.isNotEmpty(imUserId) && byId.getOwnerImUserId().equals(imUserId)) {
+        if (ObjectUtil.isNotEmpty(imUserId) && !byId.getOwnerImUserId().equals(imUserId)) {
             return CommonResult.error(GlobalErrorCodeConstants.OPERATE_AUTH_ERROR);
         }
 
