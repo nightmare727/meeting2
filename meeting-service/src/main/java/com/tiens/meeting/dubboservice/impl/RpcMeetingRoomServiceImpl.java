@@ -499,16 +499,17 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (showStartTime.after(DateUtil.offsetMonth(new Date(), 3))) {
             return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
         }
+        if (ObjectUtil.isNull(meetingResourcePO)) {
+            //资源不存在
+            return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
+        }
         //超出资源过期时间
         if (meetingResourcePO.getExpireDate().before(lockEndTime)) {
             return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR,
                 Collections.singletonList(meetingResourcePO.getExpireDate()));
         }
 
-        if (ObjectUtil.isNull(meetingResourcePO)) {
-            //资源不存在
-            return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
-        }
+
         FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
         if (!getFreeResourceList(freeResourceListDTO).getData().stream().anyMatch(t -> t.getId().equals(resourceId))) {
             //判断资源是否已被使用
@@ -561,6 +562,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
         //锁定结束时间
         DateTime lockEndTime = DateUtil.offsetMinute(showEndTime, 29);
+        if (ObjectUtil.isNull(meetingResourcePO)) {
+            //资源不存在
+            return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
+        }
         if (ObjectUtil.isNotNull(showStartTime)) {
             //开始时间小于当前时间
             if (showStartTime.before(DateUtil.date())) {
@@ -587,10 +592,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_MOD_MEETING_ROOM);
         }
 
-        if (ObjectUtil.isNull(meetingResourcePO)) {
-            //资源不存在
-            return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
-        }
+
         Integer oldResourceId = byId.getResourceId();
 
         //判断新资源是否已被使用
