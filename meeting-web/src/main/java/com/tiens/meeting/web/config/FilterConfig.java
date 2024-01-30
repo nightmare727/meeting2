@@ -36,14 +36,24 @@ public class FilterConfig {
         return filter;
     }
 
+    /**
+     * 权限过滤器
+     * @return
+     */
     @Bean("authFilter")
     AuthFilter authFilter() {
         return new AuthFilter();
     }
 
+    /**
+     * 通用请求头过滤器
+     * @return
+     */
     @Bean("headerResolveFilter")
     HeaderResolveFilter headerResolveFilter() {
         return new HeaderResolveFilter();
     }
+
+
 
 }
