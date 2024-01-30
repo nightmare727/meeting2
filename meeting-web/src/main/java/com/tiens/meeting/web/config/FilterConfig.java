@@ -1,10 +1,5 @@
 package com.tiens.meeting.web.config;
 
-import cn.hutool.crypto.SecureUtil;
-import cn.hutool.crypto.asymmetric.Sign;
-import cn.hutool.crypto.asymmetric.SignAlgorithm;
-import cn.hutool.crypto.digest.DigestAlgorithm;
-import com.google.common.collect.ImmutableMap;
 import com.tiens.meeting.web.filter.AuthFilter;
 import com.tiens.meeting.web.filter.HeaderResolveFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -52,5 +47,9 @@ public class FilterConfig {
     }
 
 
+    @Bean("headerResolveFilter")
+    HeaderResolveFilter headerResolveFilter() {
+        return new HeaderResolveFilter();
+    }
 
 }

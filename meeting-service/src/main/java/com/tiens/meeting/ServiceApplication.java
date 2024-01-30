@@ -7,6 +7,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 
 import java.util.concurrent.CountDownLatch;
@@ -19,6 +20,7 @@ import java.util.concurrent.CountDownLatch;
 @ComponentScan(value = {"com.tiens","com.jtmm"})
 @MapperScan("com.tiens.meeting.repository.mapper")
 @EnableSpringUtil
+@EnableAspectJAutoProxy
 public class ServiceApplication {
     /**
      * 使用jar方式打包的启动方式

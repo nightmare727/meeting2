@@ -73,6 +73,14 @@ public interface GlobalErrorCodeConstants {
     ErrorCode MORE_THAN_RESOURCE_EXPIRE_ERROR =
         new ErrorCode("2000021", "超出可预约时间~请预约{0}之前的会议", "moment_meeting_back_031");
 
+    ErrorCode MORE_THAN_RESOURCE_SIZE_ERROR =
+        new ErrorCode("2000022", "与会者人数超出资源最大限制", "moment_meeting_156");
+
+    ErrorCode OPERATE_AUTH_ERROR =
+        new ErrorCode("2000023", "无权限进行此操作，如需使用请联系管理员", "moment_meeting_037");
+
+    //词条从moment_meeting_back_039 开始
+
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段
      *

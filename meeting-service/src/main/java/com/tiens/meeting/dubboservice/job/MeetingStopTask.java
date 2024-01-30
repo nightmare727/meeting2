@@ -2,6 +2,7 @@ package com.tiens.meeting.dubboservice.job;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSON;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.impl.RpcMeetingRoomServiceImpl;
@@ -9,6 +10,7 @@ import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
+import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import common.enums.MeetingResourceHandleEnum;
 import common.enums.MeetingResourceStateEnum;
@@ -53,6 +55,7 @@ public class MeetingStopTask {
 
     @XxlJob("MeetingStopJobHandler")
     @Transactional(rollbackFor = Exception.class)
+    @MDCLog
     public void jobHandler() throws Exception {
         //1、找到结束的会议室
 
@@ -60,9 +63,10 @@ public class MeetingStopTask {
             .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
             .le(MeetingRoomInfoPO::getLockEndTime, DateUtil.date()).list();
         if (CollectionUtil.isEmpty(list)) {
-            log.info("【会议定时结束】:当前无需要处理的数据");
+            log.info("【定时任务：会议定时结束】:当前无需要处理的数据");
             return;
         }
+        log.info("【定时任务：会议定时结束】 结束的会议参数:{}", JSON.toJSONString(list));
         //会议已经结束，修改会议状态
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
             //手动结束会议
@@ -78,7 +82,8 @@ public class MeetingStopTask {
                     hwMeetingCommonService.stopMeeting(meetingRoomInfoPO.getHwMeetingCode(),
                         meetingRoomInfoPO.getHostPwd());
                 } catch (Exception e) {
-                    log.error("停止华为云会议失败，异常", e);
+                    log.error("【定时任务：会议定时结束】停止华为云会议失败，异常", e);
+                    throw e;
                 }
             }
 
@@ -91,6 +96,6 @@ public class MeetingStopTask {
             }
 
         }
-        log.info("会议定时结束完成，共执行：{}条", list.size());
+        log.info("【定时任务：会议定时结束】会议定时结束完成，共执行：{}条", list.size());
     }
 }

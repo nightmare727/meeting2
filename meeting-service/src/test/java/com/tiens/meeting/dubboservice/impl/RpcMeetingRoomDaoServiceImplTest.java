@@ -6,6 +6,7 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.ServiceApplication;
+import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
@@ -14,6 +15,7 @@ import common.util.cache.CacheKeyUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.redisson.api.RAtomicLong;
+import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,6 +54,9 @@ class RpcMeetingRoomDaoServiceImplTest {
     @Autowired
     RedisTemplate redisTemplate;
 
+    @Autowired
+    MeetingConfig meetingConfig;
+
     @Test
     void getCredential() {
       /*  CommonResult<VMMeetingCredentialVO> commonResult =
@@ -79,8 +84,20 @@ class RpcMeetingRoomDaoServiceImplTest {
     }
 
     @Test
+    void tesMeetingConfig() {
+//        zh-CN,en-US,ru-RU,es-ES,vi-VN,ar-SA,it-IT,uk-UA,tr-TR,ms-MY,th-TH,my-MM,pt-PT,ja-JP,ko-KR,id-ID,ro-RO,
+//        cs-CZ,fr-FR,pl-PL,de-DE,km-KH,hi-IN,af,sq,am,hy,as,az,bn,bs,bg,ca,hr,da,prs,nl,et,fj,fil,fi,fr-ca,el,gu,ht,
+//        he,mww,hu,is,iu,ga,kn,kk,km,tlh-Latn,tlh-Piqd,ku,kmr,lo,lv,lt,mg,ml,mt,mi,mr,ne,nb,or,ps,fa,pt,pa,otq,
+//        sr-Cyrl,sr-Latn,sk,sl,sw,sv,ty,ta,te,ti,to,ur,cy,yua
+//        String collect = meetingConfig.getLanguageIdList().stream().collect(Collectors.joining(","));
+//        System.out.println(collect);
+    }
+
+    @Test
     void testAutoWiredMap() {
-        System.out.println(hwMeetingRoomHandlers);
+//        RMap<String, String> languageKeyMap = redissonClient.getMap(CacheKeyUtil.getLanguageKey("zh-CN"));
+//        String s = languageKeyMap.get("hello");
+//        System.out.println(s);
     }
 
     @Test

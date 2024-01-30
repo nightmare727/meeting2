@@ -12,6 +12,7 @@ import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
+import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import common.enums.MeetingResourceEnum;
 import common.enums.MeetingResourceStateEnum;
@@ -46,6 +47,7 @@ public class HWResourceTask {
     HwMeetingCommonService hwMeetingCommonService;
 
     @XxlJob("HWResourceJobHandler")
+    @MDCLog
     public void jobHandler() throws Exception {
         List<MeetingResourcePO> hwResourceList = getHwResourceList();
         List<MeetingResourcePO> oldResourceList = meetingResourceDaoService.list();
@@ -62,7 +64,7 @@ public class HWResourceTask {
         if (CollectionUtil.isNotEmpty(collect)) {
             meetingResourceDaoService.saveBatch(collect);
         }
-        log.info("定时执行华为资源同步，共导入数量：{}条", collect.size());
+        log.info("【定时执行华为资源同步】，共导入数量：{}条", collect.size());
     }
 
     private List<MeetingResourcePO> getHwResourceList() {

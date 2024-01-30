@@ -6,6 +6,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.huaweicloud.sdk.core.exception.ServiceResponseException;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.*;
 import com.tiens.api.dto.MeetingRoomContextDTO;
@@ -54,6 +55,10 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         //处理开始时间
         startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
 
+        //锁定开始时间
+        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
+        subsCribeFlag = subsCribeFlag && DateUtil.date().isBefore(lockStartTime);
+
         ZoneId zoneId3 = ZoneId.of("GMT");
         DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
@@ -87,14 +92,22 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             body.withSubject(meetingRoomContextDTO.getSubject());
             body.withVmrID(meetingRoomContextDTO.getVmrId());
             request.withBody(body);
+            log.info("创建网络研讨会会议结果入参：{}", request);
             CreateWebinarResponse response = userMeetingClient.createWebinar(request);
             log.info("创建网络研讨会会议结果响应：{}", response);
 
             //会议id
             String conferenceId = response.getConferenceId();
             String state = response.getState().getValue();
+            MeetingRoomModel meetingRoomModel = new MeetingRoomModel();
+            meetingRoomModel.setHwMeetingId("");
+            meetingRoomModel.setHwMeetingCode(conferenceId);
+            meetingRoomModel.setState(state);
+            meetingRoomModel.setChairmanPwd(response.getChairPasswd());
+            meetingRoomModel.setGuestPwd(response.getGuestPasswd());
+            meetingRoomModel.setAudiencePasswd(response.getAudiencePasswd());
 
-            return new MeetingRoomModel("", conferenceId, state, response.getChairPasswd());
+            return meetingRoomModel;
         } catch (Exception e) {
             log.error("创建网络研讨会会议、预约会议异常，异常信息：{}", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);
@@ -123,6 +136,9 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
         //处理开始时间
         startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
+        //锁定开始时间
+        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
+        subsCribeFlag = subsCribeFlag && DateUtil.date().isBefore(lockStartTime);
         ZoneId zoneId3 = ZoneId.of("GMT");
         DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
@@ -153,6 +169,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             body.withStartTime(startTimeStr);
             body.withConferenceId(meetingRoomContextDTO.getMeetingCode());
             request.withBody(body);
+            log.info("编辑网络研讨会会议结果入参：{}", request);
             UpdateWebinarResponse response = userMeetingClient.updateWebinar(request);
             log.info("编辑网络研讨会会议结果响应：{}", response);
 
@@ -189,11 +206,20 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             //取消会议
             DeleteWebinarRequest request = new DeleteWebinarRequest();
             request.withConferenceId(cancelMeetingRoomModel.getConferenceID());
+            log.info("取消网络研讨会入参：{}", request);
             DeleteWebinarResponse response = userMeetingClient.deleteWebinar(request);
             log.info("取消网络研讨会结果：{}", response);
 
+        } catch (ServiceResponseException e) {
+            if (e.getErrorCode().equals("MMC.111070005")) {
+                log.info("取消华为云--网络研讨会信息不存在，当前会议号:{}", cancelMeetingRoomModel.getConferenceID());
+            } else {
+                log.error("取消华为云--网络研讨会信息发生其他异常，当前会议号:{}，异常信息：{}",
+                    cancelMeetingRoomModel.getConferenceID(), e);
+            }
         } catch (Exception e) {
-            log.error("取消网络研讨会异常，异常信息：{}", e);
+            log.error("取消华为云--网络研讨会发生系统异常，当前会议号:{}，异常信息：{}",
+                cancelMeetingRoomModel.getConferenceID(), e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
         } finally {
             //回收资源
@@ -230,7 +256,9 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         if (MeetingRoomStateEnum.Schedule.getState().equals(state)) {
             ListUpComingWebinarsRequest request = new ListUpComingWebinarsRequest();
             request.withSearchKey(meetingRoomDetailDTO.getHwMeetingCode());
+            log.info("即将招开的研讨会会议查询入参：{}", request);
             ListUpComingWebinarsResponse response = meetingClient.listUpComingWebinars(request);
+            log.info("即将招开的研讨会会议查询结果：{}", response);
             List<OpenWebinarUpcomingInfo> data = response.getData();
             if (CollectionUtil.isEmpty(data)) {
                 log.info("即将招开的研讨会会议查询不到数据，会议号：{}", meetingRoomDetailDTO.getHwMeetingCode());
@@ -249,8 +277,10 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         } else if (MeetingRoomStateEnum.Created.getState().equals(state)) {
             ListOngoingWebinarsRequest listOngoingWebinarsRequest = new ListOngoingWebinarsRequest();
             listOngoingWebinarsRequest.withSearchKey(meetingRoomDetailDTO.getHwMeetingCode());
+            log.info("正在进行的研讨会会议查询入参：{}", listOngoingWebinarsRequest);
             ListOngoingWebinarsResponse listOngoingWebinarsResponse =
                 meetingClient.listOngoingWebinars(listOngoingWebinarsRequest);
+            log.info("正在进行的研讨会会议查询结果：{}", listOngoingWebinarsResponse);
             List<OpenWebinarOngoingInfo> data = listOngoingWebinarsResponse.getData();
             if (CollectionUtil.isEmpty(data)) {
                 log.info("进行中的研讨会会议查询不到数据，会议号：{}", meetingRoomDetailDTO.getHwMeetingCode());
@@ -268,8 +298,10 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         } else if (MeetingRoomStateEnum.Destroyed.getState().equals(state)) {
             ListHistoryWebinarsRequest listHistoryWebinarsRequest = new ListHistoryWebinarsRequest();
             listHistoryWebinarsRequest.withSearchKey(meetingRoomDetailDTO.getHwMeetingCode());
+            log.info("查询历史研讨会会议查询入参：{}", listHistoryWebinarsRequest);
             ListHistoryWebinarsResponse listHistoryWebinarsResponse =
                 meetingClient.listHistoryWebinars(listHistoryWebinarsRequest);
+            log.info("查询历史研讨会会议查询结果：{}", listHistoryWebinarsResponse);
             List<OpenWebinarHistoryInfo> data = listHistoryWebinarsResponse.getData();
             if (CollectionUtil.isEmpty(data)) {
                 log.info("历史研讨会会议查询不到数据，会议号：{}", meetingRoomDetailDTO.getHwMeetingCode());
@@ -293,7 +325,10 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         //判断是否又即将召开的会议
         ListUpComingWebinarsRequest request = new ListUpComingWebinarsRequest();
         request.withSearchKey(meetingCode);
+        log.info("查询是否有即将召开的网络研讨会入参：{}", request);
         ListUpComingWebinarsResponse response = meetingClient.listUpComingWebinars(request);
+        log.info("查询是否有即将召开的网络研讨会结果：{}", response);
+
         return response.getCount() > 0;
     }
 

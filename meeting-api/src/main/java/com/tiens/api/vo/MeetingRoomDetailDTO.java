@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -99,6 +100,15 @@ public class MeetingRoomDetailDTO implements Serializable {
      * 资源类型描述
      */
     private String resourceTypeDesc;
+    /**
+     * 资源类型描述
+     */
+    private String resourceTypeWordKey;
+
+    /**
+     * 资源类型值
+     */
+    private Integer resourceTypeWordValue;
 
     /**
      * 主持人accid
@@ -151,5 +161,18 @@ public class MeetingRoomDetailDTO implements Serializable {
      * 资源过期时间
      */
     private Date resourceExpireTime;
+
+    /**
+     * 与会者
+     */
+    private List<MeetingAttendeeVO> attendees;
+    /**
+     * 备注
+     */
+    private String remark;
+    /**
+     * 语言编码
+     */
+    private String languageId;
 
 }

@@ -14,4 +14,6 @@ import java.io.Serializable;
 public class CancelMeetingRoomDTO implements Serializable {
 
     private Long meetingRoomId;
+
+    private String imUserId;
 }

@@ -25,7 +25,7 @@ import java.util.List;
 @RestController
 public class MeetingVersionClientController {
 
-    @Reference
+    @Reference(version = "1.0",timeout = 20000)
     RpcMeetingVersionService rpcMeetingVersionService;
 
     /**

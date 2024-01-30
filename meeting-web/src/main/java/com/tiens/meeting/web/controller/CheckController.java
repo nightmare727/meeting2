@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "心跳检测")
 public class CheckController {
 
-    @Reference(filter = "customDubboFilter")
+    @Reference(filter = "logFilter")
     TestDubboService testDubboService;
 
     @GetMapping("/ping")
@@ -37,9 +37,9 @@ public class CheckController {
 
     @GetMapping("/testDubbo")
     public void testDubbo() {
-        RpcContext.getContext().setAttachment("t1", "s1");
-        RpcContext.getContext().setAttachment("t2", "s2");
-        RpcContext.getContext().setAttachment("t3", "s2");
+        RpcContext.getContext().setAttachment("t1","s1");
+        RpcContext.getContext().setAttachment("t2","s2");
+        RpcContext.getContext().setAttachment("t3","s2");
         testDubboService.hello("wenjie");
     }
 

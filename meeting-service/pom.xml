@@ -15,6 +15,14 @@
                    <groupId>com.alicp.jetcache</groupId>
                    <artifactId>jetcache-starter-redis</artifactId>
                </dependency>-->
+
+        <dependency>
+            <groupId>com.tiens.global</groupId>
+            <artifactId>global-website-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+
         <dependency>
             <groupId>com.tiens.vmoment</groupId>
             <artifactId>im-chat-api</artifactId>
@@ -57,6 +65,7 @@
             <groupId>com.tiens.meeting</groupId>
             <artifactId>meeting-common</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.tiens.meeting</groupId>
             <artifactId>meeting-api</artifactId>
@@ -95,6 +104,11 @@
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo-spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
         <dependency>
             <groupId>com.alibaba.cloud</groupId>

@@ -1,17 +1,24 @@
 package com.tiens.meeting.dubboservice.impl.core;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.huaweicloud.sdk.core.auth.ICredential;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.MeetingCredentials;
 import com.huaweicloud.sdk.meeting.v1.model.*;
 import common.enums.MeetingRoomHandlerEnum;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.redisson.client.protocol.convertor.StreamIdConvertor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,8 +31,8 @@ import java.util.List;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MeetingClientTest {
 
-    public String appId = "89f4e01b24c54752aa6ef02c864efa42";
-    public String appKey = "3b6419481b81e65aee20946d84f1837924fe1b7c9d476fe781428e841217c72e";
+    public String appId = "ce1860512edc4e77a288283d79f08a27";
+    public String appKey = "502367f7fec27f77ddef76cd3b3129c71153431a9b45a5d4825e4f14e999d4dd";
     public String userId = "115e039f98e1441ba24e5e3584cef950";
 
     MeetingClient managerClient = null;
@@ -111,6 +118,30 @@ public class MeetingClientTest {
     }
 
     @Test
+    @DisplayName("华为云SDK-分配资源接口")
+    public void fenPei() {
+        AssociateVmrRequest request = new AssociateVmrRequest();
+        request.withAccount("6b91d8c60f2949feaf6725c5b380bd0a");
+        request.withBody(Collections.singletonList("988994ebe1f8442eba39facd4d5f4d0c"));
+        request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
+        AssociateVmrResponse response = managerClient.associateVmr(request);
+        System.out.println(response);
+
+    }
+
+    @Test
+    @DisplayName("华为云SDK-取消资源接口")
+    public void qx() {
+        DisassociateVmrRequest request = new DisassociateVmrRequest();
+        request.withAccount("6b91d8c60f2949feaf6725c5b380bd0a");
+        request.withBody(Collections.singletonList("988994ebe1f8442eba39facd4d5f4d0c"));
+        request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
+        DisassociateVmrResponse response = managerClient.disassociateVmr(request);
+        System.out.println(response);
+
+    }
+
+    @Test
     @DisplayName("华为云SDK停止会议")
     public void stopMeeting() {
         CreateConfTokenRequest request = new CreateConfTokenRequest();
@@ -125,4 +156,62 @@ public class MeetingClientTest {
         System.out.println(stopMeeting);
     }
 
+    @Test
+    @DisplayName("华为云SDK-查询录制文件")
+    public void queryRecordFiles() {
+        ShowRecordingFileDownloadUrlsRequest request = new ShowRecordingFileDownloadUrlsRequest();
+        request.withConfUUID("a6963021d25342b39645ea05425544bc");
+        request.withLimit(500);
+        ShowRecordingFileDownloadUrlsResponse response = managerClient.showRecordingFileDownloadUrls(request);
+        List<RecordDownloadInfoBO> recordUrls = response.getRecordUrls();
+        RecordDownloadInfoBO recordDownloadInfoBO = recordUrls.get(0);
+        List<RecordDownloadUrlDO> urls = recordDownloadInfoBO.getUrls();
+        System.out.println(urls);
+    }
+
+    @Test
+    @DisplayName("测试集合差异")
+    public void collDiff() {
+        CollDiffInner collDiffInner = new CollDiffInner("name1", "age1");
+        ArrayList<CollDiffInner> integers1 = Lists.newArrayList();
+        ArrayList<CollDiffInner> integers2 = Lists.newArrayList();
+        System.out.println("交集：" + CollectionUtil.intersection(integers1, integers2));
+        System.out.println("差集1：" + CollectionUtil.subtractToList(integers1, integers2));
+        System.out.println("差集2：" + CollectionUtil.subtractToList(integers2, integers1));
+
+    }
+//    会议主题:user_CB4B8CC1
+//    会议时间:2024/01/29 12:00-13:00(GMT+08:00)
+//    点击链接入会，或添加至会议列表:https://m-dev2.jikeint.com/conference/sharingConference?confId=965736955&nickName=user_CB4B8CC1&title=user_CB4B8CC1&lang=zh-CN&hostPwd=785777&guestPwd=&startTime=1706500800000&endTime=1706504400000
+//
+//    会议号 : 965736955
+    @Test
+    @DisplayName("createWebSocketToken")
+    public void createWebSocketToken() {
+        String code= "965736955";
+        String pwd = "785777";
+
+        TokenInfo data = getCreateConfToken(code, pwd).getData();
+        System.out.println(JSON.toJSONString(data));
+
+    }
+    public CreateConfTokenResponse getCreateConfToken(String meetingCode, String hostPwd) {
+        CreateConfTokenRequest request = new CreateConfTokenRequest();
+        request.withConferenceID(meetingCode);
+        request.withXPassword(hostPwd);
+        request.withXLoginType(1);
+        CreateConfTokenResponse response = managerClient.createConfToken(request);
+        return response;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public class CollDiffInner {
+
+        String name;
+        String age;
+
+    }
 }
+
+

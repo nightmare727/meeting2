@@ -28,14 +28,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * @author <a href="mailto:chenxilzx1@gmail.com">theonefx</a>
+ *
  */
 @RestController
 @Slf4j
 @RequestMapping(value = "/room")
 public class MeetingController {
 
-    @Reference
+    @Reference(version = "1.0", timeout = 20000)
     RpcMeetingRoomService rpcMeetingRoomService;
 
     /**
@@ -67,6 +67,18 @@ public class MeetingController {
     }
 
     /**
+     * 成功加入会议后回调
+     *
+     * @param joinMeetingRoomDTO
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/enterMeetingRoom")
+    public CommonResult enterMeetingRoom(@RequestBody JoinMeetingRoomDTO joinMeetingRoomDTO) {
+        return rpcMeetingRoomService.enterMeetingRoom(joinMeetingRoomDTO);
+    }
+
+    /**
      * 获取空闲资源列表
      *
      * @param
@@ -91,10 +103,12 @@ public class MeetingController {
     @PostMapping("/createMeetingRoom")
     CommonResult<MeetingRoomDetailDTO> createMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
         @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
+        @RequestHeader(value = "language_id", defaultValue = "zh-CN") String languageId,
         @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) throws Exception {
         meetingRoomContextDTO.setImUserId(finalUserId);
         meetingRoomContextDTO.setLevelCode(levelCode);
         meetingRoomContextDTO.setImUserName(userName);
+        meetingRoomContextDTO.setLanguageId(languageId);
         return rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO);
     }
 
@@ -152,7 +166,9 @@ public class MeetingController {
      */
     @ResponseBody
     @PostMapping("/cancelMeetingRoom")
-    CommonResult cancelMeetingRoom(@RequestBody CancelMeetingRoomDTO cancelMeetingRoomDTO) {
+    CommonResult cancelMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
+        @RequestBody CancelMeetingRoomDTO cancelMeetingRoomDTO) {
+        cancelMeetingRoomDTO.setImUserId(finalUserId);
         return rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
     }
 

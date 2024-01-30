@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -78,5 +79,17 @@ public class MeetingRoomContextDTO implements Serializable {
      * （不需要传）用户名称
      */
     private String imUserName;
+    /**
+     * 与会者
+     */
+    private List<MeetingAttendeeDTO> attendees;
+    /**
+     * 备注
+     */
+    private String remark;
+    /**
+     * 语言编码
+     */
+    private String languageId;
 
 }

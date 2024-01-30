@@ -1,6 +1,7 @@
 package com.tiens.meeting.dubboservice.core.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSON;
 import com.huaweicloud.sdk.core.exception.ConnectionException;
 import com.huaweicloud.sdk.core.exception.RequestTimeoutException;
 import com.huaweicloud.sdk.core.exception.ServiceResponseException;
@@ -13,6 +14,7 @@ import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,9 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
 
     @Autowired
     MeetingConfig meetingConfig;
+
+    @Autowired
+    RedissonClient redissonClient;
 
     public MeetingClient getMgrMeetingClient() {
         MeetingCredentials auth =
@@ -64,14 +69,14 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         request.withBody(vmrIds);
         request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         MeetingClient meetingClient = getMgrMeetingClient();
+        log.info("分配会议室入参：{}", JSON.toJSONString(request));
         AssociateVmrResponse response = meetingClient.associateVmr(request);
-        log.info("分配云会议室结果：{}", response);
+        log.info("分配会议室结果：{}", response);
         for (String vmrId : vmrIds) {
             //设置当前使用者
             meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getVmrId, vmrId)
                 .set(MeetingResourcePO::getCurrentUseImUserId, imUserId).update();
         }
-        log.info("分配云会议室结果：{}", response);
     }
 
     /**
@@ -87,6 +92,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         try {
             MeetingClient meetingClient = getMgrMeetingClient();
+            log.info("回收云会议室入参：{}", JSON.toJSONString(request));
             DisassociateVmrResponse response = meetingClient.disassociateVmr(request);
             log.info("回收云会议室结果：{}", response);
             for (String vmrId : vmrIds) {
@@ -142,7 +148,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         log.info("停止会议入参：{}", stopMeetingRequest);
         MeetingClient meetingClient = getMgrMeetingClient();
         StopMeetingResponse stopMeeting = meetingClient.stopMeeting(stopMeetingRequest);
-        log.info("停止会议返回：{}", stopMeetingRequest);
+        log.info("停止会议返回：{}", stopMeeting);
         return stopMeeting;
     }
 }

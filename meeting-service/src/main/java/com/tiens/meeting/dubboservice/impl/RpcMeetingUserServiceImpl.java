@@ -106,7 +106,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                 return CommonResult.success(null);
             }
         } catch (Exception e) {
-            log.error("调用VM 查询用户异常");
+            log.error("调用VM 查询用户异常，异常：{}", e);
             return CommonResult.success(null);
         }
         HomepageUserDTO data = dtoResult.getData();
