@@ -46,4 +46,10 @@ public class FilterConfig {
         return new HeaderResolveFilter();
     }
 
+
+    @Bean("headerResolveFilter")
+    HeaderResolveFilter headerResolveFilter() {
+        return new HeaderResolveFilter();
+    }
+
 }
