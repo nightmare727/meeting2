@@ -54,6 +54,4 @@ public class FilterConfig {
         return new HeaderResolveFilter();
     }
 
-
-
 }
