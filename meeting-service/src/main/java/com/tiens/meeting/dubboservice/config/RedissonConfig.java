@@ -46,7 +46,8 @@ public class RedissonConfig {
         SingleServerConfig serverConfig =
             config.useSingleServer().setAddress("redis://" + address + ":" + port).setDatabase(database)
                 .setTimeout(3000).setConnectionPoolSize(200).setConnectionMinimumIdleSize(50)
-                .setSubscriptionConnectionPoolSize(300);
+                .setSubscriptionsPerConnection(10)
+                .setSubscriptionConnectionPoolSize(500);
         return Redisson.create(config);
     }
 
@@ -77,6 +78,8 @@ public class RedissonConfig {
             3000);//如果当前连接池里的连接数量超过了最小空闲连接数，而同时有连接空闲时间超过了该数值，那么这些连接将会自动被关闭，并从连接池里去掉。时间单位是毫秒。
         clusterServersConfig.setConnectTimeout(30000);//同任何节点建立连接时的等待超时。时间单位是毫秒。
         clusterServersConfig.setTimeout(3000);//等待节点回复命令的时间。该时间从命令发送成功时开始计时。
+        clusterServersConfig.setSubscriptionConnectionPoolSize(500);//多从节点的环境里，每个从服务节点里用于发布和订阅连接的连接池最大容量。连接池的连接数量自动弹性伸缩。默认50
+        clusterServersConfig.setSubscriptionsPerConnection(10);//每个连接的最大订阅数量
 
         try {
             redissonClient = Redisson.create(config);
