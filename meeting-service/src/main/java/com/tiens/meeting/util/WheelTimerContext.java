@@ -44,16 +44,12 @@ public final class WheelTimerContext {
 
             }).setThreadFactory(r -> new Thread(r)).build();
 
-        Timeout timeout1 = timer.newTimeout(new TimerTask() {
-            @Override
-            public void run(Timeout timeout) {
-                System.out.println("timeout1: " + new Date());
-            }
-        }, 10, TimeUnit.SECONDS);
-        if (!timeout1.isExpired()) {
-            timeout1.cancel();
-        }
-        timer.newTimeout(new TimerTask() {
+        Timeout timeout1 =
+            timer.newTimeout(timeout -> System.out.println(Thread.currentThread().getName()+"---timeout1: " + new Date()), 1,
+            TimeUnit.SECONDS);
+
+        System.out.println("完成");
+    /*    timer.newTimeout(new TimerTask() {
             @Override
             public void run(Timeout timeout) throws InterruptedException {
                 System.out.println("timeout2: " + new Date());
@@ -64,7 +60,7 @@ public final class WheelTimerContext {
             public void run(Timeout timeout) {
                 System.out.println("timeout3: " + new Date());
             }
-        }, 3, TimeUnit.SECONDS);
+        }, 3, TimeUnit.SECONDS);*/
 
     }
 }

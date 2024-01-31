@@ -10,6 +10,8 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.huaweicloud.sdk.meeting.v1.utils.HmacSHA256;
 import com.tiens.api.dto.*;
 import com.tiens.api.dto.hwevent.EventInfo;
@@ -47,6 +49,7 @@ import reactor.util.function.Tuples;
 
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -87,6 +90,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private final MeetingAttendeeDaoService meetingAttendeeDaoService;
 
     public static final String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
+
+    ListeningExecutorService listeningExecutorService =
+        MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
 
     /**
      * 前端获取认证资质
@@ -1135,7 +1141,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Override
     @Transactional
     public CommonResult<String> updateMeetingRoomStatus(HwEventReq hwEventReq) {
-        log.info("【企业级华为云事件】推送入入参：{}", hwEventReq);
+        log.info("【企业级华为云事件】推送入参：{}", hwEventReq);
 
         String nonce = hwEventReq.getNonce();
         EventInfo eventInfo = hwEventReq.getEventInfo();
@@ -1147,79 +1153,86 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.success(s);
         }
         roomAsyncTaskService.saveHwEventLog(hwEventReq);
-        Long timestamp = eventInfo.getTimestamp();
-        Payload payload = eventInfo.getPayload();
-        String meetingID = payload.getMeetingInfo().getMeetingID();
-        Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional =
-            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID).oneOpt();
-        RLongAdder count = redissonClient.getLongAdder(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));
-        int maxErrorCount = 3;
-        if (!meetingRoomInfoPOOptional.isPresent()) {
-            log.error("事件回调数据异常，数据不存在 meetingID：{}", meetingID);
-            if (count.sum() >= maxErrorCount) {
-                log.error("【企业级华为云事件】事件回调数据异常达到次数上限：{}次,会议号：{}", maxErrorCount, meetingID);
-                return CommonResult.errorMsg("事件达到次数上限");
-            }
-            count.increment();
-            //5、5秒后重试，优化立即会议
-            WheelTimerContext.getInstance().createTimeoutTask(timeout -> {
-                //重试
-                hwEventReq.setRetryFlag(true);
-                updateMeetingRoomStatus(hwEventReq);
-            }, 5, TimeUnit.SECONDS);
-            return CommonResult.success("");
-        }
 
-        MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOptional.get();
-        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
-
-        if ("meeting.started".equals(event)) {
-            //推送会议开始事件
-            boolean update = meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
-                .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
-                .set(MeetingRoomInfoPO::getHwMeetingId, payload.getMeetingInfo().getMeetingUUID())
-                .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
-                .set(MeetingRoomInfoPO::getRelStartTime, DateUtil.date(timestamp)).update();
-            log.info("【企业级华为云事件】华为云会议事件开始会议id：{}，结果：{}", meetingID, update);
-
-        } else if ("meeting.end".equals(event) || "meeting.conclude".equals(event)) {
-            RLock lock = redissonClient.getLock(CacheKeyUtil.getMeetingStopLockKey(meetingID));
-            if (!lock.isLocked()) {
-                try {
-                    //资源维度锁定
-                    lock.lock(10, TimeUnit.SECONDS);
-                    //会议结束是一场会开会结束时触发，会议关闭是预约记录删除的时候触发
-                    //会议结束事件-当企业下的某个会议结束，服务端会推送会议结束事件消息的post请求到企业开发者回调URL。会议结束后，如果会议预定的结束时间还没到，可以再次加入该会议。
-                    //会议关闭事件
-                    boolean update =
-                        meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
-                            .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
-                            .set(MeetingRoomInfoPO::getRelEndTime, DateUtil.date(timestamp)).update();
-                    //回收资源
-                    Boolean operateResult = publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(),
-                        MeetingResourceHandleEnum.HOLD_DOWN);
-                    if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
-                        hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
-                            Collections.singletonList(meetingResourcePO.getVmrId()));
-                    }
-                    log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
-                } finally {
-                    if (lock.isLocked() && lock.isHeldByCurrentThread()) {
-                        log.info("【企业级华为云事件】释放会议锁：会议号：{}", meetingID);
-                        lock.unlock();
-                    }
+        listeningExecutorService.submit(() -> {
+            Long timestamp = eventInfo.getTimestamp();
+            Payload payload = eventInfo.getPayload();
+            String meetingID = payload.getMeetingInfo().getMeetingID();
+            Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional =
+                meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID).oneOpt();
+            RLongAdder count = redissonClient.getLongAdder(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));
+            int maxErrorCount = 3;
+            if (!meetingRoomInfoPOOptional.isPresent()) {
+                log.error("事件回调数据异常，数据不存在 meetingID：{}", meetingID);
+                if (count.sum() >= maxErrorCount) {
+                    log.error("【企业级华为云事件】事件回调数据异常达到次数上限：{}次,会议号：{}", maxErrorCount,
+                        meetingID);
+                    return;
+//                    return CommonResult.errorMsg("事件达到次数上限");
                 }
-
-            } else {
-                log.info("【企业级华为云事件】会议结束触发锁占用逻辑,执行跳过操作, 会议号:{}", meetingID);
+                count.increment();
+                //5、5秒后重试，优化立即会议
+                WheelTimerContext.getInstance().createTimeoutTask(timeout -> {
+                    //重试
+                    hwEventReq.setRetryFlag(true);
+                    updateMeetingRoomStatus(hwEventReq);
+                }, 2, TimeUnit.SECONDS);
+                return;
+//                return CommonResult.success("");
             }
-        } else if ("record.finish".equals(event)) {
-            //录制结束事件-当企业下的某个会议结束，服务端会推送录制结束事件消息的post请求到企业开发者回调URL
-            boolean update = meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
-                .set(MeetingRoomInfoPO::getRecordStatus, 1).update();
-            log.info("【企业级华为云事件】华为云会议录制会议id：{}，结果：{}", meetingID, update);
-        }
 
+            MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOptional.get();
+            MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
+
+            if ("meeting.started".equals(event)) {
+                //推送会议开始事件
+                boolean update =
+                    meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                        .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
+                        .set(MeetingRoomInfoPO::getHwMeetingId, payload.getMeetingInfo().getMeetingUUID())
+                        .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
+                        .set(MeetingRoomInfoPO::getRelStartTime, DateUtil.date(timestamp)).update();
+                log.info("【企业级华为云事件】华为云会议事件开始会议id：{}，结果：{}", meetingID, update);
+
+            } else if ("meeting.end".equals(event) || "meeting.conclude".equals(event)) {
+                RLock lock = redissonClient.getLock(CacheKeyUtil.getMeetingStopLockKey(meetingID));
+                if (!lock.isLocked()) {
+                    try {
+                        //资源维度锁定
+                        lock.lock(10, TimeUnit.SECONDS);
+                        //会议结束是一场会开会结束时触发，会议关闭是预约记录删除的时候触发
+                        //会议结束事件-当企业下的某个会议结束，服务端会推送会议结束事件消息的post请求到企业开发者回调URL。会议结束后，如果会议预定的结束时间还没到，可以再次加入该会议。
+                        //会议关闭事件
+                        boolean update =
+                            meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                                .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
+                                .set(MeetingRoomInfoPO::getRelEndTime, DateUtil.date(timestamp)).update();
+                        //回收资源
+                        Boolean operateResult = publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(),
+                            MeetingResourceHandleEnum.HOLD_DOWN);
+                        if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
+                            hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
+                                Collections.singletonList(meetingResourcePO.getVmrId()));
+                        }
+                        log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
+                    } finally {
+                        if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+                            log.info("【企业级华为云事件】释放会议锁：会议号：{}", meetingID);
+                            lock.unlock();
+                        }
+                    }
+
+                } else {
+                    log.info("【企业级华为云事件】会议结束触发锁占用逻辑,执行跳过操作, 会议号:{}", meetingID);
+                }
+            } else if ("record.finish".equals(event)) {
+                //录制结束事件-当企业下的某个会议结束，服务端会推送录制结束事件消息的post请求到企业开发者回调URL
+                boolean update =
+                    meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                        .set(MeetingRoomInfoPO::getRecordStatus, 1).update();
+                log.info("【企业级华为云事件】华为云会议录制会议id：{}，结果：{}", meetingID, update);
+            }
+        });
         return CommonResult.success(null);
     }
 
