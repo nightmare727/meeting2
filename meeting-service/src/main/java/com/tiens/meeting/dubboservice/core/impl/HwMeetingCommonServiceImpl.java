@@ -2,6 +2,7 @@ package com.tiens.meeting.dubboservice.core.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSON;
+import com.huaweicloud.sdk.core.exception.ClientRequestException;
 import com.huaweicloud.sdk.core.exception.ConnectionException;
 import com.huaweicloud.sdk.core.exception.RequestTimeoutException;
 import com.huaweicloud.sdk.core.exception.ServiceResponseException;
@@ -141,14 +142,27 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
 
     @Override
     public StopMeetingResponse stopMeeting(String meetingCode, String hostPwd) {
-        CreateConfTokenResponse createConfToken = getCreateConfToken(meetingCode, hostPwd);
-        StopMeetingRequest stopMeetingRequest = new StopMeetingRequest();
-        stopMeetingRequest.withConferenceID(meetingCode);
-        stopMeetingRequest.withXConferenceAuthorization(createConfToken.getData().getToken());
-        log.info("停止会议入参：{}", stopMeetingRequest);
-        MeetingClient meetingClient = getMgrMeetingClient();
-        StopMeetingResponse stopMeeting = meetingClient.stopMeeting(stopMeetingRequest);
-        log.info("停止会议返回：{}", stopMeeting);
-        return stopMeeting;
+        try {
+            CreateConfTokenResponse createConfToken = getCreateConfToken(meetingCode, hostPwd);
+            StopMeetingRequest stopMeetingRequest = new StopMeetingRequest();
+            stopMeetingRequest.withConferenceID(meetingCode);
+            stopMeetingRequest.withXConferenceAuthorization(createConfToken.getData().getToken());
+            log.info("停止会议入参：{}", stopMeetingRequest);
+            MeetingClient meetingClient = getMgrMeetingClient();
+            StopMeetingResponse stopMeeting = meetingClient.stopMeeting(stopMeetingRequest);
+            log.info("停止会议返回：{}", stopMeeting);
+            return stopMeeting;
+        } catch (ClientRequestException clientRequestException) {
+            if (clientRequestException.getErrorCode().equals("MMC.111072005")) {
+                //会议还没开始，或者已结束，
+                log.info("会议还没开始，或者已结束 ，会议号：{}", meetingCode);
+                return null;
+            }
+            log.error("会议结束异常 ，会议号：{},异常：{}", meetingCode, clientRequestException);
+            throw clientRequestException;
+        } catch (Exception e) {
+            log.error("会议结束异常 ，会议号：{},异常：{}", meetingCode, e);
+            throw e;
+        }
     }
 }
