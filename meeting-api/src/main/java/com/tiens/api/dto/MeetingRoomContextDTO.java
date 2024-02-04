@@ -92,4 +92,9 @@ public class MeetingRoomContextDTO implements Serializable {
      */
     private String languageId;
 
+    /**
+     * 当前资源使用人id
+     */
+    private String currentResourceUserId;
+
 }

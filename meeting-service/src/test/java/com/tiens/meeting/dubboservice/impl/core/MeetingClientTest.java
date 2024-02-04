@@ -30,10 +30,10 @@ import java.util.List;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MeetingClientTest {
 
-    //    public String appId = "ce1860512edc4e77a288283d79f08a27";
-    public String appId = "89f4e01b24c54752aa6ef02c864efa42";
-    //    public String appKey = "502367f7fec27f77ddef76cd3b3129c71153431a9b45a5d4825e4f14e999d4dd";
-    public String appKey = "3b6419481b81e65aee20946d84f1837924fe1b7c9d476fe781428e841217c72e";
+        public String appId = "ce1860512edc4e77a288283d79f08a27";
+//    public String appId = "89f4e01b24c54752aa6ef02c864efa42";
+        public String appKey = "502367f7fec27f77ddef76cd3b3129c71153431a9b45a5d4825e4f14e999d4dd";
+//    public String appKey = "3b6419481b81e65aee20946d84f1837924fe1b7c9d476fe781428e841217c72e";
     public String userId = "115e039f98e1441ba24e5e3584cef950";
 
     MeetingClient managerClient = null;
@@ -122,8 +122,8 @@ public class MeetingClientTest {
     @DisplayName("华为云SDK-分配资源接口")
     public void fenPei() {
         AssociateVmrRequest request = new AssociateVmrRequest();
-        request.withAccount("6b91d8c60f2949feaf6725c5b380bd0a");
-        request.withBody(Collections.singletonList("988994ebe1f8442eba39facd4d5f4d0c"));
+        request.withAccount("d45d2f5bb9144af9b1af766b54e3d195");
+        request.withBody(Collections.singletonList("ee6f335f41524341b9d06ea01f778a50"));
         request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         AssociateVmrResponse response = managerClient.associateVmr(request);
         System.out.println(response);

@@ -143,8 +143,16 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             if (publicFlag && subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
                 log.info("编辑资源回收达成条件是 新增 publicFlag:{},subsCribeFlag:{}", publicFlag, subsCribeFlag);
-                hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
-                    Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                String currentResourceUserId = meetingRoomContextDTO.getCurrentResourceUserId();
+                if (ObjectUtil.isNotEmpty(currentResourceUserId)) {
+                    hwMeetingCommonService.associateVmr(currentResourceUserId,
+                        Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                } else {
+                    //如果已分配，则执行 回收-分配-再回收
+                    hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                        Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                }
+
             }
         }
     }
@@ -224,8 +232,15 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             if (publicFlag && subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
                 log.info("编辑资源回收达成条件是 publicFlag:{},subsCribeFlag:{}", publicFlag, subsCribeFlag);
-                hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
-                    Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                String currentResourceUserId = meetingRoomContextDTO.getCurrentResourceUserId();
+                if (ObjectUtil.isNotEmpty(currentResourceUserId)) {
+                    hwMeetingCommonService.associateVmr(currentResourceUserId,
+                        Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                } else {
+                    //如果已分配，则执行 回收-分配-再回收
+                    hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                        Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                }
             }
         }
 
@@ -268,8 +283,15 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         } finally {
             //回收资源
             if (publicFlag) {
-                hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
-                    Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+                String currentResourceUserId = cancelMeetingRoomModel.getCurrentResourceUserId();
+                if (ObjectUtil.isNotEmpty(currentResourceUserId)) {
+                    hwMeetingCommonService.associateVmr(currentResourceUserId,
+                        Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+                } else {
+                    //如果已分配，则执行 回收-分配-再回收
+                    hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
+                        Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+                }
             }
         }
 

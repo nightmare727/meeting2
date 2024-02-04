@@ -20,4 +20,9 @@ public class CancelMeetingRoomModel implements Serializable {
     private String vmrId;
 
     private Boolean publicFlag;
+
+    /**
+     * 当前资源使用人id
+     */
+    private String currentResourceUserId;
 }

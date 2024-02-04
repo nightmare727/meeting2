@@ -37,7 +37,6 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RLock;
 import org.redisson.api.RLongAdder;
@@ -353,6 +352,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         MeetingRoomModel meetingRoom = null;
         Integer vmrMode = null;
         MeetingResourcePO meetingResourcePO = null;
+        String currentUseImUserId = null;
         try {
             if (lock.isLocked()) {
                 //资源锁定中
@@ -369,25 +369,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             meetingRoomContextDTO.setVmrId(meetingResourcePO.getVmrId());
             meetingRoomContextDTO.setVmrMode(meetingResourcePO.getVmrMode());
             meetingRoomContextDTO.setResourceStatus(meetingResourcePO.getStatus());
+            //查询是否该资源已分配，
+            currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
+            meetingRoomContextDTO.setCurrentResourceUserId(currentUseImUserId);
             //创建会议
             vmrMode = meetingResourcePO.getVmrMode();
-            //查询是否该资源已分配，
-            String currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
-            if (publicFlag && StringUtils.isNotBlank(currentUseImUserId)) {
-                //如果已分配，则执行 回收-分配-再回收
-                hwMeetingCommonService.disassociateVmr(currentUseImUserId,
-                    Collections.singletonList(meetingResourcePO.getVmrId()));
-            }
-            //1、创建华为云会议
-            meetingRoom =
-                hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
-                    .createMeetingRoom(meetingRoomContextDTO);
-            if (publicFlag && StringUtils.isNotBlank(currentUseImUserId)) {
-                //如果已分配，则执行 回收-分配-再回收
-                hwMeetingCommonService.associateVmr(currentUseImUserId,
-                    Collections.singletonList(meetingResourcePO.getVmrId()));
-            }
 
+            //1、创建华为云会议
+            meetingRoom = hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
+                .createMeetingRoom(meetingRoomContextDTO);
             //包装po实体
             MeetingRoomInfoPO meetingRoomInfoPO =
                 packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
@@ -426,13 +416,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 Integer finalVmrMode = vmrMode;
                 MeetingRoomModel finalMeetingRoom = meetingRoom;
                 MeetingResourcePO finalMeetingResourcePO = meetingResourcePO;
+                String finalCurrentUseImUserId = currentUseImUserId;
                 listeningExecutorService.submit(() -> {
                     try {
                         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(finalVmrMode))
-                            .cancelMeetingRoom(
-                                new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
-                                    finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
-                                    NumberUtil.isNumber(meetingRoomContextDTO.getResourceType())));
+                            .cancelMeetingRoom(new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
+                                finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
+                                NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId));
                     } catch (Exception e1) {
                         log.error("【创建、预约会议】异常取消会议异常，异常信息：{}", e1);
                     }
@@ -509,7 +499,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     private CommonResult checkCreateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
-        //判断用户等级，您的Vmo星球等级至少Lv3才可以使用此功能
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         Date showStartTime = DateUtils.roundToHalfHour(
@@ -578,7 +567,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     private CommonResult checkUpdateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
-        //判断用户等级，您的Vmo星球等级至少Lv3才可以使用此功能
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         Date showStartTime = DateUtils.roundToHalfHour(
@@ -695,12 +683,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Integer vmrMode = meetingResourcePO.getVmrMode();
             //查询是否该资源已分配，
             String currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
-            if (publicFlag && StringUtils.isNotBlank(currentUseImUserId)) {
+         /*   if (publicFlag && StringUtils.isNotBlank(currentUseImUserId)) {
                 //如果已分配，则执行 回收-分配-再回收
                 log.info("【编辑会议】回收达成条件是1 currentUseImUserId:{}", currentUseImUserId);
                 hwMeetingCommonService.disassociateVmr(currentUseImUserId,
                     Collections.singletonList(meetingResourcePO.getVmrId()));
-            }
+            }*/
             MeetingRoomModel meetingRoom = new MeetingRoomModel();
             meetingRoom.setHwMeetingId(oldMeetingRoomInfoPO.getHwMeetingId());
             meetingRoom.setHwMeetingCode(oldMeetingRoomInfoPO.getHwMeetingCode());
@@ -722,18 +710,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     .createMeetingRoom(meetingRoomContextDTO);
 
             }
-            //查询是否该资源已分配，
-            if (publicFlag && StringUtils.isNotBlank(currentUseImUserId)) {
-                //如果已分配，则执行 回收-分配-再回收
-                hwMeetingCommonService.associateVmr(currentUseImUserId,
-                    Collections.singletonList(meetingResourcePO.getVmrId()));
-            }
 
             //包装po实体
             MeetingRoomInfoPO meetingRoomInfoPO =
                 packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
             //2、修改本地会议
-            //TODO 容易产生死锁
             meetingRoomInfoDaoService.updateById(meetingRoomInfoPO);
             //3、锁定资源，更改资源状态为共有预约
             publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
@@ -885,15 +866,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String ownerImUserId = byId.getOwnerImUserId();
         String hwMeetingCode = byId.getHwMeetingCode();
         String vmrId = byId1.getVmrId();
-
+        String currentUseImUserId = byId1.getCurrentUseImUserId();
         meetingRoomInfoDaoService.removeById(meetingRoomId);
         //直接取消华为云会议
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).cancelMeetingRoom(
-            new CancelMeetingRoomModel(ownerImUserId, hwMeetingCode, vmrId,
-                NumberUtil.isNumber(byId.getResourceType())));
+            new CancelMeetingRoomModel(ownerImUserId, hwMeetingCode, vmrId, NumberUtil.isNumber(byId.getResourceType()),
+                currentUseImUserId));
 
-        //取消资源占用
         publicResourceHoldHandle(resourceId, MeetingResourceHandleEnum.HOLD_DOWN);
+        //取消资源占用
         return CommonResult.success(null);
     }
 
