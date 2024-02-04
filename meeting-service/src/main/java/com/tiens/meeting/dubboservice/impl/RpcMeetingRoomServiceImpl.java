@@ -683,6 +683,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Integer vmrMode = meetingResourcePO.getVmrMode();
             //查询是否该资源已分配，
             String currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
+            meetingRoomContextDTO.setCurrentResourceUserId(currentUseImUserId);
          /*   if (publicFlag && StringUtils.isNotBlank(currentUseImUserId)) {
                 //如果已分配，则执行 回收-分配-再回收
                 log.info("【编辑会议】回收达成条件是1 currentUseImUserId:{}", currentUseImUserId);
