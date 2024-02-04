@@ -349,6 +349,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         Boolean publicFlag = NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
+
+        MeetingRoomModel meetingRoom = null;
+        Integer vmrMode = null;
+        MeetingResourcePO meetingResourcePO = null;
         try {
             if (lock.isLocked()) {
                 //资源锁定中
@@ -361,12 +365,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             if (!checkResult.isSuccess()) {
                 return checkResult;
             }
-            MeetingResourcePO meetingResourcePO = (MeetingResourcePO)checkResult.getData();
+            meetingResourcePO = (MeetingResourcePO)checkResult.getData();
             meetingRoomContextDTO.setVmrId(meetingResourcePO.getVmrId());
             meetingRoomContextDTO.setVmrMode(meetingResourcePO.getVmrMode());
             meetingRoomContextDTO.setResourceStatus(meetingResourcePO.getStatus());
             //创建会议
-            Integer vmrMode = meetingResourcePO.getVmrMode();
+            vmrMode = meetingResourcePO.getVmrMode();
             //查询是否该资源已分配，
             String currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
             if (publicFlag && StringUtils.isNotBlank(currentUseImUserId)) {
@@ -375,7 +379,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     Collections.singletonList(meetingResourcePO.getVmrId()));
             }
             //1、创建华为云会议
-            MeetingRoomModel meetingRoom =
+            meetingRoom =
                 hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
                     .createMeetingRoom(meetingRoomContextDTO);
             if (publicFlag && StringUtils.isNotBlank(currentUseImUserId)) {
@@ -417,6 +421,23 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.success(result);
         } catch (Exception e) {
             log.error("【创建、预约会议】异常", e);
+            if (ObjectUtil.isNotNull(meetingRoom)) {
+                //取消异常创建的会议
+                Integer finalVmrMode = vmrMode;
+                MeetingRoomModel finalMeetingRoom = meetingRoom;
+                MeetingResourcePO finalMeetingResourcePO = meetingResourcePO;
+                listeningExecutorService.submit(() -> {
+                    try {
+                        hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(finalVmrMode))
+                            .cancelMeetingRoom(
+                                new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
+                                    finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
+                                    NumberUtil.isNumber(meetingRoomContextDTO.getResourceType())));
+                    } catch (Exception e1) {
+                        log.error("【创建、预约会议】异常取消会议异常，异常信息：{}", e1);
+                    }
+                });
+            }
             throw e;
         } finally {
             if (lock.isLocked() && lock.isHeldByCurrentThread()) {
