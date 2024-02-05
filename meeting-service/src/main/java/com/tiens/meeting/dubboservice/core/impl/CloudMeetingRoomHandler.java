@@ -105,6 +105,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withLength(meetingRoomContextDTO.getLength() + 60);
             //会议开始时间（UTC时间）。格式：yyyy-MM-dd HH:mm。 > * 创建预约会议时，如果没有指定开始时间或填空串，则表示会议马上开始 > * 时间是UTC时间，即0时区的时间
             body.withStartTime(startTimeStr);
+            body.withSupportSimultaneousInterpretation(Boolean.TRUE);
+
             request.withBody(body);
             log.info("创建云会议结果入参：{}", request);
             CreateMeetingResponse response = userMeetingClient.createMeeting(request);

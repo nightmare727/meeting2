@@ -16,7 +16,7 @@
         <dependency>
             <groupId>com.huaweicloud.sdk</groupId>
             <artifactId>huaweicloud-sdk-meeting</artifactId>
-            <version>3.1.65</version>
+            <version>3.1.80</version>
         </dependency>
 
         <!-- Spring 核心 -->

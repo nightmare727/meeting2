@@ -135,20 +135,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         // 若为共有资源会议，需判断是否为开始时间 30min内，若在则直接进入会议，
         MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOpt.get();
 
-      /*  String resourceType = meetingRoomInfoPO.getResourceType();
 
-        if (!NumberUtil.isNumber(resourceType)) {
-            return CommonResult.success(null);
-        }*/
         String state = meetingRoomInfoPO.getState();
         if (MeetingRoomStateEnum.Destroyed.getState().equals(state)) {
             //会议已结束
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
         }
 
-//        Integer resourceId = meetingRoomInfoPO.getResourceId();
-//        MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
-//        if (ObjectUtil.isEmpty(meetingResourcePO.getOwnerImUserId())) {
+
         //此资源为共有资源
         Date lockStartTime = meetingRoomInfoPO.getLockStartTime();
         DateTime now = DateUtil.date();
@@ -346,7 +340,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         throws Exception {
         log.info("【创建、预约会议】开始，参数为：{}", meetingRoomContextDTO);
         Integer resourceId = meetingRoomContextDTO.getResourceId();
-        Boolean publicFlag = NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
 
         MeetingRoomModel meetingRoom = null;
@@ -405,8 +398,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //返回创建后得详情
             MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, null);
             result.setResourceExpireTime(meetingResourcePO.getExpireDate());
-//        hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).setMeetingRoomDetail
-//        (result);
             log.info("【创建、预约会议】完成，参数为：{}", meetingRoomContextDTO);
             return CommonResult.success(result);
         } catch (Exception e) {
