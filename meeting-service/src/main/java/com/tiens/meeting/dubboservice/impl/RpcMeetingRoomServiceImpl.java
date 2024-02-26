@@ -135,13 +135,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         // 若为共有资源会议，需判断是否为开始时间 30min内，若在则直接进入会议，
         MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOpt.get();
 
-
         String state = meetingRoomInfoPO.getState();
         if (MeetingRoomStateEnum.Destroyed.getState().equals(state)) {
             //会议已结束
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
         }
-
 
         //此资源为共有资源
         Date lockStartTime = meetingRoomInfoPO.getLockStartTime();
@@ -402,6 +400,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.success(result);
         } catch (Exception e) {
             log.error("【创建、预约会议】异常", e);
+            //创建华为云会议成功了
             if (ObjectUtil.isNotNull(meetingRoom)) {
                 //取消异常创建的会议
                 Integer finalVmrMode = vmrMode;
@@ -483,8 +482,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         if (!publicFlag) {
             //私有资源，自动设置已分配资源
-            build.setAssignResourceStatus(1);
-
+            build.setAssignResourceStatus(MeetingAssignStateEnum.ASSIGN_STATE_ENUM.getState());
         }
         return build;
     }
@@ -864,9 +862,19 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).cancelMeetingRoom(
             new CancelMeetingRoomModel(ownerImUserId, hwMeetingCode, vmrId, NumberUtil.isNumber(byId.getResourceType()),
                 currentUseImUserId));
-
+        //释放资源
         publicResourceHoldHandle(resourceId, MeetingResourceHandleEnum.HOLD_DOWN);
-        //取消资源占用
+        //会议资源已分配，则取消资源占用
+        DateTime now = DateUtil.date();
+        Date lockStartTime = byId.getLockStartTime();
+        Date lockEndTime = byId.getLockEndTime();
+        Integer status = byId1.getStatus();
+        Integer assignResourceStatus = byId.getAssignResourceStatus();
+        if (!MeetingResourceStateEnum.PRIVATE.getState().equals(status) && now.isAfterOrEquals(
+            lockStartTime) && now.isBeforeOrEquals(lockEndTime)) {
+            hwMeetingCommonService.disassociateVmr(byId.getOwnerImUserId(),
+                Collections.singletonList(byId1.getVmrId()));
+        }
         return CommonResult.success(null);
     }
 

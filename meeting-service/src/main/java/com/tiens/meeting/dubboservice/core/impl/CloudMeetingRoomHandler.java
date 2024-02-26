@@ -62,6 +62,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         String startTimeStr = dateTimeFormatter.format(of);
+
+        Boolean exceptionHappenFlag = false;
         try {
             //分配云会议资源
             if (publicFlag) {
@@ -140,17 +142,24 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             return meetingRoomModel;
         } catch (Exception e) {
             log.error("创建云会议、预约会议异常，异常信息：{}", e);
+            exceptionHappenFlag = Boolean.TRUE;
             throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);
         } finally {
-            if (publicFlag && subsCribeFlag) {
-                //为预约会议，预约完成后需要回收资源
-                log.info("编辑资源回收达成条件是 新增 publicFlag:{},subsCribeFlag:{}", publicFlag, subsCribeFlag);
-                String currentResourceUserId = meetingRoomContextDTO.getCurrentResourceUserId();
-                if (ObjectUtil.isNotEmpty(currentResourceUserId)) {
-                    hwMeetingCommonService.associateVmr(currentResourceUserId,
-                        Collections.singletonList(meetingRoomContextDTO.getVmrId()));
-                } else {
-                    //如果已分配，则执行 回收-分配-再回收
+            if (publicFlag) {
+                if (subsCribeFlag) {
+                    //为预约会议，预约完成后需要回收资源
+                    log.info("编辑资源回收达成条件是 新增 publicFlag:{},subsCribeFlag:{}", publicFlag, subsCribeFlag);
+                    String currentResourceUserId = meetingRoomContextDTO.getCurrentResourceUserId();
+                    if (ObjectUtil.isNotEmpty(currentResourceUserId)) {
+                        hwMeetingCommonService.associateVmr(currentResourceUserId,
+                            Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                    } else {
+                        //如果已分配，则执行 回收-分配-再回收
+                        hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                            Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                    }
+                } else if (exceptionHappenFlag) {
+                    //立即会议发生异常
                     hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
                         Collections.singletonList(meetingRoomContextDTO.getVmrId()));
                 }
