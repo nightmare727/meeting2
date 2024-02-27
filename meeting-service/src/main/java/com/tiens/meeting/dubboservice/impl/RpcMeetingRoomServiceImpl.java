@@ -1301,7 +1301,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             result = meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getResourceType, resourceCode)
                 .ne(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState())
                 .ne(MeetingResourcePO::getStatus, MeetingResourceStateEnum.REDISTRIBUTION.getState()).list().stream()
-                .collect(Collectors.toList());
+                .filter(t -> t.getExpireDate().after(DateUtil.date())).collect(Collectors.toList());
 
         } else {
             String[] split = resourceCode.split("-");
@@ -1310,7 +1310,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             String resourceType = split[2];
             result = meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getResourceType, resourceType)
                 .eq(MeetingResourcePO::getOwnerImUserId, imUserId).eq(MeetingResourcePO::getSize, resourceSize).list()
-                .stream().collect(Collectors.toList());
+                .stream().filter(t -> t.getExpireDate().after(DateUtil.date())).collect(Collectors.toList());
 
         }
 

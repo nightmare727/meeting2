@@ -84,10 +84,10 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-01-28 11:30:00"));
-        meetingRoomContextDTO.setLength(240);
+        meetingRoomContextDTO.setStartTime(null);
+        meetingRoomContextDTO.setLength(60);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setResourceId(348);
+        meetingRoomContextDTO.setResourceId(375);
         meetingRoomContextDTO.setResourceType("1");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
@@ -95,16 +95,16 @@ class RpcMeetingRoomServiceImplTest {
         meetingRoomContextDTO.setLevelCode(9);
         meetingRoomContextDTO.setImUserId("7a4037c1a8234ba286647f31aadfc4f1");
         meetingRoomContextDTO.setImUserName("文杰昵称");
-        List<MeetingAttendeeDTO> meetingAttendeeDTOS = Lists.newArrayList();
-        MeetingAttendeeDTO meetingAttendeeDTO = new MeetingAttendeeDTO();
-        meetingAttendeeDTO.setAttendeeUserId("cb4b8cc1be09409eb108baf982d7e196");
-        meetingAttendeeDTO.setAttendeeUserName("wenjie");
-        meetingAttendeeDTO.setAttendeeUserHeadUrl("wenjie_url");
-
-        meetingAttendeeDTOS.add(meetingAttendeeDTO);
-        meetingRoomContextDTO.setRemark("备注");
-        meetingRoomContextDTO.setAttendees(meetingAttendeeDTOS);
-        meetingRoomContextDTO.setRemark("测试备注");
+//        List<MeetingAttendeeDTO> meetingAttendeeDTOS = Lists.newArrayList();
+//        MeetingAttendeeDTO meetingAttendeeDTO = new MeetingAttendeeDTO();
+//        meetingAttendeeDTO.setAttendeeUserId("cb4b8cc1be09409eb108baf982d7e196");
+//        meetingAttendeeDTO.setAttendeeUserName("wenjie");
+//        meetingAttendeeDTO.setAttendeeUserHeadUrl("wenjie_url");
+//
+//        meetingAttendeeDTOS.add(meetingAttendeeDTO);
+//        meetingRoomContextDTO.setRemark("备注");
+//        meetingRoomContextDTO.setAttendees(meetingAttendeeDTOS);
+//        meetingRoomContextDTO.setRemark("测试备注");
         System.out.println(rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO));
     }
 
