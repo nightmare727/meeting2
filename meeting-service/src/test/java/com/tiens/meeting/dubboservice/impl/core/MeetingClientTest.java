@@ -15,7 +15,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.redisson.client.protocol.convertor.StreamIdConvertor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,8 +30,10 @@ import java.util.List;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MeetingClientTest {
 
-    public String appId = "ce1860512edc4e77a288283d79f08a27";
-    public String appKey = "502367f7fec27f77ddef76cd3b3129c71153431a9b45a5d4825e4f14e999d4dd";
+        public String appId = "ce1860512edc4e77a288283d79f08a27";
+//    public String appId = "89f4e01b24c54752aa6ef02c864efa42";
+        public String appKey = "502367f7fec27f77ddef76cd3b3129c71153431a9b45a5d4825e4f14e999d4dd";
+//    public String appKey = "3b6419481b81e65aee20946d84f1837924fe1b7c9d476fe781428e841217c72e";
     public String userId = "115e039f98e1441ba24e5e3584cef950";
 
     MeetingClient managerClient = null;
@@ -121,8 +122,8 @@ public class MeetingClientTest {
     @DisplayName("华为云SDK-分配资源接口")
     public void fenPei() {
         AssociateVmrRequest request = new AssociateVmrRequest();
-        request.withAccount("6b91d8c60f2949feaf6725c5b380bd0a");
-        request.withBody(Collections.singletonList("988994ebe1f8442eba39facd4d5f4d0c"));
+        request.withAccount("d45d2f5bb9144af9b1af766b54e3d195");
+        request.withBody(Collections.singletonList("ee6f335f41524341b9d06ea01f778a50"));
         request.setAccountType(AuthTypeEnum.APP_ID.getIntegerValue());
         AssociateVmrResponse response = managerClient.associateVmr(request);
         System.out.println(response);
@@ -157,6 +158,29 @@ public class MeetingClientTest {
     }
 
     @Test
+    @DisplayName("延长华为云会议")
+    public void prolongMeeting() {
+
+        String meetCode = "982357443";
+        String hostPwd = "574948";
+        CreateConfTokenRequest createConfTokenRequest = new CreateConfTokenRequest();
+        createConfTokenRequest.withConferenceID(meetCode);
+        createConfTokenRequest.withXPassword(hostPwd);
+        createConfTokenRequest.withXLoginType(1);
+        CreateConfTokenResponse response = managerClient.createConfToken(createConfTokenRequest);
+
+        ProlongMeetingRequest request = new ProlongMeetingRequest();
+        request.withConferenceID(meetCode);
+        request.withXConferenceAuthorization(response.getData().getToken());
+        RestProlongDurReqBody body = new RestProlongDurReqBody();
+        body.withDuration(30);
+        body.withAuto(1);
+        request.withBody(body);
+        ProlongMeetingResponse response1 = managerClient.prolongMeeting(request);
+        System.out.println(response1);
+    }
+
+    @Test
     @DisplayName("华为云SDK-查询录制文件")
     public void queryRecordFiles() {
         ShowRecordingFileDownloadUrlsRequest request = new ShowRecordingFileDownloadUrlsRequest();
@@ -180,7 +204,8 @@ public class MeetingClientTest {
         System.out.println("差集2：" + CollectionUtil.subtractToList(integers2, integers1));
 
     }
-//    会议主题:user_CB4B8CC1
+
+    //    会议主题:user_CB4B8CC1
 //    会议时间:2024/01/29 12:00-13:00(GMT+08:00)
 //    点击链接入会，或添加至会议列表:https://m-dev2.jikeint.com/conference/sharingConference?confId=965736955&nickName=user_CB4B8CC1&title=user_CB4B8CC1&lang=zh-CN&hostPwd=785777&guestPwd=&startTime=1706500800000&endTime=1706504400000
 //
@@ -188,13 +213,14 @@ public class MeetingClientTest {
     @Test
     @DisplayName("createWebSocketToken")
     public void createWebSocketToken() {
-        String code= "965736955";
+        String code = "965736955";
         String pwd = "785777";
 
         TokenInfo data = getCreateConfToken(code, pwd).getData();
         System.out.println(JSON.toJSONString(data));
 
     }
+
     public CreateConfTokenResponse getCreateConfToken(String meetingCode, String hostPwd) {
         CreateConfTokenRequest request = new CreateConfTokenRequest();
         request.withConferenceID(meetingCode);
@@ -203,6 +229,7 @@ public class MeetingClientTest {
         CreateConfTokenResponse response = managerClient.createConfToken(request);
         return response;
     }
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor

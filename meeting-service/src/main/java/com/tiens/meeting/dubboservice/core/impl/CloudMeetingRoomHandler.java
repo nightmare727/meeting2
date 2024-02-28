@@ -62,6 +62,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         LocalDateTime of = LocalDateTimeUtil.of(dateTime);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         String startTimeStr = dateTimeFormatter.format(of);
+
+        Boolean exceptionHappenFlag = false;
         try {
             //分配云会议资源
             if (publicFlag) {
@@ -105,6 +107,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withLength(meetingRoomContextDTO.getLength() + 60);
             //会议开始时间（UTC时间）。格式：yyyy-MM-dd HH:mm。 > * 创建预约会议时，如果没有指定开始时间或填空串，则表示会议马上开始 > * 时间是UTC时间，即0时区的时间
             body.withStartTime(startTimeStr);
+            body.withSupportSimultaneousInterpretation(Boolean.TRUE);
+
             request.withBody(body);
             log.info("创建云会议结果入参：{}", request);
             CreateMeetingResponse response = userMeetingClient.createMeeting(request);
@@ -138,13 +142,28 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             return meetingRoomModel;
         } catch (Exception e) {
             log.error("创建云会议、预约会议异常，异常信息：{}", e);
+            exceptionHappenFlag = Boolean.TRUE;
             throw new ServiceException(GlobalErrorCodeConstants.HW_CREATE_MEETING_ERROR);
         } finally {
-            if (publicFlag && subsCribeFlag) {
-                //为预约会议，预约完成后需要回收资源
-                log.info("编辑资源回收达成条件是 新增 publicFlag:{},subsCribeFlag:{}", publicFlag, subsCribeFlag);
-                hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
-                    Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+            if (publicFlag) {
+                if (subsCribeFlag) {
+                    //为预约会议，预约完成后需要回收资源
+                    log.info("编辑资源回收达成条件是 新增 publicFlag:{},subsCribeFlag:{}", publicFlag, subsCribeFlag);
+                    String currentResourceUserId = meetingRoomContextDTO.getCurrentResourceUserId();
+                    if (ObjectUtil.isNotEmpty(currentResourceUserId)) {
+                        hwMeetingCommonService.associateVmr(currentResourceUserId,
+                            Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                    } else {
+                        //如果已分配，则执行 回收-分配-再回收
+                        hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                            Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                    }
+                } else if (exceptionHappenFlag) {
+                    //立即会议发生异常
+                    hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                        Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                }
+
             }
         }
     }
@@ -224,8 +243,15 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             if (publicFlag && subsCribeFlag) {
                 //为预约会议，预约完成后需要回收资源
                 log.info("编辑资源回收达成条件是 publicFlag:{},subsCribeFlag:{}", publicFlag, subsCribeFlag);
-                hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
-                    Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                String currentResourceUserId = meetingRoomContextDTO.getCurrentResourceUserId();
+                if (ObjectUtil.isNotEmpty(currentResourceUserId)) {
+                    hwMeetingCommonService.associateVmr(currentResourceUserId,
+                        Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                } else {
+                    //如果已分配，则执行 回收-分配-再回收
+                    hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                        Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                }
             }
         }
 
@@ -268,8 +294,15 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         } finally {
             //回收资源
             if (publicFlag) {
-                hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
-                    Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+                String currentResourceUserId = cancelMeetingRoomModel.getCurrentResourceUserId();
+                if (ObjectUtil.isNotEmpty(currentResourceUserId)) {
+                    hwMeetingCommonService.associateVmr(currentResourceUserId,
+                        Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+                } else {
+                    //如果已分配，则执行 回收-分配-再回收
+                    hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
+                        Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+                }
             }
         }
 

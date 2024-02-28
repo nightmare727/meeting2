@@ -23,8 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -50,21 +50,42 @@ public class HWResourceTask {
     @MDCLog
     public void jobHandler() throws Exception {
         List<MeetingResourcePO> hwResourceList = getHwResourceList();
-        List<MeetingResourcePO> oldResourceList = meetingResourceDaoService.list();
+        Map<String, MeetingResourcePO> hwResourceMap =
+            hwResourceList.stream().collect(Collectors.toMap(MeetingResourcePO::getVmrId, Function.identity()));
 
-        List<String> hwResourceIds =
-            hwResourceList.stream().map(MeetingResourcePO::getVmrId).collect(Collectors.toList());
-        List<String> oldResourceIds =
-            oldResourceList.stream().map(MeetingResourcePO::getVmrId).collect(Collectors.toList());
+        List<MeetingResourcePO> oldResourceList =
+            meetingResourceDaoService.lambdaQuery().orderByAsc(MeetingResourcePO::getSize).list();
 
-        List<String> newResourceIds = CollectionUtil.subtractToList(hwResourceIds, oldResourceIds);
+        Map<String, MeetingResourcePO> oldResourceMap =
+            oldResourceList.stream().collect(Collectors.toMap(MeetingResourcePO::getVmrId, Function.identity()));
 
-        List<MeetingResourcePO> collect =
-            hwResourceList.stream().filter(r -> newResourceIds.contains(r.getVmrId())).collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(collect)) {
-            meetingResourceDaoService.saveBatch(collect);
+        //新资源列表
+        List<MeetingResourcePO> newResources = CollectionUtil.subtractToList(hwResourceList, oldResourceList);
+        if (CollectionUtil.isNotEmpty(newResources)) {
+            meetingResourceDaoService.saveBatch(newResources);
+            log.info("【定时执行华为资源同步】，共导入数量：{}条", newResources.size());
         }
-        log.info("【定时执行华为资源同步】，共导入数量：{}条", collect.size());
+        //已过期或者不存在的资源
+        List<MeetingResourcePO> invalidResources = CollectionUtil.subtractToList(oldResourceList, hwResourceList);
+        if (CollectionUtil.isNotEmpty(newResources)) {
+            //TODO 处理已过期或者不存在的资源
+        }
+        Collection<MeetingResourcePO> intersection = CollectionUtil.intersection(oldResourceList, hwResourceList);
+        //处理更新资源更新时间
+        if (CollectionUtil.isNotEmpty(intersection)) {
+            for (MeetingResourcePO meetingResourcePO : intersection) {
+                String vmrId = meetingResourcePO.getVmrId();
+                Date oldExpireDate = oldResourceMap.get(vmrId).getExpireDate();
+                Date hwExpireDate = hwResourceMap.get(vmrId).getExpireDate();
+                if (!hwExpireDate.equals(oldExpireDate)) {
+                    //更新过期时间
+                    boolean update = meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getVmrId, vmrId)
+                        .set(MeetingResourcePO::getExpireDate, hwExpireDate).update();
+                    log.info("【定时执行华为资源同步】 更新资源过期时间完成，vmrId：{}，过期时间：{},执行结果：{}", vmrId,
+                        hwExpireDate, update);
+                }
+            }
+        }
     }
 
     private List<MeetingResourcePO> getHwResourceList() {
