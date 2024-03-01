@@ -56,6 +56,7 @@ public class HeaderResolveFilter implements Filter {
         whiteListSet.add("/vmeeting/web/mtuser/queryMeetingHostUser");
         whiteListSet.add("/vmeeting/web/ping");
         whiteListSet.add("/vmeeting/web/mtuser/addMeetingHostUser");
+        whiteListSet.add("/vmeeting/web//version/queryList");
 
         //临时增加白名单，注意后期删除
 //        whiteListSet.add("/meeting/web/courses/increCoursePv");
