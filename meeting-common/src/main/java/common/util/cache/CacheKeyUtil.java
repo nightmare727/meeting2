@@ -12,6 +12,7 @@ public class CacheKeyUtil {
      */
     private static final String SPIT = ":";
     private static final String IM_USER_KEY_PREFIX = "im-meeting-user:";
+    private static final String IM_NEW_COMER_USER_KEY_PREFIX = "im-meeting-new_comer_user:";
     private static final String HW_USER_KEY_PREFIX = "im-hw-user-flag";
     private static final String HW_ROOM_EVENT_SYNC_PREFIX = "hw_room_event_count:";
     private static final String LANGUAGE_ID_PREFIX = "language-word:";
@@ -22,6 +23,10 @@ public class CacheKeyUtil {
 
     public static String getUserInfoKey(String imUserId) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(IM_USER_KEY_PREFIX).append(imUserId).toString();
+    }
+
+    public static String getNewComerTaskUserKey(String imUserId) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(IM_NEW_COMER_USER_KEY_PREFIX).append(imUserId).toString();
     }
 
     /**

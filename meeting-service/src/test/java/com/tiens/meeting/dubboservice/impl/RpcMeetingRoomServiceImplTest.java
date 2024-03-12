@@ -87,8 +87,8 @@ class RpcMeetingRoomServiceImplTest {
         meetingRoomContextDTO.setStartTime(null);
         meetingRoomContextDTO.setLength(60);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setResourceId(375);
-        meetingRoomContextDTO.setResourceType("1");
+        meetingRoomContextDTO.setResourceId(389);
+        meetingRoomContextDTO.setResourceType("2");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
         meetingRoomContextDTO.setGuestPwdFlag(false);
@@ -132,7 +132,7 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getMeetingRoom() {
         System.out.println(
-            rpcMeetingRoomService.getMeetingRoom(1748253468803543042L, "48cd6848a5ca47c883bd38a5c64287dd"));
+            rpcMeetingRoomService.getMeetingRoom(1767443276215427073L, "48cd6848a5ca47c883bd38a5c64287dd"));
     }
 
     @Test
