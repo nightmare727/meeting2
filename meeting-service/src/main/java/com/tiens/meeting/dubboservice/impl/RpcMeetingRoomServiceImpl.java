@@ -20,6 +20,7 @@ import com.tiens.api.dto.hwevent.Payload;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.*;
 import com.tiens.meeting.dubboservice.async.RoomAsyncTaskService;
+import com.tiens.meeting.dubboservice.common.NewComerTasks;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
@@ -29,6 +30,7 @@ import com.tiens.meeting.repository.po.*;
 import com.tiens.meeting.repository.service.*;
 import com.tiens.meeting.util.FreeTimeCalculatorUtil;
 import com.tiens.meeting.util.WheelTimerContext;
+import com.tiens.meeting.util.mdc.MDCLog;
 import common.enums.*;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
@@ -38,6 +40,7 @@ import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.redisson.api.RLock;
 import org.redisson.api.RLongAdder;
 import org.redisson.api.RedissonClient;
@@ -92,6 +95,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     ListeningExecutorService listeningExecutorService =
         MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
+
+
 
     /**
      * 前端获取认证资质
@@ -166,6 +171,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     @Override
+    @NewComerTasks
     public CommonResult enterMeetingRoom(JoinMeetingRoomDTO joinMeetingRoomDTO) {
         log.info("【加入会议】 入参：{}", joinMeetingRoomDTO);
 
@@ -187,7 +193,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         } catch (DuplicateKeyException e) {
             log.info("【加入会议】 重复添加会议与会者");
         }
-
+        //发送新人任务
         return CommonResult.success(null);
     }
 
@@ -334,6 +340,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     @Transactional
     @Override
+    @NewComerTasks
     public CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO)
         throws Exception {
         log.info("【创建、预约会议】开始，参数为：{}", meetingRoomContextDTO);

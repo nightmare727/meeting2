@@ -84,5 +84,9 @@ public class MeetingConfig {
      * 会议密码
      */
     private String meetingPwdKey;
+    /**
+     * 新人奖励任务同步
+     */
+    private String newComerTasksSynUrl;
 
 }
