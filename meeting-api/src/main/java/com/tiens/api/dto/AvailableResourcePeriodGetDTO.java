@@ -28,4 +28,9 @@ public class AvailableResourcePeriodGetDTO implements Serializable {
      */
     private Date date;
 
+    /**
+     * （需要传）时区偏移量
+     */
+    private String timeZoneOffset;
+
 }

@@ -183,17 +183,17 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         Date startTime = meetingRoomContextDTO.getStartTime();
         //是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
+        //当前UTC时间
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+
         //处理开始时间
-        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), now));
+
         //锁定开始时间
         DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
-        subsCribeFlag = subsCribeFlag && DateUtil.date().isBefore(lockStartTime);
+        subsCribeFlag = subsCribeFlag && now.isBefore(lockStartTime);
 
-        ZoneId zoneId3 = ZoneId.of("GMT");
-        DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
-        LocalDateTime of = LocalDateTimeUtil.of(dateTime);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        String startTimeStr = dateTimeFormatter.format(of);
+        String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
 
         try {
             //分配云会议资源

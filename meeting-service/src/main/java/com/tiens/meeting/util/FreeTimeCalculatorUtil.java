@@ -11,6 +11,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,14 +19,14 @@ public class FreeTimeCalculatorUtil {
     public static void main(String[] args) {
         // 已知时间段
         List<TimeRange> knownTimeRanges = new ArrayList<>();
-//        knownTimeRanges.add(new TimeRange(LocalTime.of(13, 30), LocalTime.of(15, 29))); // 上午工作
+        //        knownTimeRanges.add(new TimeRange(LocalTime.of(13, 30), LocalTime.of(15, 29))); // 上午工作
         knownTimeRanges.add(new TimeRange(LocalTime.of(11, 00), LocalTime.of(12, 59))); // 下午工作
         knownTimeRanges.add(new TimeRange(LocalTime.of(21, 30), LocalTime.of(23, 29))); // 下午工作
 
         // 计算空闲时间段
         List<TimeRange> freeTimeRanges =
-            calculateFreeTimeRanges(knownTimeRanges, 1, 6, DateUtil.parse("2023-12-28 11:00:00"),
-                DateUtil.parse("2024-01-04 23:59:59"));
+                calculateFreeTimeRanges(knownTimeRanges, 1, 6, DateUtil.parse("2023-12-28 11:00:00"),
+                        DateUtil.parse("2024-01-04 23:59:59"));
 
         // 输出空闲时间段
         for (TimeRange range : freeTimeRanges) {
@@ -35,21 +36,21 @@ public class FreeTimeCalculatorUtil {
     }
 
     public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges, int minIntervalInHours,
-        int maxIntervalInHours, Date targetDate, Date expireDate) {
-//        1、列出所有已知的占用时间段：首先，我们需要知道哪些时间段是忙碌的。这可以通过查看时间表或数据库中的记录来完成。
+                                                          int maxIntervalInHours, Date targetDate, Date expireDate) {
+        //        1、列出所有已知的占用时间段：首先，我们需要知道哪些时间段是忙碌的。这可以通过查看时间表或数据库中的记录来完成。
 
-//        2、计算每个时间段的长度：对于每个占用的时间段，计算出它的结束时间和开始时间，从而得到它的长度。长度是结束时间减去开始时间。
+        //        2、计算每个时间段的长度：对于每个占用的时间段，计算出它的结束时间和开始时间，从而得到它的长度。长度是结束时间减去开始时间。
 
-//        3、确定空闲时间段的范围：为了找到空闲时间段，我们需要从一天的开始（通常为0点）开始，到这一天的结束（通常为24点）结束。然后，我们从这个范围中减去所有已知的占用时间段的长度。
+        //        3、确定空闲时间段的范围：为了找到空闲时间段，我们需要从一天的开始（通常为0点）开始，到这一天的结束（通常为24点）结束。然后，我们从这个范围中减去所有已知的占用时间段的长度。
 
-//        4、筛选出符合条件的空闲时间段：我们筛选出长度在2小时到6小时之间的时间段。如果一个时间段的长度小于2小时或大于6小时，我们就将其排除在外。
+        //        4、筛选出符合条件的空闲时间段：我们筛选出长度在2小时到6小时之间的时间段。如果一个时间段的长度小于2小时或大于6小时，我们就将其排除在外。
 
-//        5、获取所有空闲时间段集合：最后，我们将所有的空闲时间段合并起来，形成一个完整的集合。
+        //        5、获取所有空闲时间段集合：最后，我们将所有的空闲时间段合并起来，形成一个完整的集合。
         //查询空闲时间段
         List<TimeRange> rangeList = calculateFreeTimeRanges(knownTimeRanges, targetDate, expireDate);
         //
         return rangeList.stream().map(s -> splitTimeInterval(s, targetDate, minIntervalInHours, maxIntervalInHours))
-            .flatMap(Collection::stream).collect(Collectors.toList());
+                .flatMap(Collection::stream).collect(Collectors.toList());
     }
 
     /**
@@ -59,7 +60,7 @@ public class FreeTimeCalculatorUtil {
      * @return
      */
     public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges, Date targetDate,
-        Date expireDate) {
+                                                          Date expireDate) {
         //重排序，防止出问题
         knownTimeRanges.sort(Comparator.comparing(TimeRange::getStart));
 
@@ -70,11 +71,11 @@ public class FreeTimeCalculatorUtil {
         // 当前时间，则取当前时间时分，否则假设一天从0点开始，到23点59分结束
         LocalTime startOfDay = isToday ? LocalTime.of(now.getHours(), now.getMinutes()) : LocalTime.of(0, 0);
         boolean isExpireDay =
-            DatePattern.NORM_DATE_FORMAT.format(targetDate).equals(DatePattern.NORM_DATE_FORMAT.format(expireDate));
+                DatePattern.NORM_DATE_FORMAT.format(targetDate).equals(DatePattern.NORM_DATE_FORMAT.format(expireDate));
 
         //结束时间需要计算资源过期时间
         LocalTime endOfDay =
-            isExpireDay ? LocalTime.of(expireDate.getHours(), expireDate.getMinutes()) : LocalTime.of(23, 59);
+                isExpireDay ? LocalTime.of(expireDate.getHours(), expireDate.getMinutes()) : LocalTime.of(23, 59);
         if (CollectionUtil.isEmpty(knownTimeRanges)) {
             freeTimeRanges.add(new TimeRange(startOfDay, endOfDay));
             return freeTimeRanges;
@@ -101,7 +102,7 @@ public class FreeTimeCalculatorUtil {
     }
 
     public static List<TimeRange> splitTimeInterval(TimeRange timeRange, Date targetDate, int minIntervalInHours,
-        int maxIntervalInHours) {
+                                                    int maxIntervalInHours) {
         //计算开始时间和结束时间之间的小时数差。
         //将小时数差除以6，得到需要切割的时间段数量。
         //使用循环遍历每个时间段，计算每个时间段的开始和结束时间。
@@ -207,15 +208,24 @@ public class FreeTimeCalculatorUtil {
             this.end = end;
         }
 
-        public TimeRange(Date lockStartTime, Date lockEndTime) {
-            this.start = convertDateToLocalTime(lockStartTime);
-            this.end = convertDateToLocalTime(lockEndTime);
+        public TimeRange(Date lockStartTime, Date lockEndTime, ZoneId userZoneId) {
+
+
+            TimeZone userTimeZone = TimeZone.getTimeZone(userZoneId);
+            TimeZone zeroTimeZone = TimeZone.getTimeZone(ZoneId.of("GMT"));
+            int timeZoneOffset = userTimeZone.getRawOffset() - zeroTimeZone.getRawOffset();
+            this.start = convertDateToLocalTime(lockStartTime,timeZoneOffset);
+            this.end = convertDateToLocalTime(lockEndTime,timeZoneOffset);
         }
 
-        public static LocalTime convertDateToLocalTime(Date date) {
+        public static LocalTime convertDateToLocalTime(Date date, int timeZoneOffset) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            calendar.add(Calendar.MILLISECOND, timeZoneOffset);
+            Date newDate = calendar.getTime();
             // 从Date对象中获取毫秒值
-            long millis = date.getTime();
-            DateTime dateTime = DateUtil.beginOfDay(date);
+            long millis = newDate.getTime();
+            DateTime dateTime = DateUtil.beginOfDay(newDate);
             millis = millis - dateTime.getTime();
             // 将毫秒值转换为秒值
             long seconds = millis / 1000;
@@ -226,7 +236,7 @@ public class FreeTimeCalculatorUtil {
             long remainingSeconds = seconds % 60;
 
             // 使用这些值创建一个LocalTime对象
-            return LocalTime.of((int)hours, (int)minutes, 0);
+            return LocalTime.of((int) hours, (int) minutes, 0);
         }
 
         @Override
