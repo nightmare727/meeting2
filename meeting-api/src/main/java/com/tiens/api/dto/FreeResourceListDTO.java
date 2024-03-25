@@ -22,9 +22,14 @@ public class FreeResourceListDTO implements Serializable {
      */
     private Integer levelCode;
     /**
-     * (需要)会议开始时间（GTM+8时间）。格 式：yyyy-MM-dd HH:mm。
+     * (需要)会议开始时间。格 式：yyyy-MM-dd HH:mm。
      */
     private Date startTime;
+
+    /**
+     * （需要传）时区偏移量
+     */
+    private String timeZoneOffset;
     /**
      * (需要)会议持续时长，单位分钟。默认 30分钟。 最大1440分钟（24小时），最 小15分钟。
      */

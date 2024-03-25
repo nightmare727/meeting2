@@ -2,6 +2,7 @@ package com.tiens.meeting.dubboservice.job;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.tiens.common.Result;
@@ -20,6 +21,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,17 +55,18 @@ public class MeetingStopNoticeTask {
     @MDCLog
     public void jobHandler() throws Exception {
         //1、找到快结束的会议室，给主持人发送IM消息
-
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
-            .eq(MeetingRoomInfoPO::getNotifyRoomStopStatus, 0).le(MeetingRoomInfoPO::getShowEndTime, DateUtil.date())
+            .eq(MeetingRoomInfoPO::getNotifyRoomStopStatus, 0).le(MeetingRoomInfoPO::getShowEndTime, DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT")))
             .list();
 //            .le(MeetingRoomInfoPO::getLockEndTime, DateUtil.offsetMinute(new Date(), 90)).list();
+        //排除掉私人专属会议
+        list = list.stream().filter(m -> NumberUtil.isNumber(m.getResourceType())).collect(Collectors.toList());
         if (CollectionUtil.isEmpty(list)) {
             log.info("【定时任务：会议结束前30分钟】:当前无需要通知的消息");
             return;
         }
-        log.info("【定时任务：会议结束前30分钟】:当前需要通知的会议列表:{}",JSON.toJSONString(list));
+        log.info("【定时任务：会议结束前30分钟】:当前需要通知的会议列表:{}", JSON.toJSONString(list));
         List<String> toAccIds =
             list.stream().map(MeetingRoomInfoPO::getOwnerImUserId).distinct().collect(Collectors.toList());
 

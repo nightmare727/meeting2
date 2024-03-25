@@ -35,6 +35,7 @@ import java.util.List;
 @Service
 @Slf4j
 public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
+    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     /**
      * 创建华为会议
@@ -46,23 +47,21 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
     public MeetingRoomModel createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         //资源是否公有
         boolean publicFlag = NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
-
         Date startTime = meetingRoomContextDTO.getStartTime();
         //是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
+
+        //当前UTC时间
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+
         //处理开始时间
-        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), now));
 
         //锁定开始时间
         DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
-        subsCribeFlag = subsCribeFlag && DateUtil.date().isBefore(lockStartTime);
+        subsCribeFlag = subsCribeFlag && now.isBefore(lockStartTime);
 
-        ZoneId zoneId3 = ZoneId.of("GMT");
-        DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
-        LocalDateTime of = LocalDateTimeUtil.of(dateTime);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        String startTimeStr = dateTimeFormatter.format(of);
-
+        String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
         Boolean exceptionHappenFlag = false;
         try {
             //分配云会议资源
@@ -76,13 +75,16 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             CreateMeetingRequest request = new CreateMeetingRequest();
             RestScheduleConfDTO body = new RestScheduleConfDTO();
             RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
+            //是否私人会议
+            boolean isPrivate = !NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
             confConfigInfobody.withIsGuestFreePwd(false)
                 //允许加入会议的范围。企业
                 .withCallInRestriction(2)
                 //随机会议id-私人会议，固定会议id
                 .withVmrIDType(1)
-                //自动延时30分钟
-                .withProlongLength(0).withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
+                //私人会议延长60分钟，否则不延迟
+                .withProlongLength(isPrivate ? 60 : 0)
+                .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
                 //是否开启等候室
                 .withEnableWaitingRoom(false);
             body.withVmrID(meetingRoomContextDTO.getVmrId());

@@ -24,7 +24,7 @@ public class MeetingRoomContextDTO implements Serializable {
      */
     private String meetingCode;
     /**
-     * （需要传）会议开始时间（GMT+8时间）。格 式：yyyy-MM-dd HH:mm。 说明 ● 创建预约会议时，如果没有指定 开始时间或填空串，则表示会议 马上开始
+     * （需要传）会议开始时间。格 式：yyyy-MM-dd HH:mm。 说明 ● 创建预约会议时，如果没有指定 开始时间或填空串，则表示会议 马上开始
      */
     private Date startTime;
     /**
@@ -39,6 +39,11 @@ public class MeetingRoomContextDTO implements Serializable {
      * （暂时不需要传）会议通知中会议时间的时区信 息。时区信息，参考时区映射关系。
      */
     private Integer timeZoneID = 56;
+
+    /**
+     * （需要传）时区偏移量
+     */
+    private String timeZoneOffset;
     /**
      * （需要传）资源类型
      */

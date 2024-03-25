@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.tiens.api.dto.CancelResourceAllocateDTO;
 import com.tiens.api.dto.ResourceAllocateDTO;
@@ -63,18 +64,18 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     private final RedissonClient redissonClient;
 
     public static void main(String[] args) {
-        ZoneId zoneId1 = ZoneId.of("GMT+09:00");
+        System.out.println(LocalDateTimeUtil.now());
+        ZoneId zoneId1 = ZoneId.of("UTC");
         ZoneId zoneId2 = ZoneId.of("GMT+07:00");
         Instant now = Instant.now();
         Date date = new Date();
-
         DateTime dateTime = DateUtil.convertTimeZone(date, zoneId1);
 
-        System.out.println(dateTime);
+//        System.out.println(dateTime);
 //        ZonedDateTime zonedDateTime = now.atZone(zoneId1);
 //        System.out.println(zonedDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 
-        System.out.println(now);
+//        System.out.println(now);
 //        System.out.println(zonedDateTime);
     }
 

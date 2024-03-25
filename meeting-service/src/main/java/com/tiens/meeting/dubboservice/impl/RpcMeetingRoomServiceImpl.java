@@ -30,7 +30,6 @@ import com.tiens.meeting.repository.po.*;
 import com.tiens.meeting.repository.service.*;
 import com.tiens.meeting.util.FreeTimeCalculatorUtil;
 import com.tiens.meeting.util.WheelTimerContext;
-import com.tiens.meeting.util.mdc.MDCLog;
 import common.enums.*;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
@@ -40,7 +39,6 @@ import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.redisson.api.RLock;
 import org.redisson.api.RLongAdder;
 import org.redisson.api.RedissonClient;
@@ -49,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import java.text.MessageFormat;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -95,8 +93,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     ListeningExecutorService listeningExecutorService =
         MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
-
-
 
     /**
      * 前端获取认证资质
@@ -209,7 +205,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("空闲资源列表【0】入参：{}", freeResourceListDTO);
 
         Date showStartTime = DateUtils.roundToHalfHour(
-            ObjectUtil.defaultIfNull(DateUtil.date(freeResourceListDTO.getStartTime()), DateUtil.date()));
+            ObjectUtil.defaultIfNull(DateUtil.date(freeResourceListDTO.getStartTime()),
+                DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"))));
 
         DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
         DateTime lockEndTime = DateUtil.offsetMinute(showStartTime, freeResourceListDTO.getLength() + 29);
@@ -363,10 +360,17 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             if (!checkResult.isSuccess()) {
                 return checkResult;
             }
-            meetingResourcePO = (MeetingResourcePO)checkResult.getData();
+            Tuple2<MeetingResourcePO, MeetingTimeZoneConfigPO> of =
+                (Tuple2<MeetingResourcePO, MeetingTimeZoneConfigPO>)checkResult.getData();
+
+            meetingResourcePO = of.getT1();
+            MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = of.getT2();
+
             meetingRoomContextDTO.setVmrId(meetingResourcePO.getVmrId());
             meetingRoomContextDTO.setVmrMode(meetingResourcePO.getVmrMode());
             meetingRoomContextDTO.setResourceStatus(meetingResourcePO.getStatus());
+            meetingRoomContextDTO.setTimeZoneID(meetingTimeZoneConfigPO.getTimeZoneId());
+
             //查询是否该资源已分配，
             currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
             meetingRoomContextDTO.setCurrentResourceUserId(currentUseImUserId);
@@ -441,7 +445,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         //展示开始时间
         DateTime showStartTime = DateUtils.roundToHalfHour(
-            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), DateUtil.date()));
+            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()),
+                DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"))));
         Integer length = meetingRoomContextDTO.getLength();
         //展示结束时间
         DateTime showEndTime = DateUtil.offsetMinute(showStartTime, length);
@@ -453,7 +458,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         //查询时区配置
         MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = meetingTimeZoneConfigDaoService.lambdaQuery()
-            .eq(MeetingTimeZoneConfigPO::getTimeZoneId, meetingRoomContextDTO.getTimeZoneID()).one();
+            .eq(MeetingTimeZoneConfigPO::getTimeZoneOffset, meetingRoomContextDTO.getTimeZoneOffset())
+            .orderByAsc(MeetingTimeZoneConfigPO::getId).last("limit 1").one();
 
         String resourceTypeDesc;
         String resourceType = meetingRoomContextDTO.getResourceType();
@@ -497,18 +503,28 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private CommonResult checkCreateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
+
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
         Date showStartTime = DateUtils.roundToHalfHour(
-            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), DateUtil.date()));
+            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), now));
 
         DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
         DateTime lockEndTime = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength() + 29);
 
+        //判断时区是否异常
+        MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = meetingTimeZoneConfigDaoService.lambdaQuery()
+            .eq(MeetingTimeZoneConfigPO::getTimeZoneOffset, meetingRoomContextDTO.getTimeZoneOffset())
+            .orderByAsc(MeetingTimeZoneConfigPO::getId).last("limit 1").one();
+        if (ObjectUtil.isNotNull(meetingTimeZoneConfigPO)) {
+            return CommonResult.error(GlobalErrorCodeConstants.TIME_OFFSET_ERROR);
+        }
+
         //开始时间小于当前时间
-        if (showStartTime.before(DateUtil.date())) {
+        if (showStartTime.before(now)) {
             return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
         }
         //无法创建3个月后的会议
-        if (showStartTime.after(DateUtil.offsetMonth(new Date(), 3))) {
+        if (showStartTime.after(DateUtil.offsetMonth(now, 3))) {
             return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
         }
         if (ObjectUtil.isNull(meetingResourcePO)) {
@@ -516,9 +532,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_RESOURCE);
         }
         //超出资源过期时间
-        if (meetingResourcePO.getExpireDate().before(lockEndTime)) {
+        if (DateUtil.convertTimeZone(meetingResourcePO.getExpireDate(), ZoneId.of("GMT")).before(lockEndTime)) {
+            //todo 过期时间词条处理
             return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR,
-                Collections.singletonList(meetingResourcePO.getExpireDate()));
+                Collections.singletonList(DateUtil.convertTimeZone(meetingResourcePO.getExpireDate(),
+                    ZoneId.of(meetingRoomContextDTO.getTimeZoneOffset()))));
         }
 
         FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
@@ -548,7 +566,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //与会者人数无法超过资源限定人数
             return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_SIZE_ERROR);
         }
-        return CommonResult.success(meetingResourcePO);
+        Tuple2<MeetingResourcePO, MeetingTimeZoneConfigPO> of = Tuples.of(meetingResourcePO, meetingTimeZoneConfigPO);
+        return CommonResult.success(of);
     }
 
     private FreeResourceListDTO wrapperFreeResourceListDTO(MeetingRoomContextDTO meetingRoomContextDTO) {
@@ -828,9 +847,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     public static void main(String[] args) {
-        Object[] params = new Object[] {"1234"};
-        String msg = MessageFormat.format("验证码:{0},您正在登录管理后台，1分钟内输入有效。", params);
-        System.out.println(msg);
+//        Object[] params = new Object[] {"1234"};
+//        String msg = MessageFormat.format("验证码:{0},您正在登录管理后台，1分钟内输入有效。", params);
+//        System.out.println(msg);
     }
 
     /**
