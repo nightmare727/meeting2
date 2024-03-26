@@ -93,7 +93,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public static final String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
 
     ListeningExecutorService listeningExecutorService =
-            MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
+        MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
 
     /**
      * 前端获取认证资质
@@ -128,7 +128,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("加入会议校验入参：{}", enterMeetingRoomCheckDTO);
         //查询会议code是否存在
         Optional<MeetingRoomInfoPO> meetingRoomInfoPOOpt =
-                meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetRoomCode).oneOpt();
+            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetRoomCode).oneOpt();
         if (!meetingRoomInfoPOOpt.isPresent()) {
             //不存在会议
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
@@ -145,14 +145,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         //此资源为共有资源
         Date lockStartTime = meetingRoomInfoPO.getLockStartTime();
-        DateTime now = DateUtil.date();
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
         if (now.isBefore(lockStartTime)) {
             //未到开会开始时间
             String betweenDate = DateUtil.formatBetween(now, lockStartTime, BetweenFormatter.Level.MINUTE);
             //未到开会开始时间
             return CommonResult.error(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getCode(),
-                    String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getChinesMsg(),
-                            lockStartTime.getTime()));
+                String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getChinesMsg(),
+                    lockStartTime.getTime()));
             //                return CommonResult.errorMsg(String.format("请在 %s后进入会议", betweenDate));
         }
         //        }
@@ -173,8 +173,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("【加入会议】 入参：{}", joinMeetingRoomDTO);
 
         MeetingRoomInfoPO one = meetingRoomInfoDaoService.lambdaQuery()
-                .eq(MeetingRoomInfoPO::getHwMeetingCode, joinMeetingRoomDTO.getMeetRoomCode())
-                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).one();
+            .eq(MeetingRoomInfoPO::getHwMeetingCode, joinMeetingRoomDTO.getMeetRoomCode())
+            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).one();
         if (ObjectUtil.isNull(one)) {
             log.error("【加入会议】 会议不存在，会议号：{}", joinMeetingRoomDTO.getMeetRoomCode());
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
@@ -206,8 +206,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("空闲资源列表【0】入参：{}", freeResourceListDTO);
 
         Date showStartTime = DateUtils.roundToHalfHour(
-                ObjectUtil.defaultIfNull(DateUtil.date(freeResourceListDTO.getStartTime()),
-                        DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"))));
+            ObjectUtil.defaultIfNull(DateUtil.date(freeResourceListDTO.getStartTime()),
+                DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"))));
 
         DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
         DateTime lockEndTime = DateUtil.offsetMinute(showStartTime, freeResourceListDTO.getLength() + 29);
@@ -223,25 +223,25 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("空闲资源列表【1】初始过滤资源池结果：{}", result);
 
         List<Integer> originResourceIds =
-                result.stream().filter(t -> t.getExpireDate().after(lockEndTime)).map(MeetingResourceVO::getId)
-                        .collect(Collectors.toList());
+            result.stream().filter(t -> t.getExpireDate().after(lockEndTime)).map(MeetingResourceVO::getId)
+                .collect(Collectors.toList());
 
         if (ObjectUtil.isEmpty(originResourceIds)) {
             return CommonResult.success(Collections.emptyList());
         }
 
         List<MeetingRoomInfoPO> lockedMeetingRoomList =
-                getOccupiedMeetingRoom(originResourceIds, lockStartTime, lockEndTime);
+            getOccupiedMeetingRoom(originResourceIds, lockStartTime, lockEndTime);
         log.info("空闲资源列表【2】，锁定开始时间：{}，锁定结束时间：{}，查询锁定会议结果：{}", lockStartTime, lockEndTime,
-                lockedMeetingRoomList);
+            lockedMeetingRoomList);
 
         //该段时间正在锁定的资源
         List<Integer> lockedResourceIdList =
-                lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
+            lockedMeetingRoomList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toList());
         //去除空闲资源中被锁定的资源
         result = result.stream()
-                .filter(t -> originResourceIds.contains(t.getId()) && !lockedResourceIdList.contains(t.getId()))
-                .peek(t -> t.setResourceType(freeResourceListDTO.getResourceType())).collect(Collectors.toList());
+            .filter(t -> originResourceIds.contains(t.getId()) && !lockedResourceIdList.contains(t.getId()))
+            .peek(t -> t.setResourceType(freeResourceListDTO.getResourceType())).collect(Collectors.toList());
         log.info("空闲资源列表结果：{}", result);
         return CommonResult.success(result);
     }
@@ -255,22 +255,22 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     List<MeetingRoomInfoPO> getOccupiedMeetingRoom(List<Integer> resourceIdList, DateTime lockStartTime,
-                                                   DateTime lockEndTime) {
+        DateTime lockEndTime) {
         if (CollectionUtil.isEmpty(resourceIdList)) {
             return Collections.emptyList();
         }
         Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
-                wrapper -> wrapper.ge(MeetingRoomInfoPO::getLockStartTime, lockStartTime)
-                        .le(MeetingRoomInfoPO::getLockStartTime, lockEndTime)
-                        .or(wrapper1 -> wrapper1.ge(MeetingRoomInfoPO::getLockEndTime, lockStartTime)
-                                .le(MeetingRoomInfoPO::getLockEndTime, lockEndTime))
-                        .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, lockStartTime)
-                                .ge(MeetingRoomInfoPO::getLockEndTime, lockEndTime));
+            wrapper -> wrapper.ge(MeetingRoomInfoPO::getLockStartTime, lockStartTime)
+                .le(MeetingRoomInfoPO::getLockStartTime, lockEndTime)
+                .or(wrapper1 -> wrapper1.ge(MeetingRoomInfoPO::getLockEndTime, lockStartTime)
+                    .le(MeetingRoomInfoPO::getLockEndTime, lockEndTime))
+                .or(wrapper2 -> wrapper2.le(MeetingRoomInfoPO::getLockStartTime, lockStartTime)
+                    .ge(MeetingRoomInfoPO::getLockEndTime, lockEndTime));
         //该段时间正在锁定的会议
         List<MeetingRoomInfoPO> lockedMeetingRoomList =
-                meetingRoomInfoDaoService.lambdaQuery().in(MeetingRoomInfoPO::getResourceId, resourceIdList)
-                        .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer)
-                        .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list();
+            meetingRoomInfoDaoService.lambdaQuery().in(MeetingRoomInfoPO::getResourceId, resourceIdList)
+                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer)
+                .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list();
         return lockedMeetingRoomList;
     }
 
@@ -281,9 +281,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String size = split[1];
         String relType = split[2];
         List<MeetingResourcePO> list = meetingResourceDaoService.lambdaQuery()
-                .eq(MeetingResourcePO::getOwnerImUserId, freeResourceListDTO.getImUserId())
-                .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState())
-                .eq(MeetingResourcePO::getResourceType, relType).list();
+            .eq(MeetingResourcePO::getOwnerImUserId, freeResourceListDTO.getImUserId())
+            .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState())
+            .eq(MeetingResourcePO::getResourceType, relType).list();
         return BeanUtil.copyToList(list, MeetingResourceVO.class);
     }
 
@@ -299,9 +299,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         //根据资源类型查询所有空闲资源
         List<MeetingResourcePO> levelFreeResourceList = meetingResourceDaoService.lambdaQuery()
-                .notIn(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState(),
-                        MeetingResourceStateEnum.REDISTRIBUTION.getState())
-                .eq(MeetingResourcePO::getResourceType, Integer.parseInt(freeResourceListDTO.getResourceType())).list();
+            .notIn(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState(),
+                MeetingResourceStateEnum.REDISTRIBUTION.getState())
+            .eq(MeetingResourcePO::getResourceType, Integer.parseInt(freeResourceListDTO.getResourceType())).list();
 
         return BeanUtil.copyToList(levelFreeResourceList, MeetingResourceVO.class);
     }
@@ -316,13 +316,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public Integer getMaxLevel(Integer levelCode, String imUserId) {
         //根据等级查询资源
         MeetingLevelResourceConfigPO one =
-                meetingLevelResourceConfigDaoService.lambdaQuery().select(MeetingLevelResourceConfigPO::getResourceType)
-                        .eq(MeetingLevelResourceConfigPO::getVmUserLevel, levelCode).one();
+            meetingLevelResourceConfigDaoService.lambdaQuery().select(MeetingLevelResourceConfigPO::getResourceType)
+                .eq(MeetingLevelResourceConfigPO::getVmUserLevel, levelCode).one();
         Integer maxResourceType = one.getResourceType();
         //查询该用户的主持人等级
         Optional<MeetingHostUserPO> meetingHostUserPOOptional =
-                meetingHostUserDaoService.lambdaQuery().eq(MeetingHostUserPO::getAccId, imUserId)
-                        .select(MeetingHostUserPO::getResourceType).oneOpt();
+            meetingHostUserDaoService.lambdaQuery().eq(MeetingHostUserPO::getAccId, imUserId)
+                .select(MeetingHostUserPO::getResourceType).oneOpt();
         if (meetingHostUserPOOptional.isPresent()) {
             //比较和等级关联的资源类型大小
             maxResourceType = NumberUtil.max(meetingHostUserPOOptional.get().getResourceType(), maxResourceType);
@@ -340,7 +340,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Override
     @NewComerTasks
     public CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO)
-            throws Exception {
+        throws Exception {
         log.info("【创建、预约会议】开始，参数为：{}", meetingRoomContextDTO);
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
@@ -362,7 +362,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 return checkResult;
             }
             Tuple2<MeetingResourcePO, MeetingTimeZoneConfigPO> of =
-                    (Tuple2<MeetingResourcePO, MeetingTimeZoneConfigPO>) checkResult.getData();
+                (Tuple2<MeetingResourcePO, MeetingTimeZoneConfigPO>)checkResult.getData();
 
             meetingResourcePO = of.getT1();
             MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = of.getT2();
@@ -380,10 +380,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
             //1、创建华为云会议
             meetingRoom = hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
-                    .createMeetingRoom(meetingRoomContextDTO);
+                .createMeetingRoom(meetingRoomContextDTO);
             //包装po实体
             MeetingRoomInfoPO meetingRoomInfoPO =
-                    packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
+                packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
             //2、创建本地会议
             meetingRoomInfoDaoService.save(meetingRoomInfoPO);
             Long meetingRoomId = meetingRoomInfoPO.getId();
@@ -392,13 +392,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             if (ObjectUtil.isNotEmpty(attendees)) {
                 DateTime now = DateUtil.date();
                 List<MeetingAttendeePO> collect = attendees.stream().map(
-                                t -> MeetingAttendeePO.builder().meetingRoomId(meetingRoomId).attendeeUserId(t.getAttendeeUserId())
-                                        .attendeeUserName(t.getAttendeeUserName()).source(MeetingUserJoinSourceEnum.APPOINT.getCode())
-                                        .attendeeUserHeadUrl(t.getAttendeeUserHeadUrl()).createTime(now).updateTime(now).build())
-                        .distinct().collect(Collectors.toList());
+                        t -> MeetingAttendeePO.builder().meetingRoomId(meetingRoomId).attendeeUserId(t.getAttendeeUserId())
+                            .attendeeUserName(t.getAttendeeUserName()).source(MeetingUserJoinSourceEnum.APPOINT.getCode())
+                            .attendeeUserHeadUrl(t.getAttendeeUserHeadUrl()).createTime(now).updateTime(now).build())
+                    .distinct().collect(Collectors.toList());
 
                 roomAsyncTaskService.batchSendIMMessage(meetingRoomInfoPO,
-                        attendees.stream().map(MeetingAttendeeDTO::getAttendeeUserId).collect(Collectors.toList()));
+                    attendees.stream().map(MeetingAttendeeDTO::getAttendeeUserId).collect(Collectors.toList()));
 
                 meetingAttendeeDaoService.saveBatch(collect);
             }
@@ -422,9 +422,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 listeningExecutorService.submit(() -> {
                     try {
                         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(finalVmrMode))
-                                .cancelMeetingRoom(new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
-                                        finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
-                                        NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId));
+                            .cancelMeetingRoom(new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
+                                finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
+                                NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId));
                     } catch (Exception e1) {
                         log.error("【创建、预约会议】异常取消会议异常，异常信息：{}", e1);
                     }
@@ -441,13 +441,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     private MeetingRoomInfoPO packMeetingRoomInfoPO(MeetingRoomContextDTO meetingRoomContextDTO,
-                                                    MeetingRoomModel meetingRoom, MeetingResourcePO meetingResourcePO) {
+        MeetingRoomModel meetingRoom, MeetingResourcePO meetingResourcePO) {
 
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         //展示开始时间
         DateTime showStartTime = DateUtils.roundToHalfHour(
-                ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()),
-                        DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"))));
+            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()),
+                DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"))));
         Integer length = meetingRoomContextDTO.getLength();
         //展示结束时间
         DateTime showEndTime = DateUtil.offsetMinute(showStartTime, length);
@@ -456,7 +456,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
         //锁定结束时间
         DateTime lockEndTime = DateUtil.offsetMinute(showEndTime, 29);
-
 
         String resourceTypeDesc;
         String resourceType = meetingRoomContextDTO.getResourceType();
@@ -473,14 +472,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
 
         MeetingRoomInfoPO build = MeetingRoomInfoPO.builder().id(meetingRoomContextDTO.getMeetingRoomId())
-                .duration(meetingRoomContextDTO.getLength()).showStartTime(showStartTime).showEndTime(showEndTime)
-                .lockStartTime(lockStartTime).lockEndTime(lockEndTime).resourceId(resourceId)
-                .resourceType(meetingRoomContextDTO.getResourceType()).resourceName(meetingResourcePO.getVmrName())
-                .resourceTypeDesc(resourceTypeDesc).ownerImUserId(meetingRoomContextDTO.getImUserId())
-                .timeZoneId(meetingRoomContextDTO.getTimeZoneID())
-                .timeZoneOffset(meetingRoomContextDTO.getTimeZoneOffset()).vmrMode(meetingRoomContextDTO.getVmrMode())
-                .ownerUserName(meetingRoomContextDTO.getImUserName()).subject(meetingRoomContextDTO.getSubject())
-                .remark(meetingRoomContextDTO.getRemark()).languageId(meetingRoomContextDTO.getLanguageId()).build();
+            .duration(meetingRoomContextDTO.getLength()).showStartTime(showStartTime).showEndTime(showEndTime)
+            .lockStartTime(lockStartTime).lockEndTime(lockEndTime).resourceId(resourceId)
+            .resourceType(meetingRoomContextDTO.getResourceType()).resourceName(meetingResourcePO.getVmrName())
+            .resourceTypeDesc(resourceTypeDesc).ownerImUserId(meetingRoomContextDTO.getImUserId())
+            .timeZoneId(meetingRoomContextDTO.getTimeZoneID()).timeZoneOffset(meetingRoomContextDTO.getTimeZoneOffset())
+            .vmrMode(meetingRoomContextDTO.getVmrMode()).ownerUserName(meetingRoomContextDTO.getImUserName())
+            .subject(meetingRoomContextDTO.getSubject()).remark(meetingRoomContextDTO.getRemark())
+            .languageId(meetingRoomContextDTO.getLanguageId()).build();
         if (ObjectUtil.isNotNull(meetingRoom)) {
             build.setHwMeetingId(meetingRoom.getHwMeetingId());
             build.setHwMeetingCode(meetingRoom.getHwMeetingCode());
@@ -503,15 +502,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
         Date showStartTime = DateUtils.roundToHalfHour(
-                ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), now));
+            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), now));
 
         DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
         DateTime lockEndTime = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength() + 29);
 
         //判断时区是否异常
         MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = meetingTimeZoneConfigDaoService.lambdaQuery()
-                .eq(MeetingTimeZoneConfigPO::getTimeZoneOffset, meetingRoomContextDTO.getTimeZoneOffset())
-                .orderByAsc(MeetingTimeZoneConfigPO::getId).last("limit 1").one();
+            .eq(MeetingTimeZoneConfigPO::getTimeZoneOffset, meetingRoomContextDTO.getTimeZoneOffset())
+            .orderByAsc(MeetingTimeZoneConfigPO::getId).last("limit 1").one();
         if (ObjectUtil.isNull(meetingTimeZoneConfigPO)) {
             return CommonResult.error(GlobalErrorCodeConstants.TIME_OFFSET_ERROR);
         }
@@ -532,8 +531,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (DateUtil.convertTimeZone(meetingResourcePO.getExpireDate(), ZoneId.of("GMT")).before(lockEndTime)) {
             //todo 过期时间词条处理
             return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR,
-                    Collections.singletonList(DateUtil.convertTimeZone(meetingResourcePO.getExpireDate(),
-                            ZoneId.of(meetingRoomContextDTO.getTimeZoneOffset()))));
+                Collections.singletonList(DateUtil.convertTimeZone(meetingResourcePO.getExpireDate(),
+                    ZoneId.of(meetingRoomContextDTO.getTimeZoneOffset()))));
         }
 
         FreeResourceListDTO freeResourceListDTO = wrapperFreeResourceListDTO(meetingRoomContextDTO);
@@ -543,23 +542,23 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
         //判断私有资源，是否有权使用
         if ((meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && !ObjectUtil.equals(
-                meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId()))) {
+            meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId()))) {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_USE_PERSONAL_RESOURCE_ERROR);
         }
 
         Long count = meetingRoomInfoDaoService.lambdaQuery()
-                .eq(MeetingRoomInfoPO::getOwnerImUserId, meetingRoomContextDTO.getImUserId())
-                .notLike(MeetingRoomInfoPO::getResourceType, "-")
-                //非结束的会议
-                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).count();
+            .eq(MeetingRoomInfoPO::getOwnerImUserId, meetingRoomContextDTO.getImUserId())
+            .notLike(MeetingRoomInfoPO::getResourceType, "-")
+            //非结束的会议
+            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).count();
         if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && count >= 2) {
             //每个用户只可同时存在2个预约的公用会议室，超出时，则主页创建入口，提示”只可以同时存在2个预约的会议室，不可再次预约“
             return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_MORE_THAN);
         }
         //校验与会者人数
         if (ObjectUtil.isNotEmpty(
-                meetingRoomContextDTO.getAttendees()) && meetingResourcePO.getSize() - 1 < meetingRoomContextDTO.getAttendees()
-                .size()) {
+            meetingRoomContextDTO.getAttendees()) && meetingResourcePO.getSize() - 1 < meetingRoomContextDTO.getAttendees()
+            .size()) {
             //与会者人数无法超过资源限定人数
             return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_SIZE_ERROR);
         }
@@ -584,7 +583,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
         //展示开始时间
         Date showStartTime = DateUtils.roundToHalfHour(
-                ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), now));
+            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), now));
         //展示开始时间
         DateTime showEndTime = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength());
         //锁定开始时间
@@ -594,8 +593,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         //判断时区是否异常
         MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = meetingTimeZoneConfigDaoService.lambdaQuery()
-                .eq(MeetingTimeZoneConfigPO::getTimeZoneOffset, meetingRoomContextDTO.getTimeZoneOffset())
-                .orderByAsc(MeetingTimeZoneConfigPO::getId).last("limit 1").one();
+            .eq(MeetingTimeZoneConfigPO::getTimeZoneOffset, meetingRoomContextDTO.getTimeZoneOffset())
+            .orderByAsc(MeetingTimeZoneConfigPO::getId).last("limit 1").one();
         if (ObjectUtil.isNull(meetingTimeZoneConfigPO)) {
             return CommonResult.error(GlobalErrorCodeConstants.TIME_OFFSET_ERROR);
         }
@@ -615,8 +614,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             if (DateUtil.convertTimeZone(meetingResourcePO.getExpireDate(), ZoneId.of("GMT")).before(lockEndTime)) {
                 //todo 过期时间词条处理
                 return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_EXPIRE_ERROR,
-                        Collections.singletonList(DateUtil.convertTimeZone(meetingResourcePO.getExpireDate(),
-                                ZoneId.of(meetingRoomContextDTO.getTimeZoneOffset()))));
+                    Collections.singletonList(DateUtil.convertTimeZone(meetingResourcePO.getExpireDate(),
+                        ZoneId.of(meetingRoomContextDTO.getTimeZoneOffset()))));
             }
         }
         MeetingRoomInfoPO byId = meetingRoomInfoDaoService.getById(meetingRoomContextDTO.getMeetingRoomId());
@@ -634,12 +633,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         //判断新资源是否已被使用
         if (!oldResourceId.equals(resourceId) || !byId.getShowStartTime()
-                .equals(showStartTime) || !byId.getLockEndTime().equals(showEndTime)) {
+            .equals(showStartTime) || !byId.getLockEndTime().equals(showEndTime)) {
 
             List<MeetingRoomInfoPO> occupiedMeetingRoom =
-                    getOccupiedMeetingRoom(Collections.singletonList(resourceId), lockStartTime, lockEndTime);
+                getOccupiedMeetingRoom(Collections.singletonList(resourceId), lockStartTime, lockEndTime);
             if (occupiedMeetingRoom.stream().filter(t -> !t.getId().equals(meetingRoomContextDTO.getMeetingRoomId()))
-                    .count() > 0) {
+                .count() > 0) {
                 //资源存在被占用的相关会议
                 return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_USED);
             }
@@ -647,13 +646,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
         //判断私有资源，是否有权使用
         if ((meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && !ObjectUtil.equals(
-                meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId()))) {
+            meetingRoomContextDTO.getImUserId(), meetingResourcePO.getOwnerImUserId()))) {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_USE_PERSONAL_RESOURCE_ERROR);
         }
         //校验与会者人数
         if (ObjectUtil.isNotEmpty(
-                meetingRoomContextDTO.getAttendees()) && meetingResourcePO.getSize() - 1 < meetingRoomContextDTO.getAttendees()
-                .size()) {
+            meetingRoomContextDTO.getAttendees()) && meetingResourcePO.getSize() - 1 < meetingRoomContextDTO.getAttendees()
+            .size()) {
             //与会者人数无法超过资源限定人数
             return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_SIZE_ERROR);
         }
@@ -666,7 +665,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.OPERATE_AUTH_ERROR);
         }
 
-        Tuple3<MeetingRoomInfoPO, MeetingResourcePO, MeetingTimeZoneConfigPO> of = Tuples.of(byId, meetingResourcePO, meetingTimeZoneConfigPO);
+        Tuple3<MeetingRoomInfoPO, MeetingResourcePO, MeetingTimeZoneConfigPO> of =
+            Tuples.of(byId, meetingResourcePO, meetingTimeZoneConfigPO);
         return CommonResult.success(of);
     }
 
@@ -696,7 +696,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 return checkResult;
             }
             Boolean publicFlag = NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
-            Tuple3<MeetingRoomInfoPO, MeetingResourcePO, MeetingTimeZoneConfigPO> tuple3 = (Tuple3<MeetingRoomInfoPO, MeetingResourcePO, MeetingTimeZoneConfigPO>) checkResult.getData();
+            Tuple3<MeetingRoomInfoPO, MeetingResourcePO, MeetingTimeZoneConfigPO> tuple3 =
+                (Tuple3<MeetingRoomInfoPO, MeetingResourcePO, MeetingTimeZoneConfigPO>)checkResult.getData();
             MeetingRoomInfoPO oldMeetingRoomInfoPO = tuple3.getT1();
             MeetingResourcePO meetingResourcePO = tuple3.getT2();
             MeetingTimeZoneConfigPO meetingTimeZoneConfigPO = tuple3.getT3();
@@ -726,21 +727,21 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //            meetingRoom.setGeneralPwd();
 
             if (hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
-                    .existMeetingRoom(oldMeetingRoomInfoPO.getHwMeetingCode())) {
+                .existMeetingRoom(oldMeetingRoomInfoPO.getHwMeetingCode())) {
                 //存在会议，则编辑
                 //1、修改华为云会议
                 hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
-                        .updateMeetingRoom(meetingRoomContextDTO);
+                    .updateMeetingRoom(meetingRoomContextDTO);
             } else {
                 //华为云不存在，为新增
                 meetingRoom = hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode))
-                        .createMeetingRoom(meetingRoomContextDTO);
+                    .createMeetingRoom(meetingRoomContextDTO);
 
             }
 
             //包装po实体
             MeetingRoomInfoPO meetingRoomInfoPO =
-                    packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
+                packMeetingRoomInfoPO(meetingRoomContextDTO, meetingRoom, meetingResourcePO);
             //2、修改本地会议
             meetingRoomInfoDaoService.updateById(meetingRoomInfoPO);
             //3、锁定资源，更改资源状态为共有预约
@@ -774,30 +775,30 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Long meetRoomId = meetingRoomInfoPO.getId();
         DateTime now = DateUtil.date();
         List<MeetingAttendeePO> newMeetingAttendeeList = attendees.stream().map(
-                        t -> MeetingAttendeePO.builder().attendeeUserId(t.getAttendeeUserId()).meetingRoomId(meetRoomId)
-                                .attendeeUserName(t.getAttendeeUserName()).attendeeUserHeadUrl(t.getAttendeeUserHeadUrl())
-                                .source(MeetingUserJoinSourceEnum.APPOINT.getCode()).createTime(now).updateTime(now).build()).distinct()
-                .collect(Collectors.toList());
+                t -> MeetingAttendeePO.builder().attendeeUserId(t.getAttendeeUserId()).meetingRoomId(meetRoomId)
+                    .attendeeUserName(t.getAttendeeUserName()).attendeeUserHeadUrl(t.getAttendeeUserHeadUrl())
+                    .source(MeetingUserJoinSourceEnum.APPOINT.getCode()).createTime(now).updateTime(now).build()).distinct()
+            .collect(Collectors.toList());
 
         List<MeetingAttendeePO> oldMeetingAttendeeList =
-                meetingAttendeeDaoService.lambdaQuery().eq(MeetingAttendeePO::getMeetingRoomId, meetRoomId).list();
+            meetingAttendeeDaoService.lambdaQuery().eq(MeetingAttendeePO::getMeetingRoomId, meetRoomId).list();
 
         List<MeetingAttendeePO> addMeetingAttendeeList =
-                CollectionUtil.subtractToList(newMeetingAttendeeList, oldMeetingAttendeeList);
+            CollectionUtil.subtractToList(newMeetingAttendeeList, oldMeetingAttendeeList);
         if (CollectionUtil.isNotEmpty(addMeetingAttendeeList)) {
             //新增的
             meetingAttendeeDaoService.saveBatch(addMeetingAttendeeList);
             //
             roomAsyncTaskService.batchSendIMMessage(meetingRoomInfoPO,
-                    addMeetingAttendeeList.stream().map(MeetingAttendeePO::getAttendeeUserId).collect(Collectors.toList()));
+                addMeetingAttendeeList.stream().map(MeetingAttendeePO::getAttendeeUserId).collect(Collectors.toList()));
 
         }
         List<MeetingAttendeePO> delMeetingAttendeeList =
-                CollectionUtil.subtractToList(oldMeetingAttendeeList, newMeetingAttendeeList);
+            CollectionUtil.subtractToList(oldMeetingAttendeeList, newMeetingAttendeeList);
         if (CollectionUtil.isNotEmpty(delMeetingAttendeeList)) {
             //删除的
             List<Long> delIds =
-                    delMeetingAttendeeList.stream().map(MeetingAttendeePO::getId).collect(Collectors.toList());
+                delMeetingAttendeeList.stream().map(MeetingAttendeePO::getId).collect(Collectors.toList());
             meetingAttendeeDaoService.removeBatchByIds(delIds);
         }
 
@@ -817,7 +818,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.success(null);
         }
         List<MeetingAttendeePO> list =
-                meetingAttendeeDaoService.lambdaQuery().eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomId).list();
+            meetingAttendeeDaoService.lambdaQuery().eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomId).list();
 
         Integer vmrMode = meetingRoomInfoPO.getVmrMode();
         MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, list);
@@ -826,7 +827,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     private MeetingRoomDetailDTO packBaseMeetingRoomDetailDTO(MeetingRoomInfoPO meetingRoomInfoPO,
-                                                              List<MeetingAttendeePO> list) {
+        List<MeetingAttendeePO> list) {
         MeetingRoomDetailDTO result = BeanUtil.copyProperties(meetingRoomInfoPO, MeetingRoomDetailDTO.class);
         String resourceType = result.getResourceType();
         if (NumberUtil.isNumber(resourceType)) {
@@ -899,20 +900,20 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         meetingRoomInfoDaoService.removeById(meetingRoomId);
         //直接取消华为云会议
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).cancelMeetingRoom(
-                new CancelMeetingRoomModel(ownerImUserId, hwMeetingCode, vmrId, NumberUtil.isNumber(byId.getResourceType()),
-                        currentUseImUserId));
+            new CancelMeetingRoomModel(ownerImUserId, hwMeetingCode, vmrId, NumberUtil.isNumber(byId.getResourceType()),
+                currentUseImUserId));
         //释放资源
         publicResourceHoldHandle(resourceId, MeetingResourceHandleEnum.HOLD_DOWN);
         //会议资源已分配，则取消资源占用
-        DateTime now = DateUtil.date();
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
         Date lockStartTime = byId.getLockStartTime();
         Date lockEndTime = byId.getLockEndTime();
         Integer status = byId1.getStatus();
         Integer assignResourceStatus = byId.getAssignResourceStatus();
         if (!MeetingResourceStateEnum.PRIVATE.getState().equals(status) && now.isAfterOrEquals(
-                lockStartTime) && now.isBeforeOrEquals(lockEndTime)) {
+            lockStartTime) && now.isBeforeOrEquals(lockEndTime)) {
             hwMeetingCommonService.disassociateVmr(byId.getOwnerImUserId(),
-                    Collections.singletonList(byId1.getVmrId()));
+                Collections.singletonList(byId1.getVmrId()));
         }
         return CommonResult.success(null);
     }
@@ -931,7 +932,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             if (lock.isLocked() && !lock.isHeldByCurrentThread()) {
                 //资源锁定中,无法操作
                 log.error("【资源挂起释放】资源锁定中，无法进行操作，将异常返回，资源id:{},操作类型：{}", resourceId,
-                        meetingResourceHandleEnum);
+                    meetingResourceHandleEnum);
                 throw new ServiceException(GlobalErrorCodeConstants.RESOURCE_OPERATED_ERROR);
             }
             //资源维度锁定
@@ -959,9 +960,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     }
                     //当前状态为公有空闲，可以置为公有预约
                     boolean update = meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
-                            .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_FREE.getState())
-                            .set(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState())
-                            .update();
+                        .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_FREE.getState())
+                        .set(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState())
+                        .update();
                     log.info("【资源挂起释放】修改资源状态为公有预约状态结果：{},资源id：{}", update, resourceId);
                     return Boolean.TRUE;
                 case HOLD_DOWN:
@@ -974,32 +975,32 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
                     //查询是否有会议室占用该资源，如果没有则修改状态置为共有空闲或者私有
                     Long count =
-                            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, resourceId)
-                                    .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).count();
+                        meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, resourceId)
+                            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).count();
                     if (count == 0) {
                         //当前无占用会议室
                         boolean update1 =
-                                meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
-                                        //当前状态为共有预约。释放资源后，如果
-                                        .set(MeetingResourcePO::getStatus,
-                                                subscribeFlag ? MeetingResourceStateEnum.PUBLIC_FREE.getState()
-                                                        : MeetingResourceStateEnum.PRIVATE.getState())
-                                        .set(!subscribeFlag, MeetingResourcePO::getCurrentUseImUserId,
-                                                meetingResourcePO.getOwnerImUserId()).update();
+                            meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
+                                //当前状态为共有预约。释放资源后，如果
+                                .set(MeetingResourcePO::getStatus,
+                                    subscribeFlag ? MeetingResourceStateEnum.PUBLIC_FREE.getState()
+                                        : MeetingResourceStateEnum.PRIVATE.getState())
+                                .set(!subscribeFlag, MeetingResourcePO::getCurrentUseImUserId,
+                                    meetingResourcePO.getOwnerImUserId()).update();
                         //如果私有，则分配资源
                         if (MeetingResourceStateEnum.REDISTRIBUTION.getState().equals(status)) {
                             log.info("【资源挂起释放】将预分配资源分配给私人，resourceId:{},ownerId：{}",
-                                    meetingResourcePO.getId(), meetingResourcePO.getOwnerImUserId());
+                                meetingResourcePO.getId(), meetingResourcePO.getOwnerImUserId());
                             hwMeetingCommonService.associateVmr(meetingResourcePO.getOwnerImUserId(),
-                                    Collections.singletonList(meetingResourcePO.getVmrId()));
+                                Collections.singletonList(meetingResourcePO.getVmrId()));
                         }
 
                         log.info("【资源挂起释放】修改资源状态为公有空闲状态结果：{}", update1);
                         return Boolean.TRUE;
                     } else {
                         log.info(
-                                "【资源挂起释放】修改资源状态为空闲/私有状态失败无法释放,resourceId：{},当前存在相关会议数,count：{}",
-                                resourceId, count);
+                            "【资源挂起释放】修改资源状态为空闲/私有状态失败无法释放,resourceId：{},当前存在相关会议数,count：{}",
+                            resourceId, count);
                         return Boolean.FALSE;
                     }
                 default:
@@ -1007,7 +1008,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             }
         } catch (Exception e) {
             log.error("【资源挂起释放】执行异常，资源id:{},操作类型：{},异常信息：{}", resourceId, meetingResourceHandleEnum,
-                    e);
+                e);
             throw e;
         } finally {
             if (lock.isLocked() && lock.isHeldByCurrentThread()) {
@@ -1023,41 +1024,44 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     @Override
-    public CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(String imUserId) {
+    public CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(String imUserId,
+        String timeZoneOffset) {
 
         //列表中显示最近要开始的会议，按照会议开始时间正序。最多显示30天数据
         //  已结束的会议不显示。
         //我创建的 和 我参加的。
         List<Long> joinMeetingRoomIds =
-                meetingAttendeeDaoService.lambdaQuery().select(MeetingAttendeePO::getMeetingRoomId)
-                        .eq(MeetingAttendeePO::getAttendeeUserId, imUserId).list().stream()
-                        .map(MeetingAttendeePO::getMeetingRoomId).collect(Collectors.toList());
+            meetingAttendeeDaoService.lambdaQuery().select(MeetingAttendeePO::getMeetingRoomId)
+                .eq(MeetingAttendeePO::getAttendeeUserId, imUserId).list().stream()
+                .map(MeetingAttendeePO::getMeetingRoomId).collect(Collectors.toList());
 
         Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
-                wrapper -> wrapper.or(ObjectUtil.isNotEmpty(joinMeetingRoomIds),
-                                wrapper1 -> wrapper1.in(MeetingRoomInfoPO::getId, joinMeetingRoomIds))
-                        .or(wrapper2 -> wrapper2.eq(MeetingRoomInfoPO::getOwnerImUserId, imUserId));
+            wrapper -> wrapper.or(ObjectUtil.isNotEmpty(joinMeetingRoomIds),
+                    wrapper1 -> wrapper1.in(MeetingRoomInfoPO::getId, joinMeetingRoomIds))
+                .or(wrapper2 -> wrapper2.eq(MeetingRoomInfoPO::getOwnerImUserId, imUserId));
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
-                .in(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState(),
-                        MeetingRoomStateEnum.Created.getState()).orderByDesc(MeetingRoomInfoPO::getLockStartTime)
-                .nested(consumer).last(" limit 30").list();
+            .in(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState(),
+                MeetingRoomStateEnum.Created.getState()).orderByDesc(MeetingRoomInfoPO::getLockStartTime)
+            .nested(consumer).last(" limit 30").list();
         //
         FutureAndRunningMeetingRoomListVO futureAndRunningMeetingRoomListVO =
-                packFutureAndRunningMeetingRoomListVO(list);
+            packFutureAndRunningMeetingRoomListVO(list, timeZoneOffset);
         // hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.CLOUD.getVmrMode()).queryMeetingRoomList(imUserId);
 
         return CommonResult.success(futureAndRunningMeetingRoomListVO);
     }
 
-    private FutureAndRunningMeetingRoomListVO packFutureAndRunningMeetingRoomListVO(List<MeetingRoomInfoPO> list) {
+    private FutureAndRunningMeetingRoomListVO packFutureAndRunningMeetingRoomListVO(List<MeetingRoomInfoPO> list,
+        String timeZoneOffset) {
         FutureAndRunningMeetingRoomListVO futureAndRunningMeetingRoomListVO = new FutureAndRunningMeetingRoomListVO();
         List<MeetingRoomDetailDTO> meetingRoomDetailDTOS = BeanUtil.copyToList(list, MeetingRoomDetailDTO.class);
         TreeMap<String, List<MeetingRoomDetailDTO>> sortMap = new TreeMap<>(Comparator.comparing(DateUtil::parse));
-        Map<String, List<MeetingRoomDetailDTO>> collect = meetingRoomDetailDTOS.stream().collect(
-                Collectors.groupingBy(f -> DateUtil.format(f.getShowStartTime(), DatePattern.NORM_DATE_PATTERN),
-                        () -> sortMap, Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(
-                                Comparator.comparing(MeetingRoomDetailDTO::getShowStartTime)
-                                        .thenComparing(MeetingRoomDetailDTO::getHwMeetingCode))), Lists::newArrayList)));
+        Map<String, List<MeetingRoomDetailDTO>> collect = meetingRoomDetailDTOS.stream().peek(t -> t.setShowStartTime(
+                DateUtils.convertTimeZone(t.getShowStartTime(), DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset))))
+            .collect(Collectors.groupingBy(f -> DateUtil.format(f.getShowStartTime(), DatePattern.NORM_DATE_PATTERN),
+                () -> sortMap, Collectors.collectingAndThen(Collectors.toCollection(
+                    () -> new TreeSet<MeetingRoomDetailDTO>(Comparator.comparing(MeetingRoomDetailDTO::getShowStartTime)
+                        .thenComparing(MeetingRoomDetailDTO::getHwMeetingCode))), Lists::newArrayList)));
         futureAndRunningMeetingRoomListVO.setRooms(collect);
         return futureAndRunningMeetingRoomListVO;
     }
@@ -1066,36 +1070,37 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     @Override
-    public CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(String imUserId, Integer month) {
+    public CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(String imUserId, Integer month,
+        String timeZoneOffset) {
         DateTime dateTime = getMonth(month);
         DateTime start = DateUtil.beginOfMonth(dateTime);
         DateTime end = DateUtil.endOfMonth(dateTime);
         List<Long> joinMeetingRoomIds =
-                meetingAttendeeDaoService.lambdaQuery().select(MeetingAttendeePO::getMeetingRoomId)
-                        .eq(MeetingAttendeePO::getAttendeeUserId, imUserId).list().stream()
-                        .map(MeetingAttendeePO::getMeetingRoomId).collect(Collectors.toList());
+            meetingAttendeeDaoService.lambdaQuery().select(MeetingAttendeePO::getMeetingRoomId)
+                .eq(MeetingAttendeePO::getAttendeeUserId, imUserId).list().stream()
+                .map(MeetingAttendeePO::getMeetingRoomId).collect(Collectors.toList());
         Consumer<LambdaQueryWrapper<MeetingRoomInfoPO>> consumer =
-                wrapper -> wrapper.or(ObjectUtil.isNotEmpty(joinMeetingRoomIds),
-                                wrapper1 -> wrapper1.in(MeetingRoomInfoPO::getId, joinMeetingRoomIds))
-                        .or(wrapper2 -> wrapper2.eq(MeetingRoomInfoPO::getOwnerImUserId, imUserId));
+            wrapper -> wrapper.or(ObjectUtil.isNotEmpty(joinMeetingRoomIds),
+                    wrapper1 -> wrapper1.in(MeetingRoomInfoPO::getId, joinMeetingRoomIds))
+                .or(wrapper2 -> wrapper2.eq(MeetingRoomInfoPO::getOwnerImUserId, imUserId));
 
         List<MeetingRoomInfoPO> list =
-                meetingRoomInfoDaoService.lambdaQuery().ge(MeetingRoomInfoPO::getLockStartTime, start)
-                        .le(MeetingRoomInfoPO::getLockEndTime, end)
-                        .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer)
-                        .orderByDesc(MeetingRoomInfoPO::getCreateTime).list();
+            meetingRoomInfoDaoService.lambdaQuery().ge(MeetingRoomInfoPO::getLockStartTime, start)
+                .le(MeetingRoomInfoPO::getLockEndTime, end)
+                .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer)
+                .orderByDesc(MeetingRoomInfoPO::getCreateTime).list();
         List<Long> meetingRoomIdList = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
         Map<Long, List<MeetingAttendeePO>> roomIdAttendeeMap = Maps.newHashMap();
         if (ObjectUtil.isNotEmpty(meetingRoomIdList)) {
             roomIdAttendeeMap =
-                    meetingAttendeeDaoService.lambdaQuery().in(MeetingAttendeePO::getMeetingRoomId, meetingRoomIdList)
-                            .list().stream().collect(Collectors.groupingBy(MeetingAttendeePO::getMeetingRoomId));
+                meetingAttendeeDaoService.lambdaQuery().in(MeetingAttendeePO::getMeetingRoomId, meetingRoomIdList)
+                    .list().stream().collect(Collectors.groupingBy(MeetingAttendeePO::getMeetingRoomId));
         }
 
         Map<Long, List<MeetingAttendeePO>> finalRoomIdAttendeeMap = roomIdAttendeeMap;
         List<MeetingRoomDetailDTO> collect =
-                list.stream().map(t -> packBaseMeetingRoomDetailDTO(t, finalRoomIdAttendeeMap.get(t)))
-                        .collect(Collectors.toList());
+            list.stream().map(t -> packBaseMeetingRoomDetailDTO(t, finalRoomIdAttendeeMap.get(t)))
+                .collect(Collectors.toList());
         return CommonResult.success(collect);
     }
 
@@ -1107,13 +1112,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     @Override
     public CommonResult<List<AvailableResourcePeriodVO>> getAvailableResourcePeriod(
-            AvailableResourcePeriodGetDTO availableResourcePeriodGetDTO) {
+        AvailableResourcePeriodGetDTO availableResourcePeriodGetDTO) {
         Date date = availableResourcePeriodGetDTO.getDate();
         ZoneId userZoneId = ZoneId.of(availableResourcePeriodGetDTO.getTimeZoneOffset());
 
-
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), userZoneId);
-
+        //查询不到当前时间之前的会议
         if (date.before(DateUtil.beginOfDay(now))) {
             return CommonResult.success(Collections.emptyList());
         }
@@ -1125,7 +1129,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.success(null);
         }
 
-        if (date.after(byId.getExpireDate())) {
+        if (date.after(DateUtil.convertTimeZone(byId.getExpireDate(), userZoneId))) {
             //已过期
             return CommonResult.success(Collections.emptyList());
         }
@@ -1138,7 +1142,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         endOfDay = DateUtil.convertTimeZone(endOfDay, ZoneId.of("GMT"));
         //查询与当日有交叉的会议
         List<MeetingRoomInfoPO> occupiedMeetingRoom =
-                getOccupiedMeetingRoom(Collections.singletonList(resourceId), beginOfDay, endOfDay);
+            getOccupiedMeetingRoom(Collections.singletonList(resourceId), beginOfDay, endOfDay);
         ArrayList<FreeTimeCalculatorUtil.TimeRange> timeRanges = Lists.newArrayList();
         //如果存在有交叉上一天或者下一天的会议，则掐头去尾，重设置临界值时间
         for (MeetingRoomInfoPO meetingRoomInfoPO : occupiedMeetingRoom) {
@@ -1162,7 +1166,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
            /* else {
                 lockEndTime = DateUtil.offsetMinute(lockEndTime, 30);
             }*/
-            timeRanges.add(new FreeTimeCalculatorUtil.TimeRange(lockStartTime, lockEndTime,userZoneId));
+            timeRanges.add(new FreeTimeCalculatorUtil.TimeRange(lockStartTime, lockEndTime, userZoneId));
         }
 
         //查询该资源当日占用情况
@@ -1176,10 +1180,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //最大6小时切割
 
         List<FreeTimeCalculatorUtil.TimeRange> rangeList =
-                FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 1, 6, date, DateUtil.convertTimeZone(byId.getExpireDate(), userZoneId));
+            FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 1, 6, date,
+                byId.getExpireDate(),userZoneId);
         List<AvailableResourcePeriodVO> result =
-                rangeList.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
-                        .collect(Collectors.toList());
+            rangeList.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
+                .collect(Collectors.toList());
         return CommonResult.success(result);
     }
 
@@ -1210,14 +1215,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Payload payload = eventInfo.getPayload();
             String meetingID = payload.getMeetingInfo().getMeetingID();
             Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional =
-                    meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID).oneOpt();
+                meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID).oneOpt();
             RLongAdder count = redissonClient.getLongAdder(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));
             int maxErrorCount = 3;
             if (!meetingRoomInfoPOOptional.isPresent()) {
                 log.error("事件回调数据异常，数据不存在 meetingID：{}", meetingID);
                 if (count.sum() >= maxErrorCount) {
                     log.error("【企业级华为云事件】事件回调数据异常达到次数上限：{}次,会议号：{}", maxErrorCount,
-                            meetingID);
+                        meetingID);
                     return;
                     //                    return CommonResult.errorMsg("事件达到次数上限");
                 }
@@ -1238,11 +1243,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             if ("meeting.started".equals(event)) {
                 //推送会议开始事件
                 boolean update =
-                        meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
-                                .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
-                                .set(MeetingRoomInfoPO::getHwMeetingId, payload.getMeetingInfo().getMeetingUUID())
-                                .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
-                                .set(MeetingRoomInfoPO::getRelStartTime, DateUtil.date(timestamp)).update();
+                    meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                        .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
+                        .set(MeetingRoomInfoPO::getHwMeetingId, payload.getMeetingInfo().getMeetingUUID())
+                        .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
+                        .set(MeetingRoomInfoPO::getRelStartTime, DateUtil.date(timestamp)).update();
                 log.info("【企业级华为云事件】华为云会议事件开始会议id：{}，结果：{}", meetingID, update);
 
             } else if ("meeting.end".equals(event) || "meeting.conclude".equals(event)) {
@@ -1255,15 +1260,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                         //会议结束事件-当企业下的某个会议结束，服务端会推送会议结束事件消息的post请求到企业开发者回调URL。会议结束后，如果会议预定的结束时间还没到，可以再次加入该会议。
                         //会议关闭事件
                         boolean update =
-                                meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
-                                        .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
-                                        .set(MeetingRoomInfoPO::getRelEndTime, DateUtil.date(timestamp)).update();
+                            meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                                .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
+                                .set(MeetingRoomInfoPO::getRelEndTime, DateUtil.date(timestamp)).update();
                         //回收资源
                         Boolean operateResult = publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(),
-                                MeetingResourceHandleEnum.HOLD_DOWN);
+                            MeetingResourceHandleEnum.HOLD_DOWN);
                         if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
                             hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
-                                    Collections.singletonList(meetingResourcePO.getVmrId()));
+                                Collections.singletonList(meetingResourcePO.getVmrId()));
                         }
                         log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
                     } finally {
@@ -1279,8 +1284,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             } else if ("record.finish".equals(event)) {
                 //录制结束事件-当企业下的某个会议结束，服务端会推送录制结束事件消息的post请求到企业开发者回调URL
                 boolean update =
-                        meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
-                                .set(MeetingRoomInfoPO::getRecordStatus, 1).update();
+                    meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                        .set(MeetingRoomInfoPO::getRecordStatus, 1).update();
                 log.info("【企业级华为云事件】华为云会议录制会议id：{}，结果：{}", meetingID, update);
             }
         });
@@ -1317,20 +1322,20 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Integer maxResourceType = getMaxLevel(levelCode, imUserId);
         //根据资源等级过滤资源类型
         List<ResourceTypeVO> levelResourceTypeVOList =
-                Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
-                        .collect(Collectors.toList()).stream().map(
-                                t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc())
-                                        .size(t.getValue()).wordKey(t.getWordKey()).build()).collect(Collectors.toList());
+            Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
+                .collect(Collectors.toList()).stream().map(
+                    t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc())
+                        .size(t.getValue()).wordKey(t.getWordKey()).build()).collect(Collectors.toList());
         //查询私池
         List<MeetingResourcePO> privateResourceList =
-                meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getOwnerImUserId, imUserId)
-                        .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState()).list();
+            meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getOwnerImUserId, imUserId)
+                .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState()).list();
 
         List<ResourceTypeVO> collect = privateResourceList.stream().map(MeetingResourcePO::getSize).distinct().map(
-                t -> ResourceTypeVO.builder().type(2)
-                        .code(imUserId + "-" + t + "-" + MeetingResourceEnum.getBySize(t).getCode())
-                        .desc(String.format(privateResourceTypeFormat, t)).size(t)
-                        .wordKey(MeetingResourceEnum.specialResourceKey).build()).collect(Collectors.toList());
+            t -> ResourceTypeVO.builder().type(2)
+                .code(imUserId + "-" + t + "-" + MeetingResourceEnum.getBySize(t).getCode())
+                .desc(String.format(privateResourceTypeFormat, t)).size(t)
+                .wordKey(MeetingResourceEnum.specialResourceKey).build()).collect(Collectors.toList());
 
         collect.addAll(levelResourceTypeVOList);
         return CommonResult.success(collect);
@@ -1348,9 +1353,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //是数字
         if (NumberUtil.isNumber(resourceCode)) {
             result = meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getResourceType, resourceCode)
-                    .ne(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState())
-                    .ne(MeetingResourcePO::getStatus, MeetingResourceStateEnum.REDISTRIBUTION.getState()).list().stream()
-                    .filter(t -> t.getExpireDate().after(DateUtil.date())).collect(Collectors.toList());
+                .ne(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState())
+                .ne(MeetingResourcePO::getStatus, MeetingResourceStateEnum.REDISTRIBUTION.getState()).list().stream()
+                .filter(t -> t.getExpireDate().after(DateUtil.date())).collect(Collectors.toList());
 
         } else {
             String[] split = resourceCode.split("-");
@@ -1358,8 +1363,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             String resourceSize = split[1];
             String resourceType = split[2];
             result = meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getResourceType, resourceType)
-                    .eq(MeetingResourcePO::getOwnerImUserId, imUserId).eq(MeetingResourcePO::getSize, resourceSize).list()
-                    .stream().filter(t -> t.getExpireDate().after(DateUtil.date())).collect(Collectors.toList());
+                .eq(MeetingResourcePO::getOwnerImUserId, imUserId).eq(MeetingResourcePO::getSize, resourceSize).list()
+                .stream().filter(t -> t.getExpireDate().after(DateUtil.date())).collect(Collectors.toList());
 
         }
 
@@ -1370,14 +1375,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult<MeetingRoomDetailDTO> getMeetingRoomByCode(String meetingCode) {
         log.info("【查询会议详情】 meetingCode：{}", meetingCode);
         MeetingRoomInfoPO meetingRoomInfoPO =
-                meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingCode).one();
+            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingCode).one();
         if (ObjectUtil.isNull(meetingRoomInfoPO)) {
             return CommonResult.success(null);
         }
 
         List<MeetingAttendeePO> list =
-                meetingAttendeeDaoService.lambdaQuery().eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomInfoPO.getId())
-                        .list();
+            meetingAttendeeDaoService.lambdaQuery().eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomInfoPO.getId())
+                .list();
 
         Integer vmrMode = meetingRoomInfoPO.getVmrMode();
         MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, list);
@@ -1386,7 +1391,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     DateTime getMonth(Integer month) {
-        DateTime now = DateUtil.date();
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
         now.setMutable(false);
         DateTime sixMonthsAgo = now.offset(DateField.MONTH, -6);
 

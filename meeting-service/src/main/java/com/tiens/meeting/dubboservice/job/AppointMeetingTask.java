@@ -1,7 +1,9 @@
 package com.tiens.meeting.dubboservice.job;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
@@ -28,6 +30,7 @@ import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import common.enums.MeetingResourceStateEnum;
 import common.enums.MeetingRoomStateEnum;
+import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.rocketmq.client.producer.SendResult;
@@ -41,6 +44,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -84,12 +88,13 @@ public class AppointMeetingTask {
     @Transactional(rollbackFor = Exception.class)
     @MDCLog
     public void jobHandler() {
-
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
         //1、预约提前30分钟锁定资源
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
-            .eq(MeetingRoomInfoPO::getNotifyRoomStartStatus, 0).le(MeetingRoomInfoPO::getLockStartTime, DateUtil.date())
-            .list();
+            .eq(MeetingRoomInfoPO::getNotifyRoomStartStatus, 0).le(MeetingRoomInfoPO::getLockStartTime, now).list();
+        //排除掉私人专属会议
+        list = list.stream().filter(m -> NumberUtil.isNumber(m.getResourceType())).collect(Collectors.toList());
         if (CollectionUtil.isEmpty(list)) {
             log.info("【定时任务：会议开始前30分钟】 当前无需要通知的消息");
             return;
@@ -139,14 +144,17 @@ public class AppointMeetingTask {
             ;
             SimpleDateFormat YMDFormat = new SimpleDateFormat("yyyy/MM/dd");
             SimpleDateFormat HMFormat = new SimpleDateFormat("HH:mm");
+            String timeZoneOffset = meetingRoomInfoPO.getTimeZoneOffset();
             //邀请密码
             String invitePwd =
                 ObjectUtil.defaultIfBlank(meetingRoomInfoPO.getGeneralPwd(), meetingRoomInfoPO.getAudiencePasswd());
             //会议时间
             String meetingTime =
                 DateUtil.format(meetingRoomInfoPO.getShowStartTime(), YMDFormat) + " " + DateUtil.format(
-                    meetingRoomInfoPO.getShowStartTime(), HMFormat) + "-" + DateUtil.format(
-                    meetingRoomInfoPO.getShowEndTime(), HMFormat) + "(GMT+08:00)";
+                    DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
+                        ZoneId.of(timeZoneOffset)), HMFormat) + "-" + DateUtil.format(
+                    DateUtils.convertTimeZone(meetingRoomInfoPO.getShowEndTime(), DateUtils.TIME_ZONE_GMT,
+                        ZoneId.of(timeZoneOffset)), HMFormat) + "(" + timeZoneOffset + ")";
 
             JSONObject pushData = JSONUtil.createObj().set("contentImage", meetingConfig.getMeetingIcon())
                 .set("contentStr",

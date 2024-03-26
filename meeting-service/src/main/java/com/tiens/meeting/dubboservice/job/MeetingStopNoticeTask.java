@@ -57,9 +57,9 @@ public class MeetingStopNoticeTask {
         //1、找到快结束的会议室，给主持人发送IM消息
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
-            .eq(MeetingRoomInfoPO::getNotifyRoomStopStatus, 0).le(MeetingRoomInfoPO::getShowEndTime, DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT")))
+            .eq(MeetingRoomInfoPO::getNotifyRoomStopStatus, 0)
+            .le(MeetingRoomInfoPO::getShowEndTime, DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT")))
             .list();
-//            .le(MeetingRoomInfoPO::getLockEndTime, DateUtil.offsetMinute(new Date(), 90)).list();
         //排除掉私人专属会议
         list = list.stream().filter(m -> NumberUtil.isNumber(m.getResourceType())).collect(Collectors.toList());
         if (CollectionUtil.isEmpty(list)) {

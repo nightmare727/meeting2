@@ -1,6 +1,7 @@
 package com.tiens.meeting.dubboservice.job;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.tiens.imchatapi.api.message.MessageService;
@@ -22,6 +23,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 
@@ -58,10 +60,11 @@ public class MeetingStopTask {
     @MDCLog
     public void jobHandler() throws Exception {
         //1、找到结束的会议室
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
 
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
-            .le(MeetingRoomInfoPO::getLockEndTime, DateUtil.date()).list();
+            .le(MeetingRoomInfoPO::getLockEndTime, now).list();
         if (CollectionUtil.isEmpty(list)) {
             log.info("【定时任务：会议定时结束】:当前无需要处理的数据");
             return;

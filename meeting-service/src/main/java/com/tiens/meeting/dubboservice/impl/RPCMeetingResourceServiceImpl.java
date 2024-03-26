@@ -25,6 +25,7 @@ import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
 import common.util.cache.CacheKeyUtil;
+import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -68,7 +69,6 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         Instant now = Instant.now();
         Date date = new Date();
         DateTime dateTime = DateUtil.convertTimeZone(date, zoneId1);
-
 //        System.out.println(dateTime);
 //        ZonedDateTime zonedDateTime = now.atZone(zoneId1);
 //        System.out.println(zonedDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
@@ -88,7 +88,9 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         calendar.add(Calendar.MILLISECOND, timeZoneOffset);
         Date newDate = calendar.getTime();
 
-        System.out.println("新日期： " + newDate);
+//        System.out.println("新日期： " + newDate);
+
+        System.out.println(DateUtils.convertTimeZone(originalDate, ZoneId.of("GMT+08:00"), ZoneId.of("GMT")));
     }
 
     /**

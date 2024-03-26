@@ -5,7 +5,10 @@ import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
-import com.tiens.api.dto.*;
+import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
+import com.tiens.api.dto.CancelMeetingRoomDTO;
+import com.tiens.api.dto.FreeResourceListDTO;
+import com.tiens.api.dto.MeetingRoomContextDTO;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.dubboservice.job.AppointMeetingTask;
@@ -26,7 +29,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -153,7 +155,7 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getFutureAndRunningMeetingRoomList() {
         System.out.println(
-            rpcMeetingRoomService.getFutureAndRunningMeetingRoomList("a19367142fdd4278bb5009aae35ee7af"));
+            rpcMeetingRoomService.getFutureAndRunningMeetingRoomList("a19367142fdd4278bb5009aae35ee7af", ""));
     }
 
     @Test

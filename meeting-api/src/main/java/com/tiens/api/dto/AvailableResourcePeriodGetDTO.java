@@ -1,5 +1,6 @@
 package com.tiens.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -26,6 +27,7 @@ public class AvailableResourcePeriodGetDTO implements Serializable {
     /**
      * (需要)日期 yyyy-MM-dd
      */
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date date;
 
     /**
