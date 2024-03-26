@@ -3,7 +3,6 @@ package com.tiens.meeting.dubboservice.job;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
@@ -93,8 +92,7 @@ public class AppointMeetingTask {
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
             .eq(MeetingRoomInfoPO::getNotifyRoomStartStatus, 0).le(MeetingRoomInfoPO::getLockStartTime, now).list();
-        //排除掉私人专属会议
-        list = list.stream().filter(m -> NumberUtil.isNumber(m.getResourceType())).collect(Collectors.toList());
+
         if (CollectionUtil.isEmpty(list)) {
             log.info("【定时任务：会议开始前30分钟】 当前无需要通知的消息");
             return;
@@ -113,6 +111,14 @@ public class AppointMeetingTask {
                 log.info("【定时任务：会议开始前30分钟】 执行分配资源，ownerImUserId：{},vmrId:{}", ownerImUserId,
                     byId.getVmrId());
                 hwMeetingCommonService.associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
+            } else {
+                //私有专属会议，如果该资源存在进行中的会议，即上一个会议自动延期没结束,此次不分配资源
+                /*List<MeetingRoomInfoPO> privateRoomInfoPOS =
+                    meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, byId.getId())
+                        .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState()).list();
+                if (ObjectUtil.isEmpty(privateRoomInfoPOS)) {
+
+                }*/
             }
         }
 
