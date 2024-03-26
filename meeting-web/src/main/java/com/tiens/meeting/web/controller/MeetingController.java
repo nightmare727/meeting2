@@ -179,10 +179,11 @@ public class MeetingController {
      * @return
      */
     @ResponseBody
-    @GetMapping("/getFutureAndRunningMeetingRoomList")
+    @GetMapping("/getFutureAndRunningMeetingRoomList/${timeZoneOffset}")
     CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(
-        @RequestHeader("finalUserId") String finalUserId) {
-        return rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(finalUserId);
+        @RequestHeader("finalUserId") String finalUserId,
+        @PathVariable(name = "timeZoneOffset") String timeZoneOffset) {
+        return rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(finalUserId, timeZoneOffset);
     }
 
     /**
@@ -191,10 +192,10 @@ public class MeetingController {
      * @return
      */
     @ResponseBody
-    @GetMapping("/getHistoryMeetingRoomList/{month}")
+    @GetMapping("/getHistoryMeetingRoomList/{month}/{timeZoneOffset}")
     CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(@RequestHeader("finalUserId") String finalUserId,
-        @PathVariable("month") Integer month) {
-        return rpcMeetingRoomService.getHistoryMeetingRoomList(finalUserId, month);
+        @PathVariable("month") Integer month, @PathVariable(name = "timeZoneOffset") String timeZoneOffset) {
+        return rpcMeetingRoomService.getHistoryMeetingRoomList(finalUserId, month, timeZoneOffset);
     }
 
     /**

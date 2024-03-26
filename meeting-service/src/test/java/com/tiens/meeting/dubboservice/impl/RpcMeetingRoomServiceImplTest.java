@@ -160,7 +160,7 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void getHistoryMeetingRoomList() {
-        System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList("1", 12));
+        System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList("1", 12,""));
     }
 
     @Test
