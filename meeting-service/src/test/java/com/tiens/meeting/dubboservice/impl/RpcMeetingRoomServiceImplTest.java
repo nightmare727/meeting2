@@ -171,10 +171,10 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getAvailableResourcePeriod() {
         AvailableResourcePeriodGetDTO availableResourcePeriodGetDTO = new AvailableResourcePeriodGetDTO();
-        availableResourcePeriodGetDTO.setResourceId(308);
-        availableResourcePeriodGetDTO.setImUserId("48cd6848a5ca47c883bd38a5c64287dd");
-        availableResourcePeriodGetDTO.setDate(DateUtil.parse("2023-12-28 10:30:51"));
-
+        availableResourcePeriodGetDTO.setResourceId(398);
+        availableResourcePeriodGetDTO.setImUserId("90a2aed7dcaf45c398ccb39dc6a22f2b");
+        availableResourcePeriodGetDTO.setDate(DateUtil.parse("2024-03-27 10:30:51"));
+        availableResourcePeriodGetDTO.setTimeZoneOffset("GMT+08:00");
         System.out.println(
             JSON.toJSONString(rpcMeetingRoomService.getAvailableResourcePeriod(availableResourcePeriodGetDTO)));
 

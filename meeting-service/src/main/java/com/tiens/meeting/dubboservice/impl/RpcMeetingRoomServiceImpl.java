@@ -1177,10 +1177,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         DateTime beginOfDay = DateUtil.beginOfDay(date);
         //重新计算UTC开始时间
-        beginOfDay = DateUtil.convertTimeZone(beginOfDay, ZoneId.of("GMT"));
-
+        beginOfDay = DateUtils.convertTimeZone(beginOfDay, userZoneId, DateUtils.TIME_ZONE_GMT);
         DateTime endOfDay = DateUtil.endOfDay(date);
-        endOfDay = DateUtil.convertTimeZone(endOfDay, ZoneId.of("GMT"));
+        endOfDay = DateUtils.convertTimeZone(endOfDay, userZoneId, DateUtils.TIME_ZONE_GMT);
         //查询与当日有交叉的会议
         List<MeetingRoomInfoPO> occupiedMeetingRoom =
             getOccupiedMeetingRoom(Collections.singletonList(resourceId), beginOfDay, endOfDay);
