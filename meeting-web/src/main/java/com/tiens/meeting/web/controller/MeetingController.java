@@ -176,6 +176,7 @@ public class MeetingController {
      * 首页查询即将召开和进行中的会议列表
      *
      * @param finalUserId
+     * @param timeZoneOffset 用户时区
      * @return
      */
     @ResponseBody
@@ -189,6 +190,7 @@ public class MeetingController {
     /**
      * 查询历史会议列表
      *
+     * @param timeZoneOffset 用户时区
      * @return
      */
     @ResponseBody

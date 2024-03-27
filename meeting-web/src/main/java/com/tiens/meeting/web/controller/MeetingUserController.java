@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class MeetingUserController {
 
-    @Reference(version = "1.0",timeout = 20000)
+    @Reference(version = "1.0", timeout = 20000)
     RpcMeetingRoomService rpcMeetingRoomService;
     @Reference
     RpcMeetingUserService rpcMeetingUserService;
@@ -59,8 +59,13 @@ public class MeetingUserController {
         return rpcMeetingUserService.queryVMUser(null, finalUserId);
     }
 
-
-
+    /**
+     * 查询直播用户
+     *
+     * @param queryUserRequest
+     * @return
+     * @throws Exception
+     */
     @ResponseBody
     @PostMapping("/queryLiveVMUser")
     public CommonResult<QueryUserResponse> queryLiveVMUser(@RequestBody QueryUserRequest queryUserRequest)
@@ -98,6 +103,12 @@ public class MeetingUserController {
         return rpcMeetingRoomService.getCredential(accid);
     }
 
+    /**
+     * 增加会议主持人特权
+     *
+     * @param meetingResourceAwardDTO
+     * @return
+     */
     @ResponseBody
     @PostMapping("/addMeetingHostUser")
     CommonResult addMeetingHostUser(@RequestBody MeetingResourceAwardDTO meetingResourceAwardDTO) {

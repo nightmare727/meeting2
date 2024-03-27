@@ -48,6 +48,7 @@ import reactor.util.function.Tuple2;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
 
+import java.time.Duration;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -829,6 +830,19 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private MeetingRoomDetailDTO packBaseMeetingRoomDetailDTO(MeetingRoomInfoPO meetingRoomInfoPO,
         List<MeetingAttendeePO> list) {
         MeetingRoomDetailDTO result = BeanUtil.copyProperties(meetingRoomInfoPO, MeetingRoomDetailDTO.class);
+        //设置会议时长
+        Date relStartTime = meetingRoomInfoPO.getRelStartTime();
+        Date relEndTime = meetingRoomInfoPO.getRelEndTime();
+        if (ObjectUtil.isAllNotEmpty(relStartTime, relEndTime)) {
+            Duration duration = Duration.between(LocalDateTimeUtil.of(relStartTime), LocalDateTimeUtil.of(relEndTime));
+            long hours = duration.toHours();
+            long minutes = duration.minusHours(hours).toMinutes();
+            long seconds = duration.minusHours(hours).minusMinutes(minutes).getSeconds();
+
+            // 输出结果
+            result.setMeetingLength(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+        }
+
         String resourceType = result.getResourceType();
         if (NumberUtil.isNumber(resourceType)) {
             //共有会议类型
@@ -864,6 +878,17 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //        Object[] params = new Object[] {"1234"};
         //        String msg = MessageFormat.format("验证码:{0},您正在登录管理后台，1分钟内输入有效。", params);
         //        System.out.println(msg);
+
+        Date date1 = DateUtil.parse("2022-01-01 00:00:00");
+        Date date2 = DateUtil.parse("2022-01-01 14:30:00");
+        Duration duration = Duration.between(LocalDateTimeUtil.of(date1), LocalDateTimeUtil.of(date2));
+        long hours = duration.toHours();
+        long minutes = duration.minusHours(hours).toMinutes();
+        long seconds = duration.minusHours(hours).minusMinutes(minutes).getSeconds();
+
+        // 输出结果
+        System.out.printf("%02d:%02d:%02d", hours, minutes, seconds);
+
     }
 
     /**
@@ -1180,8 +1205,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         //最大6小时切割
 
         List<FreeTimeCalculatorUtil.TimeRange> rangeList =
-            FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 1, 6, date,
-                byId.getExpireDate(),userZoneId);
+            FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 1, 6, date, byId.getExpireDate(), userZoneId);
         List<AvailableResourcePeriodVO> result =
             rangeList.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
                 .collect(Collectors.toList());

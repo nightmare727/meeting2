@@ -175,4 +175,9 @@ public class MeetingRoomDetailDTO implements Serializable {
      */
     private String languageId;
 
+    /**
+     * 会议时长
+     */
+    private String meetingLength;
+
 }
