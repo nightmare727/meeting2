@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Enumeration;
 
 /**
  * @author gaofei
@@ -25,7 +26,7 @@ public class ControllerException {
     @ExceptionHandler(Exception.class)
     public CommonResult handleException(HttpServletRequest request, Exception e) {
         log.error("服务器异常", e);
-
+        log.info("所有请求头信息：{}", getAllHeaders(request));
         String nationId = request.getHeader("nation_id");
         String platform = request.getHeader("p");
         String version = request.getHeader("v");
@@ -41,4 +42,18 @@ public class ControllerException {
         log.error("业务异常", e);
         return CommonResult.error(e.getCode(), e.getMessage());
     }
+
+    String getAllHeaders(HttpServletRequest request) {
+        Enumeration<String> headerNames = request.getHeaderNames();
+        StringBuilder headers = new StringBuilder();
+
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            String headerValue = request.getHeader(headerName);
+            headers.append(headerName).append(": ").append(headerValue).append("\n");
+        }
+        return headers.toString();
+
+    }
+
 }
