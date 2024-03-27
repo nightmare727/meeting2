@@ -71,7 +71,7 @@ public class FreeTimeCalculatorUtil {
         List<TimeRange> freeTimeRanges = new ArrayList<>();
 
         //当前时间
-        DateTime now = DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId));
+        DateTime now = DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId),userZoneId);
 
         //当前天
         boolean isToday = DateUtil.formatDate(targetDate).equals(DateUtil.formatDate(now));
@@ -117,7 +117,7 @@ public class FreeTimeCalculatorUtil {
         //将每个时间段的开始和结束时间转换为分钟。
 
         //当前时间
-        DateTime nowDateTime = DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId));
+        DateTime nowDateTime = DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId),userZoneId);
 
         //当前天
         boolean isToday = DateUtil.formatDate(targetDate).equals(DateUtil.formatDate(nowDateTime));

@@ -176,28 +176,31 @@ public class MeetingController {
      * 首页查询即将召开和进行中的会议列表
      *
      * @param finalUserId
-     * @param timeZoneOffset 用户时区
      * @return
      */
     @ResponseBody
-    @GetMapping("/getFutureAndRunningMeetingRoomList/${timeZoneOffset}")
+    @PostMapping("/getFutureAndRunningMeetingRoomList")
     CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(
         @RequestHeader("finalUserId") String finalUserId,
-        @PathVariable(name = "timeZoneOffset") String timeZoneOffset) {
-        return rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(finalUserId, timeZoneOffset);
+        @RequestBody FutureAndRunningMeetingRoomListGetDTO futureAndRunningMeetingRoomListGetDTO) {
+        futureAndRunningMeetingRoomListGetDTO.setFinalUserId(finalUserId);
+
+        return rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(futureAndRunningMeetingRoomListGetDTO);
     }
 
     /**
      * 查询历史会议列表
      *
-     * @param timeZoneOffset 用户时区
+     * @param historyMeetingRoomListGetDTO
      * @return
      */
     @ResponseBody
-    @GetMapping("/getHistoryMeetingRoomList/{month}/{timeZoneOffset}")
+    @PostMapping("/getHistoryMeetingRoomList")
     CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(@RequestHeader("finalUserId") String finalUserId,
-        @PathVariable("month") Integer month, @PathVariable(name = "timeZoneOffset") String timeZoneOffset) {
-        return rpcMeetingRoomService.getHistoryMeetingRoomList(finalUserId, month, timeZoneOffset);
+        @RequestBody HistoryMeetingRoomListGetDTO historyMeetingRoomListGetDTO) {
+        historyMeetingRoomListGetDTO.setFinalUserId(finalUserId);
+
+        return rpcMeetingRoomService.getHistoryMeetingRoomList(historyMeetingRoomListGetDTO);
     }
 
     /**

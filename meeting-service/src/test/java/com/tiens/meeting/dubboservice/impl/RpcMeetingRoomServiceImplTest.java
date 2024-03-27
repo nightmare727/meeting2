@@ -1,5 +1,6 @@
 package com.tiens.meeting.dubboservice.impl;
 
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.util.RandomUtil;
@@ -28,6 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -59,7 +61,8 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void getCredential() {
-
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+        System.out.println(now);
     }
 
     @Test
@@ -89,14 +92,15 @@ class RpcMeetingRoomServiceImplTest {
         meetingRoomContextDTO.setStartTime(null);
         meetingRoomContextDTO.setLength(60);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setResourceId(389);
-        meetingRoomContextDTO.setResourceType("2");
+        meetingRoomContextDTO.setResourceId(399);
+        meetingRoomContextDTO.setResourceType("1");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
         meetingRoomContextDTO.setGuestPwdFlag(false);
         meetingRoomContextDTO.setLevelCode(9);
         meetingRoomContextDTO.setImUserId("7a4037c1a8234ba286647f31aadfc4f1");
         meetingRoomContextDTO.setImUserName("文杰昵称");
+        meetingRoomContextDTO.setTimeZoneOffset("GMT+08:00");
 //        List<MeetingAttendeeDTO> meetingAttendeeDTOS = Lists.newArrayList();
 //        MeetingAttendeeDTO meetingAttendeeDTO = new MeetingAttendeeDTO();
 //        meetingAttendeeDTO.setAttendeeUserId("cb4b8cc1be09409eb108baf982d7e196");
@@ -134,15 +138,15 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getMeetingRoom() {
         System.out.println(
-            rpcMeetingRoomService.getMeetingRoom(1767443276215427073L, "48cd6848a5ca47c883bd38a5c64287dd"));
+            rpcMeetingRoomService.getMeetingRoom(1772842609634136066L, "48cd6848a5ca47c883bd38a5c64287dd"));
     }
 
     @Test
     void cancelMeetingRoom() {
         CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
-        cancelMeetingRoomDTO.setMeetingRoomId(1751846457861304321L);
+        cancelMeetingRoomDTO.setMeetingRoomId(1772810196851097602L);
 
-        cancelMeetingRoomDTO.setImUserId("8ff6a6c6bec64761a72fa23df6e72a0d");
+        cancelMeetingRoomDTO.setImUserId("7a4037c1a8234ba286647f31aadfc4f1");
 
         System.out.println(rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO));
     }
@@ -155,7 +159,7 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void getFutureAndRunningMeetingRoomList() {
         System.out.println(
-            rpcMeetingRoomService.getFutureAndRunningMeetingRoomList("a19367142fdd4278bb5009aae35ee7af", ""));
+            rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(null));
     }
 
     @Test

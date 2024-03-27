@@ -55,13 +55,15 @@ public class DateUtils {
      * @param dateTime 给定的时间
      * @return 最近的半点时间
      */
-    public static DateTime roundToHalfHour(DateTime dateTime) {
+    public static DateTime roundToHalfHour(Date dateTime, ZoneId zoneId) {
         DateTime result = DateUtil.dateNew(dateTime);
-        int newUear = dateTime.getField(DateField.YEAR);
-        int newDay = dateTime.getField(DateField.DAY_OF_YEAR);
-        int newHour = dateTime.getField(DateField.HOUR_OF_DAY);
-        int newMinute = dateTime.getField(DateField.MINUTE);
-        int newSecond = dateTime.getField(DateField.SECOND);
+        TimeZone timeZone = TimeZone.getTimeZone(zoneId);
+        result.setTimeZone(timeZone);
+        int newUear = result.getField(DateField.YEAR);
+        int newDay = result.getField(DateField.DAY_OF_YEAR);
+        int newHour = result.getField(DateField.HOUR_OF_DAY);
+        int newMinute = result.getField(DateField.MINUTE);
+        int newSecond = result.getField(DateField.SECOND);
         if (newMinute == 0 && newSecond == 0) {
             //正点不做处理
         } else if (newMinute < 30) {

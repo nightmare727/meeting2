@@ -57,9 +57,9 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
 
 
         //当前UTC时间
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
         //处理开始时间
-        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), now));
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now),DateUtils.TIME_ZONE_GMT);
 
         //锁定开始时间
         DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
@@ -152,9 +152,9 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         //是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
         //当前UTC时间
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(),DateUtils.TIME_ZONE_GMT);
         //处理开始时间
-        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), now));
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now),DateUtils.TIME_ZONE_GMT);
 
         //锁定开始时间
         DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);

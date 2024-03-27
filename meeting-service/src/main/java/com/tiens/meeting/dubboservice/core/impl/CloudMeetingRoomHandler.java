@@ -2,7 +2,6 @@ package com.tiens.meeting.dubboservice.core.impl;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.huaweicloud.sdk.core.exception.ServiceResponseException;
@@ -19,7 +18,6 @@ import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -52,10 +50,10 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
 
         //当前UTC时间
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
 
         //处理开始时间
-        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), now));
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now), DateUtils.TIME_ZONE_GMT);
 
         //锁定开始时间
         DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
@@ -83,8 +81,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
                 //随机会议id-私人会议，固定会议id
                 .withVmrIDType(1)
                 //私人会议延长60分钟，否则不延迟
-                .withProlongLength(isPrivate ? 60 : 0)
-                .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
+                .withProlongLength(isPrivate ? 60 : 0).withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
                 //是否开启等候室
                 .withEnableWaitingRoom(false);
             body.withVmrID(meetingRoomContextDTO.getVmrId());
@@ -187,7 +184,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
 
         //处理开始时间
-        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), now));
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now),DateUtils.TIME_ZONE_GMT);
 
         //锁定开始时间
         DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);

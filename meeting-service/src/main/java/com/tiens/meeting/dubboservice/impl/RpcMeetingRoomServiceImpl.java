@@ -206,9 +206,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         log.info("空闲资源列表【0】入参：{}", freeResourceListDTO);
 
-        Date showStartTime = DateUtils.roundToHalfHour(
-            ObjectUtil.defaultIfNull(DateUtil.date(freeResourceListDTO.getStartTime()),
-                DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"))));
+        Date showStartTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(freeResourceListDTO.getStartTime(),
+            DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_GMT);
 
         DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
         DateTime lockEndTime = DateUtil.offsetMinute(showStartTime, freeResourceListDTO.getLength() + 29);
@@ -447,8 +446,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         //展示开始时间
         DateTime showStartTime = DateUtils.roundToHalfHour(
-            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()),
-                DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"))));
+            ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(),
+                DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_GMT);
         Integer length = meetingRoomContextDTO.getLength();
         //展示结束时间
         DateTime showEndTime = DateUtil.offsetMinute(showStartTime, length);
@@ -501,9 +500,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
 
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
-        Date showStartTime = DateUtils.roundToHalfHour(
-            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), now));
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+        Date showStartTime =
+            DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(), now),
+                DateUtils.TIME_ZONE_GMT);
 
         DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
         DateTime lockEndTime = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength() + 29);
@@ -583,8 +583,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
         //展示开始时间
-        Date showStartTime = DateUtils.roundToHalfHour(
-            ObjectUtil.defaultIfNull(DateUtil.date(meetingRoomContextDTO.getStartTime()), now));
+        Date showStartTime =
+            DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(), now),
+                DateUtils.TIME_ZONE_GMT);
         //展示开始时间
         DateTime showEndTime = DateUtil.offsetMinute(showStartTime, meetingRoomContextDTO.getLength());
         //锁定开始时间
@@ -887,7 +888,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         long seconds = duration.minusHours(hours).minusMinutes(minutes).getSeconds();
 
         // 输出结果
-        System.out.printf("%02d:%02d:%02d", hours, minutes, seconds);
+//        System.out.printf("%02d:%02d:%02d", hours, minutes, seconds);
+
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+        DateTime date = DateUtil.date((Date)null);
+        System.out.println(date);
+        Date showStartTime1 = DateUtils.roundToHalfHour(now, DateUtils.TIME_ZONE_GMT);
+
+        System.out.println(showStartTime1);
 
     }
 
@@ -1049,8 +1057,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     @Override
-    public CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(String imUserId,
-        String timeZoneOffset) {
+    public CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(
+        FutureAndRunningMeetingRoomListGetDTO futureAndRunningMeetingRoomListGetDTO) {
+        String imUserId = futureAndRunningMeetingRoomListGetDTO.getFinalUserId();
+        String timeZoneOffset = futureAndRunningMeetingRoomListGetDTO.getTimeZoneOffset();
 
         //列表中显示最近要开始的会议，按照会议开始时间正序。最多显示30天数据
         //  已结束的会议不显示。
@@ -1095,8 +1105,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     @Override
-    public CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(String imUserId, Integer month,
-        String timeZoneOffset) {
+    public CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(
+        HistoryMeetingRoomListGetDTO historyMeetingRoomListGetDTO) {
+        Integer month = historyMeetingRoomListGetDTO.getMonth();
+        String imUserId = historyMeetingRoomListGetDTO.getFinalUserId();
+        String timeZoneOffset = historyMeetingRoomListGetDTO.getTimeZoneOffset();
+        
         DateTime dateTime = getMonth(month);
         DateTime start = DateUtil.beginOfMonth(dateTime);
         DateTime end = DateUtil.endOfMonth(dateTime);
