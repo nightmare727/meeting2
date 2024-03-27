@@ -1,5 +1,6 @@
 package com.tiens.meeting.web.interceptor;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.jtmm.third.party.wechat.company.WeChatCompanyService;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
@@ -24,7 +25,13 @@ public class ControllerException {
     @ExceptionHandler(Exception.class)
     public CommonResult handleException(HttpServletRequest request, Exception e) {
         log.error("服务器异常", e);
-        weChatCompanyService.sendException(e, request.getRequestURI(), "");
+
+        String nationId = request.getHeader("nation_id");
+        String platform = request.getHeader("p");
+        String version = request.getHeader("v");
+
+        String systemVersion = ObjectUtil.defaultIfBlank(nationId + "-" + platform + "-" + version, "未知版本");
+        weChatCompanyService.sendException(e, request.getRequestURI(), systemVersion);
         return CommonResult.error(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR);
 
     }

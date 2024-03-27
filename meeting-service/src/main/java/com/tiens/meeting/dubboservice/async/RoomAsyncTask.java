@@ -20,6 +20,7 @@ import com.tiens.meeting.dubboservice.core.LanguageService;
 import com.tiens.meeting.repository.po.MeetingHwEventCallbackPO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingHwEventCallbackDaoService;
+import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
@@ -32,6 +33,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -113,10 +115,14 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
         //邀请密码
         String invitePwd =
             ObjectUtil.defaultIfBlank(meetingRoomInfoPO.getGeneralPwd(), meetingRoomInfoPO.getAudiencePasswd());
-        //会议时间
-        String meetingTime = DateUtil.format(meetingRoomInfoPO.getShowStartTime(), YMDFormat) + " " + DateUtil.format(
-            meetingRoomInfoPO.getShowStartTime(), HMFormat) + "-" + DateUtil.format(meetingRoomInfoPO.getShowEndTime(),
-            HMFormat) + "(GMT+08:00)";
+        String timeZoneOffset = meetingRoomInfoPO.getTimeZoneOffset();
+
+        String meetingTime =
+            DateUtil.format(meetingRoomInfoPO.getShowStartTime(), YMDFormat) + " " + DateUtil.format(
+                DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
+                    ZoneId.of(timeZoneOffset)), HMFormat) + "-" + DateUtil.format(
+                DateUtils.convertTimeZone(meetingRoomInfoPO.getShowEndTime(), DateUtils.TIME_ZONE_GMT,
+                    ZoneId.of(timeZoneOffset)), HMFormat) + "(" + timeZoneOffset + ")";
 
         JSONObject pushData = JSONUtil.createObj().set("contentImage", meetingConfig.getMeetingIcon())
             .set("contentStr", languageService.getLanguageValue(languageId, meetingConfig.getInviteContentKey()))
@@ -160,7 +166,8 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
         pushMessageDto.setPushContent(
             languageService.getLanguageValue(languageId, meetingConfig.getInviteContentKey()));
         pushMessageDto.setSubtype(1);
-        Message<String> message = MessageBuilder.withPayload(JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect)).build();
+        Message<String> message = MessageBuilder.withPayload(
+            JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect)).build();
         log.info("【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(pushMessageDto));
         SendResult sendResult = rocketMQTemplate.syncSend(pushMessageTopic, message);
         log.info("【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(sendResult));
