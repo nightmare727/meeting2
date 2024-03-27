@@ -6,10 +6,7 @@ import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
-import com.tiens.api.dto.AvailableResourcePeriodGetDTO;
-import com.tiens.api.dto.CancelMeetingRoomDTO;
-import com.tiens.api.dto.FreeResourceListDTO;
-import com.tiens.api.dto.MeetingRoomContextDTO;
+import com.tiens.api.dto.*;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.dubboservice.job.AppointMeetingTask;
@@ -158,13 +155,17 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void getFutureAndRunningMeetingRoomList() {
-        System.out.println(
-            rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(null));
+        FutureAndRunningMeetingRoomListGetDTO futureAndRunningMeetingRoomListGetDTO =
+            new FutureAndRunningMeetingRoomListGetDTO();
+        futureAndRunningMeetingRoomListGetDTO.setFinalUserId("90a2aed7dcaf45c398ccb39dc6a22f2b");
+        futureAndRunningMeetingRoomListGetDTO.setTimeZoneOffset("GMT+08:00");
+
+        System.out.println(rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(futureAndRunningMeetingRoomListGetDTO));
     }
 
     @Test
     void getHistoryMeetingRoomList() {
-        System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList("1", 12,""));
+        System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList(null));
     }
 
     @Test

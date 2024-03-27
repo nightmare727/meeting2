@@ -1091,12 +1091,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         FutureAndRunningMeetingRoomListVO futureAndRunningMeetingRoomListVO = new FutureAndRunningMeetingRoomListVO();
         List<MeetingRoomDetailDTO> meetingRoomDetailDTOS = BeanUtil.copyToList(list, MeetingRoomDetailDTO.class);
         TreeMap<String, List<MeetingRoomDetailDTO>> sortMap = new TreeMap<>(Comparator.comparing(DateUtil::parse));
-        Map<String, List<MeetingRoomDetailDTO>> collect = meetingRoomDetailDTOS.stream().peek(t -> t.setShowStartTime(
-                DateUtils.convertTimeZone(t.getShowStartTime(), DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset))))
-            .collect(Collectors.groupingBy(f -> DateUtil.format(f.getShowStartTime(), DatePattern.NORM_DATE_PATTERN),
-                () -> sortMap, Collectors.collectingAndThen(Collectors.toCollection(
-                    () -> new TreeSet<MeetingRoomDetailDTO>(Comparator.comparing(MeetingRoomDetailDTO::getShowStartTime)
-                        .thenComparing(MeetingRoomDetailDTO::getHwMeetingCode))), Lists::newArrayList)));
+        Map<String, List<MeetingRoomDetailDTO>> collect = meetingRoomDetailDTOS.stream()
+//            peek(t -> t.setShowStartTime(
+//                DateUtils.convertTimeZone(t.getShowStartTime(), DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset))))
+            .collect(Collectors.groupingBy(f -> DateUtil.format(
+                DateUtils.convertTimeZone(f.getShowStartTime(), DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset)),
+                DatePattern.NORM_DATE_PATTERN), () -> sortMap, Collectors.collectingAndThen(Collectors.toCollection(
+                () -> new TreeSet<MeetingRoomDetailDTO>(Comparator.comparing(MeetingRoomDetailDTO::getShowStartTime)
+                    .thenComparing(MeetingRoomDetailDTO::getHwMeetingCode))), Lists::newArrayList)));
         futureAndRunningMeetingRoomListVO.setRooms(collect);
         return futureAndRunningMeetingRoomListVO;
     }
@@ -1110,7 +1112,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         Integer month = historyMeetingRoomListGetDTO.getMonth();
         String imUserId = historyMeetingRoomListGetDTO.getFinalUserId();
         String timeZoneOffset = historyMeetingRoomListGetDTO.getTimeZoneOffset();
-        
+
         DateTime dateTime = getMonth(month);
         DateTime start = DateUtil.beginOfMonth(dateTime);
         DateTime end = DateUtil.endOfMonth(dateTime);
