@@ -1140,7 +1140,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         Map<Long, List<MeetingAttendeePO>> finalRoomIdAttendeeMap = roomIdAttendeeMap;
         List<MeetingRoomDetailDTO> collect =
-            list.stream().map(t -> packBaseMeetingRoomDetailDTO(t, finalRoomIdAttendeeMap.get(t)))
+            list.stream().map(t -> packBaseMeetingRoomDetailDTO(t, finalRoomIdAttendeeMap.get(t.getId())))
                 .collect(Collectors.toList());
         return CommonResult.success(collect);
     }

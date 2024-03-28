@@ -16,6 +16,7 @@ import com.tiens.meeting.repository.po.MeetingAttendeePO;
 import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
 import common.enums.MeetingResourceHandleEnum;
 import common.enums.MeetingUserJoinSourceEnum;
+import common.util.date.DateUtils;
 import lombok.SneakyThrows;
 import org.apache.dubbo.config.annotation.Reference;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -165,7 +166,13 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void getHistoryMeetingRoomList() {
-        System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList(null));
+        HistoryMeetingRoomListGetDTO historyMeetingRoomListGetDTO = new HistoryMeetingRoomListGetDTO();
+        historyMeetingRoomListGetDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
+        historyMeetingRoomListGetDTO.setMonth(3);
+        historyMeetingRoomListGetDTO.setFinalUserId("cf2828195d364c6cbf4c9fa83f6abee8");
+
+
+        System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList(historyMeetingRoomListGetDTO));
     }
 
     @Test
