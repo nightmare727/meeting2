@@ -12,7 +12,9 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.tiens.api.dto.CancelMeetingRoomDTO;
 import com.tiens.api.dto.MessagePayloadDTO;
+import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.meeting.dubboservice.bo.LanguageWordBO;
 import com.tiens.meeting.dubboservice.bo.PushMessageDto;
@@ -29,6 +31,7 @@ import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import common.enums.MeetingResourceStateEnum;
 import common.enums.MeetingRoomStateEnum;
+import common.pojo.CommonResult;
 import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -80,6 +83,9 @@ public class AppointMeetingTask {
     @Autowired
     RocketMQTemplate rocketMQTemplate;
 
+    @Autowired
+    RpcMeetingRoomService rpcMeetingRoomService;
+
     @Value("${rocketmq.producer.push_message_topic}")
     String pushMessageTopic;
 
@@ -113,12 +119,22 @@ public class AppointMeetingTask {
                 hwMeetingCommonService.associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
             } else {
                 //私有专属会议，如果该资源存在进行中的会议，即上一个会议自动延期没结束,此次不分配资源
-                /*List<MeetingRoomInfoPO> privateRoomInfoPOS =
+                List<MeetingRoomInfoPO> privateRoomInfoPOS =
                     meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, byId.getId())
                         .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState()).list();
                 if (ObjectUtil.isEmpty(privateRoomInfoPOS)) {
-
-                }*/
+                    for (MeetingRoomInfoPO privateRoomInfoPO : privateRoomInfoPOS) {
+                        //取消本次私人会议
+                        CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
+                        cancelMeetingRoomDTO.setMeetingRoomId(privateRoomInfoPO.getId());
+                        cancelMeetingRoomDTO.setImUserId(privateRoomInfoPO.getOwnerImUserId());
+                        log.info("【定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议入参：{}",
+                            JSON.toJSONString(cancelMeetingRoomDTO));
+                        CommonResult commonResult = rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
+                        log.info("定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议结果：{}",
+                            JSON.toJSONString(commonResult));
+                    }
+                }
             }
         }
 
