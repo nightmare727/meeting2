@@ -15,10 +15,12 @@ import java.util.TimeZone;
  */
 public class DateUtils {
 
+    public static final String ZONE_STR_DEFAULT = "GMT+08:00";
+
     /**
      * 时区 - 默认
      */
-    public static final ZoneId TIME_ZONE_DEFAULT = ZoneId.of("GMT+8");
+    public static final ZoneId TIME_ZONE_DEFAULT = ZoneId.of(ZONE_STR_DEFAULT);
     /**
      * UTC时区
      */

@@ -26,7 +26,7 @@ public class ControllerException {
     @ExceptionHandler(Exception.class)
     public CommonResult handleException(HttpServletRequest request, Exception e) {
         log.error("服务器异常", e);
-        log.info("所有请求头信息：{}", getAllHeaders(request));
+//        log.info("所有请求头信息：{}", getAllHeaders(request));
         String nationId = request.getHeader("nation_id");
         String platform = request.getHeader("p");
         String version = request.getHeader("v");

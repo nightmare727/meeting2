@@ -1,5 +1,6 @@
 package com.tiens.api.dto;
 
+import common.util.date.DateUtils;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -43,7 +44,7 @@ public class MeetingRoomContextDTO implements Serializable {
     /**
      * （需要传）时区偏移量
      */
-    private String timeZoneOffset;
+    private String timeZoneOffset= DateUtils.ZONE_STR_DEFAULT;
     /**
      * （需要传）资源类型
      */
