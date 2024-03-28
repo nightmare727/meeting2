@@ -30,7 +30,7 @@ public class FreeResourceListDTO implements Serializable {
     /**
      * （需要传）时区偏移量
      */
-    private String timeZoneOffset = DateUtils.ZONE_STR_DEFAULT;
+    private String timeZoneOffset;
     /**
      * (需要)会议持续时长，单位分钟。默认 30分钟。 最大1440分钟（24小时），最 小15分钟。
      */

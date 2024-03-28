@@ -126,6 +126,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult enterMeetingRoomCheck(EnterMeetingRoomCheckDTO enterMeetingRoomCheckDTO) {
         //        若不在则 tos 提示，请在 XXXX年XX月XX日 XX:XX后进入会议。
         String meetRoomCode = enterMeetingRoomCheckDTO.getMeetRoomCode();
+        String timeZoneOffset = enterMeetingRoomCheckDTO.getTimeZoneOffset();
         log.info("加入会议校验入参：{}", enterMeetingRoomCheckDTO);
         //查询会议code是否存在
         Optional<MeetingRoomInfoPO> meetingRoomInfoPOOpt =
@@ -146,17 +147,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         //此资源为共有资源
         Date lockStartTime = meetingRoomInfoPO.getLockStartTime();
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+        DateTime now = DateUtil.date();
         if (now.isBefore(lockStartTime)) {
-            //未到开会开始时间
-            String betweenDate = DateUtil.formatBetween(now, lockStartTime, BetweenFormatter.Level.MINUTE);
             //未到开会开始时间
             return CommonResult.error(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getCode(),
                 String.format(GlobalErrorCodeConstants.NOT_ARRIVE_START_TIME_ERROR.getChinesMsg(),
-                    lockStartTime.getTime()));
+                    DateUtils.convertTimeZone(lockStartTime, DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset))));
             //                return CommonResult.errorMsg(String.format("请在 %s后进入会议", betweenDate));
         }
-        //        }
         log.info("加入会议校验通过：主持人id:{}", meetingRoomInfoPO.getOwnerImUserId());
         //返回主持人的id
         return CommonResult.success(meetingRoomInfoPO.getOwnerImUserId());
@@ -206,9 +204,17 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         log.info("空闲资源列表【0】入参：{}", freeResourceListDTO);
 
-        Date showStartTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(freeResourceListDTO.getStartTime(),
-            DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_GMT);
+        if (ObjectUtil.isEmpty(freeResourceListDTO.getTimeZoneOffset()) && ObjectUtil.isNotEmpty(
+            freeResourceListDTO.getStartTime())) {
+            //时区为空,则为东8
+            freeResourceListDTO.setStartTime(DateUtil.offsetHour(freeResourceListDTO.getStartTime(), -8));
+            freeResourceListDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
+        }
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
 
+        Date showStartTime =
+            DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(freeResourceListDTO.getStartTime(), now),
+                DateUtils.TIME_ZONE_GMT);
         DateTime lockStartTime = DateUtil.offsetMinute(showStartTime, -30);
         DateTime lockEndTime = DateUtil.offsetMinute(showStartTime, freeResourceListDTO.getLength() + 29);
         //前端用户能看到的资源列表=【公池该用户等级相关空闲子资源与主持人绑定公池空闲资源 的【并集】】+用户私池
@@ -342,6 +348,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO)
         throws Exception {
         log.info("【创建、预约会议】开始，参数为：{}", meetingRoomContextDTO);
+        if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset()) && ObjectUtil.isNotEmpty(
+            meetingRoomContextDTO.getStartTime())) {
+            //时区为空,则为东8
+            meetingRoomContextDTO.setStartTime(DateUtil.offsetHour(meetingRoomContextDTO.getStartTime(), -8));
+            meetingRoomContextDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
+        }
+
+
+
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
 
@@ -682,6 +697,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Transactional
     public CommonResult updateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         log.info("【编辑会议】开始，参数为：{}", meetingRoomContextDTO);
+        if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset()) && ObjectUtil.isNotEmpty(
+            meetingRoomContextDTO.getStartTime())) {
+            //时区为空,则为东8
+            meetingRoomContextDTO.setStartTime(DateUtil.offsetHour(meetingRoomContextDTO.getStartTime(), -8));
+            meetingRoomContextDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
+        }
+
+
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
 

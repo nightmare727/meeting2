@@ -59,13 +59,19 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void getCredential() {
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+        DateTime now = DateUtil.date();
         System.out.println(now);
     }
 
     @Test
     void enterMeetingRoomCheck() {
 
+
+        EnterMeetingRoomCheckDTO enterMeetingRoomCheckDTO = new EnterMeetingRoomCheckDTO();
+        enterMeetingRoomCheckDTO.setImUserId("6d3a332e5042431682974e58729cebe9");
+        enterMeetingRoomCheckDTO.setMeetRoomCode("961447500");
+
+        System.out.println(rpcMeetingRoomService.enterMeetingRoomCheck(enterMeetingRoomCheckDTO));
     }
 
     @Test

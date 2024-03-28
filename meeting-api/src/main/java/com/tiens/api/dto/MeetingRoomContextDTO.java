@@ -44,7 +44,7 @@ public class MeetingRoomContextDTO implements Serializable {
     /**
      * （需要传）时区偏移量
      */
-    private String timeZoneOffset= DateUtils.ZONE_STR_DEFAULT;
+    private String timeZoneOffset;
     /**
      * （需要传）资源类型
      */
