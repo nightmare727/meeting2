@@ -27,6 +27,7 @@ import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
 import com.tiens.meeting.dubboservice.core.entity.CancelMeetingRoomModel;
 import com.tiens.meeting.dubboservice.core.entity.MeetingRoomModel;
+import com.tiens.meeting.repository.config.DataCache;
 import com.tiens.meeting.repository.po.*;
 import com.tiens.meeting.repository.service.*;
 import com.tiens.meeting.util.FreeTimeCalculatorUtil;
@@ -91,6 +92,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private final RoomAsyncTaskService roomAsyncTaskService;
 
     private final MeetingAttendeeDaoService meetingAttendeeDaoService;
+
+    private final DataCache dataCache;
 
     public static final String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
 
@@ -533,6 +536,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             String sub = StrUtil.sub(timeZoneOffset, 0, 7) + "00";
             //GMT+09:30
             meetingRoomContextDTO.setTimeZoneOffset(sub);
+            meetingTimeZoneConfigPO =
+                meetingTimeZoneConfigDaoService.lambdaQuery().eq(MeetingTimeZoneConfigPO::getTimeZoneOffset, sub)
+                    .orderByAsc(MeetingTimeZoneConfigPO::getId).last("limit 1").one();
+
             log.info("修改时区默认展示，由旧时区：{} 转化成新时区：{}", timeZoneOffset, sub);
 //            return CommonResult.error(GlobalErrorCodeConstants.TIME_OFFSET_ERROR);
         }
@@ -623,6 +630,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             String sub = StrUtil.sub(timeZoneOffset, 0, 7) + "00";
             //GMT+09:30
             meetingRoomContextDTO.setTimeZoneOffset(sub);
+            meetingTimeZoneConfigPO =
+                meetingTimeZoneConfigDaoService.lambdaQuery().eq(MeetingTimeZoneConfigPO::getTimeZoneOffset, sub)
+                    .orderByAsc(MeetingTimeZoneConfigPO::getId).last("limit 1").one();
             log.info("修改时区默认展示，由旧时区：{} 转化成新时区：{}", timeZoneOffset, sub);
 //            return CommonResult.error(GlobalErrorCodeConstants.TIME_OFFSET_ERROR);
         }

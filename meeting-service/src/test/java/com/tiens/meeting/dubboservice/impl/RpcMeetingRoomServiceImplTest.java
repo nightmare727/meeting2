@@ -27,7 +27,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -66,7 +65,6 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     void enterMeetingRoomCheck() {
 
-
         EnterMeetingRoomCheckDTO enterMeetingRoomCheckDTO = new EnterMeetingRoomCheckDTO();
         enterMeetingRoomCheckDTO.setImUserId("6d3a332e5042431682974e58729cebe9");
         enterMeetingRoomCheckDTO.setMeetRoomCode("961447500");
@@ -93,10 +91,10 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-        meetingRoomContextDTO.setStartTime(null);
+        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-04-02 09:00:00"));
         meetingRoomContextDTO.setLength(60);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setResourceId(399);
+        meetingRoomContextDTO.setResourceId(400);
         meetingRoomContextDTO.setResourceType("1");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
@@ -104,7 +102,7 @@ class RpcMeetingRoomServiceImplTest {
         meetingRoomContextDTO.setLevelCode(9);
         meetingRoomContextDTO.setImUserId("7a4037c1a8234ba286647f31aadfc4f1");
         meetingRoomContextDTO.setImUserName("文杰昵称");
-//        meetingRoomContextDTO.setTimeZoneOffset("GMT+08:00");
+        meetingRoomContextDTO.setTimeZoneOffset("GMT+10:30");
 //        List<MeetingAttendeeDTO> meetingAttendeeDTOS = Lists.newArrayList();
 //        MeetingAttendeeDTO meetingAttendeeDTO = new MeetingAttendeeDTO();
 //        meetingAttendeeDTO.setAttendeeUserId("cb4b8cc1be09409eb108baf982d7e196");
@@ -167,7 +165,8 @@ class RpcMeetingRoomServiceImplTest {
         futureAndRunningMeetingRoomListGetDTO.setFinalUserId("90a2aed7dcaf45c398ccb39dc6a22f2b");
         futureAndRunningMeetingRoomListGetDTO.setTimeZoneOffset("GMT+08:00");
 
-        System.out.println(rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(futureAndRunningMeetingRoomListGetDTO));
+        System.out.println(
+            rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(futureAndRunningMeetingRoomListGetDTO));
     }
 
     @Test
@@ -176,7 +175,6 @@ class RpcMeetingRoomServiceImplTest {
         historyMeetingRoomListGetDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
         historyMeetingRoomListGetDTO.setMonth(3);
         historyMeetingRoomListGetDTO.setFinalUserId("cf2828195d364c6cbf4c9fa83f6abee8");
-
 
         System.out.println(rpcMeetingRoomService.getHistoryMeetingRoomList(historyMeetingRoomListGetDTO));
     }
