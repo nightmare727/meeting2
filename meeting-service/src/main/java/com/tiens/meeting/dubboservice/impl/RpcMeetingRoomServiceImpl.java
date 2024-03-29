@@ -6,6 +6,7 @@ import cn.hutool.core.date.*;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
@@ -528,7 +529,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .eq(MeetingTimeZoneConfigPO::getTimeZoneOffset, meetingRoomContextDTO.getTimeZoneOffset())
             .orderByAsc(MeetingTimeZoneConfigPO::getId).last("limit 1").one();
         if (ObjectUtil.isNull(meetingTimeZoneConfigPO)) {
-            return CommonResult.error(GlobalErrorCodeConstants.TIME_OFFSET_ERROR);
+            String timeZoneOffset = meetingRoomContextDTO.getTimeZoneOffset();
+            String sub = StrUtil.sub(timeZoneOffset, 0, 7) + "00";
+            //GMT+09:30
+            meetingRoomContextDTO.setTimeZoneOffset(sub);
+            log.info("修改时区默认展示，由旧时区：{} 转化成新时区：{}", timeZoneOffset, sub);
+//            return CommonResult.error(GlobalErrorCodeConstants.TIME_OFFSET_ERROR);
         }
 
         //开始时间小于当前时间
@@ -613,7 +619,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .eq(MeetingTimeZoneConfigPO::getTimeZoneOffset, meetingRoomContextDTO.getTimeZoneOffset())
             .orderByAsc(MeetingTimeZoneConfigPO::getId).last("limit 1").one();
         if (ObjectUtil.isNull(meetingTimeZoneConfigPO)) {
-            return CommonResult.error(GlobalErrorCodeConstants.TIME_OFFSET_ERROR);
+            String timeZoneOffset = meetingRoomContextDTO.getTimeZoneOffset();
+            String sub = StrUtil.sub(timeZoneOffset, 0, 7) + "00";
+            //GMT+09:30
+            meetingRoomContextDTO.setTimeZoneOffset(sub);
+            log.info("修改时区默认展示，由旧时区：{} 转化成新时区：{}", timeZoneOffset, sub);
+//            return CommonResult.error(GlobalErrorCodeConstants.TIME_OFFSET_ERROR);
         }
         if (ObjectUtil.isNull(meetingResourcePO)) {
             //资源不存在
@@ -899,6 +910,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     public static void main(String[] args) {
+
+        String timeZoneOffset = "GMT+10:20";
+        String sub = StrUtil.sub(timeZoneOffset, 0, 7);
+        //GMT+09:30
+        String a = sub + "00";
+
+        System.out.println(a);
         //        Object[] params = new Object[] {"1234"};
         //        String msg = MessageFormat.format("验证码:{0},您正在登录管理后台，1分钟内输入有效。", params);
         //        System.out.println(msg);
