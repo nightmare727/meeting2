@@ -204,11 +204,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         log.info("空闲资源列表【0】入参：{}", freeResourceListDTO);
 
-        if (ObjectUtil.isEmpty(freeResourceListDTO.getTimeZoneOffset()) && ObjectUtil.isNotEmpty(
-            freeResourceListDTO.getStartTime())) {
-            //时区为空,则为东8
-            freeResourceListDTO.setStartTime(DateUtil.offsetHour(freeResourceListDTO.getStartTime(), -8));
+        if (ObjectUtil.isEmpty(freeResourceListDTO.getTimeZoneOffset())) {
             freeResourceListDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
+            if (ObjectUtil.isNotEmpty(freeResourceListDTO.getStartTime())) {
+                //时区为空,则为东8
+                freeResourceListDTO.setStartTime(DateUtil.offsetHour(freeResourceListDTO.getStartTime(), -8));
+            }
         }
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
 
@@ -348,14 +349,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO)
         throws Exception {
         log.info("【创建、预约会议】开始，参数为：{}", meetingRoomContextDTO);
-        if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset()) && ObjectUtil.isNotEmpty(
-            meetingRoomContextDTO.getStartTime())) {
-            //时区为空,则为东8
-            meetingRoomContextDTO.setStartTime(DateUtil.offsetHour(meetingRoomContextDTO.getStartTime(), -8));
+        if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset())) {
             meetingRoomContextDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
+            if (ObjectUtil.isNotEmpty(meetingRoomContextDTO.getStartTime())) {
+                //时区为空,则为东8
+                meetingRoomContextDTO.setStartTime(DateUtil.offsetHour(meetingRoomContextDTO.getStartTime(), -8));
+            }
         }
-
-
 
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
@@ -697,13 +697,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Transactional
     public CommonResult updateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         log.info("【编辑会议】开始，参数为：{}", meetingRoomContextDTO);
-        if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset()) && ObjectUtil.isNotEmpty(
-            meetingRoomContextDTO.getStartTime())) {
-            //时区为空,则为东8
-            meetingRoomContextDTO.setStartTime(DateUtil.offsetHour(meetingRoomContextDTO.getStartTime(), -8));
+        if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset())) {
             meetingRoomContextDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
+            if (ObjectUtil.isNotEmpty(meetingRoomContextDTO.getStartTime())) {
+                //时区为空,则为东8
+                meetingRoomContextDTO.setStartTime(DateUtil.offsetHour(meetingRoomContextDTO.getStartTime(), -8));
+            }
         }
-
 
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));

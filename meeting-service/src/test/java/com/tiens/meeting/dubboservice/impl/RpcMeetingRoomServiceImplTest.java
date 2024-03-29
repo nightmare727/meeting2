@@ -104,7 +104,7 @@ class RpcMeetingRoomServiceImplTest {
         meetingRoomContextDTO.setLevelCode(9);
         meetingRoomContextDTO.setImUserId("7a4037c1a8234ba286647f31aadfc4f1");
         meetingRoomContextDTO.setImUserName("文杰昵称");
-        meetingRoomContextDTO.setTimeZoneOffset("GMT+08:00");
+//        meetingRoomContextDTO.setTimeZoneOffset("GMT+08:00");
 //        List<MeetingAttendeeDTO> meetingAttendeeDTOS = Lists.newArrayList();
 //        MeetingAttendeeDTO meetingAttendeeDTO = new MeetingAttendeeDTO();
 //        meetingAttendeeDTO.setAttendeeUserId("cb4b8cc1be09409eb108baf982d7e196");
