@@ -122,18 +122,16 @@ public class AppointMeetingTask {
                 List<MeetingRoomInfoPO> privateRoomInfoPOS =
                     meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, byId.getId())
                         .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState()).list();
-                if (ObjectUtil.isEmpty(privateRoomInfoPOS)) {
-                    for (MeetingRoomInfoPO privateRoomInfoPO : privateRoomInfoPOS) {
+                if (ObjectUtil.isNotEmpty(privateRoomInfoPOS)) {
                         //取消本次私人会议
                         CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
-                        cancelMeetingRoomDTO.setMeetingRoomId(privateRoomInfoPO.getId());
-                        cancelMeetingRoomDTO.setImUserId(privateRoomInfoPO.getOwnerImUserId());
+                        cancelMeetingRoomDTO.setMeetingRoomId(meetingRoomInfoPO.getId());
+                        cancelMeetingRoomDTO.setImUserId(meetingRoomInfoPO.getOwnerImUserId());
                         log.info("【定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议入参：{}",
                             JSON.toJSONString(cancelMeetingRoomDTO));
                         CommonResult commonResult = rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
                         log.info("定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议结果：{}",
                             JSON.toJSONString(commonResult));
-                    }
                 }
             }
         }
