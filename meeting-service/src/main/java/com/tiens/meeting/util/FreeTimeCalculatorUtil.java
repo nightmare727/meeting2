@@ -17,16 +17,26 @@ import java.util.stream.Collectors;
 
 public class FreeTimeCalculatorUtil {
     public static void main(String[] args) {
+
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+
+        // 1、取得当前时间：
+        Calendar calendar = Calendar.getInstance();
+// 2、取得时间偏移量：
+        int zoneOffset = calendar.get(java.util.Calendar.ZONE_OFFSET);
+// 3、取得夏令时差：
+        int dstOffset = calendar.get(java.util.Calendar.DST_OFFSET);
+
         // 已知时间段
         List<TimeRange> knownTimeRanges = new ArrayList<>();
         //        knownTimeRanges.add(new TimeRange(LocalTime.of(13, 30), LocalTime.of(15, 29))); // 上午工作
-        knownTimeRanges.add(new TimeRange(LocalTime.of(11, 00), LocalTime.of(12, 59))); // 下午工作
-        knownTimeRanges.add(new TimeRange(LocalTime.of(21, 30), LocalTime.of(23, 29))); // 下午工作
+        knownTimeRanges.add(new TimeRange(LocalTime.of(14, 30), LocalTime.of(16, 29))); // 下午工作
+//        knownTimeRanges.add(new TimeRange(LocalTime.of(21, 30), LocalTime.of(23, 29))); // 下午工作
 
-        ZoneId userZoneId = ZoneId.of("GMT+7");
+        ZoneId userZoneId = ZoneId.of("GMT+10");
         // 计算空闲时间段
         List<TimeRange> freeTimeRanges =
-            calculateFreeTimeRanges(knownTimeRanges, 1, 6, DateUtil.parse("2024-12-28 00:00:00"),
+            calculateFreeTimeRanges(knownTimeRanges, 1, 6, DateUtil.parse("2024-03-29 00:00:00"),
                 DateUtil.parse("2024-07-04 23:59:59"), userZoneId);
 
         // 输出空闲时间段
@@ -71,19 +81,21 @@ public class FreeTimeCalculatorUtil {
         List<TimeRange> freeTimeRanges = new ArrayList<>();
 
         //当前时间
-        DateTime now = DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId),userZoneId);
+        DateTime now = DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId), userZoneId);
 
         //当前天
         boolean isToday = DateUtil.formatDate(targetDate).equals(DateUtil.formatDate(now));
 
         // 当前时间，则取当前时间时分，否则假设一天从0点开始，到23点59分结束
-        LocalTime startOfDay = isToday ? LocalTime.of(now.getHours(), now.getMinutes()) : LocalTime.of(0, 0);
+        LocalTime startOfDay =
+            isToday ? LocalTime.of(DateUtil.hour(now, true), DateUtil.minute(now)) : LocalTime.of(0, 0);
+
         boolean isExpireDay =
             DatePattern.NORM_DATE_FORMAT.format(targetDate).equals(DatePattern.NORM_DATE_FORMAT.format(expireDate));
 
         //结束时间需要计算资源过期时间
-        LocalTime endOfDay =
-            isExpireDay ? LocalTime.of(expireDate.getHours(), expireDate.getMinutes()) : LocalTime.of(23, 59);
+        LocalTime endOfDay = isExpireDay ? LocalTime.of(DateUtil.hour(expireDate, true), DateUtil.minute(expireDate))
+            : LocalTime.of(23, 59);
         if (CollectionUtil.isEmpty(knownTimeRanges)) {
             freeTimeRanges.add(new TimeRange(startOfDay, endOfDay));
             return freeTimeRanges;
@@ -117,7 +129,8 @@ public class FreeTimeCalculatorUtil {
         //将每个时间段的开始和结束时间转换为分钟。
 
         //当前时间
-        DateTime nowDateTime = DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId),userZoneId);
+        DateTime nowDateTime =
+            DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId), userZoneId);
 
         //当前天
         boolean isToday = DateUtil.formatDate(targetDate).equals(DateUtil.formatDate(nowDateTime));
@@ -128,7 +141,7 @@ public class FreeTimeCalculatorUtil {
         LocalTime end = timeRange.getEnd();
         //是今天，开始时间取当前时间
         if (isToday) {
-            LocalTime now = LocalTime.of(nowDateTime.getHours(), nowDateTime.getMinutes());
+            LocalTime now = LocalTime.of(DateUtil.hour(nowDateTime, true), DateUtil.minute(nowDateTime));
             if (now.compareTo(start) >= 0) {
                 start = now;
             } else {
