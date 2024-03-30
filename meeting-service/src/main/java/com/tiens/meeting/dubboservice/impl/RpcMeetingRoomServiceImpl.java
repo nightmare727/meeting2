@@ -603,6 +603,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         freeResourceListDTO.setStartTime(meetingRoomContextDTO.getStartTime());
         freeResourceListDTO.setLength(meetingRoomContextDTO.getLength());
         freeResourceListDTO.setResourceType(meetingRoomContextDTO.getResourceType());
+        freeResourceListDTO.setTimeZoneOffset(meetingRoomContextDTO.getTimeZoneOffset());
         return freeResourceListDTO;
     }
 
