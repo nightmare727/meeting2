@@ -117,12 +117,13 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
             ObjectUtil.defaultIfBlank(meetingRoomInfoPO.getGeneralPwd(), meetingRoomInfoPO.getAudiencePasswd());
         String timeZoneOffset = meetingRoomInfoPO.getTimeZoneOffset();
 
-        String meetingTime =
-            DateUtil.format(meetingRoomInfoPO.getShowStartTime(), YMDFormat) + " " + DateUtil.format(
-                DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
-                    ZoneId.of(timeZoneOffset)), HMFormat) + "-" + DateUtil.format(
-                DateUtils.convertTimeZone(meetingRoomInfoPO.getShowEndTime(), DateUtils.TIME_ZONE_GMT,
-                    ZoneId.of(timeZoneOffset)), HMFormat) + "(" + timeZoneOffset + ")";
+        String meetingTime = DateUtil.format(
+            DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
+                ZoneId.of(timeZoneOffset)), YMDFormat) + " " + DateUtil.format(
+            DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
+                ZoneId.of(timeZoneOffset)), HMFormat) + "-" + DateUtil.format(
+            DateUtils.convertTimeZone(meetingRoomInfoPO.getShowEndTime(), DateUtils.TIME_ZONE_GMT,
+                ZoneId.of(timeZoneOffset)), HMFormat) + "(" + timeZoneOffset + ")";
 
         JSONObject pushData = JSONUtil.createObj().set("contentImage", meetingConfig.getMeetingIcon())
             .set("contentStr", languageService.getLanguageValue(languageId, meetingConfig.getInviteContentKey()))

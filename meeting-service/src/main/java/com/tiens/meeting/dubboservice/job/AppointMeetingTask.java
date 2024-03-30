@@ -170,7 +170,8 @@ public class AppointMeetingTask {
                 ObjectUtil.defaultIfBlank(meetingRoomInfoPO.getGeneralPwd(), meetingRoomInfoPO.getAudiencePasswd());
             //会议时间
             String meetingTime =
-                DateUtil.format(meetingRoomInfoPO.getShowStartTime(), YMDFormat) + " " + DateUtil.format(
+                DateUtil.format(DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
+                    ZoneId.of(timeZoneOffset)), YMDFormat) + " " + DateUtil.format(
                     DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
                         ZoneId.of(timeZoneOffset)), HMFormat) + "-" + DateUtil.format(
                     DateUtils.convertTimeZone(meetingRoomInfoPO.getShowEndTime(), DateUtils.TIME_ZONE_GMT,
