@@ -15,4 +15,9 @@ public class QueryUserRequest {
      * 查询唯一标识
      */
     private String uniqueSign;
+
+    /**
+     * accid
+     */
+    private String accid;
 }

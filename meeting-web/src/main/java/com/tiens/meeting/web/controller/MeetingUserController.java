@@ -71,7 +71,7 @@ public class MeetingUserController {
     public CommonResult<QueryUserResponse> queryLiveVMUser(@RequestBody QueryUserRequest queryUserRequest)
         throws Exception {
         CommonResult<VMUserVO> vmUserVOCommonResult =
-            rpcMeetingUserService.queryVMUser(queryUserRequest.getUniqueSign(), "");
+            rpcMeetingUserService.queryVMUser(queryUserRequest.getUniqueSign(), queryUserRequest.getAccid());
         VMUserVO data = vmUserVOCommonResult.getData();
         if (ObjectUtil.isEmpty(data)) {
             return CommonResult.success(null);
