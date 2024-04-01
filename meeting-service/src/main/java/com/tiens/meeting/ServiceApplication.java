@@ -1,15 +1,15 @@
 package com.tiens.meeting;
 
 import cn.hutool.extra.spring.EnableSpringUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Import;
 
+import javax.annotation.PostConstruct;
+import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -17,7 +17,7 @@ import java.util.concurrent.CountDownLatch;
  */
 @SpringBootApplication
 @EnableDubbo
-@ComponentScan(value = {"com.tiens","com.jtmm"})
+@ComponentScan(value = {"com.tiens", "com.jtmm"})
 @MapperScan("com.tiens.meeting.repository.mapper")
 @EnableSpringUtil
 @EnableAspectJAutoProxy
@@ -30,5 +30,11 @@ public class ServiceApplication {
     public static void main(String[] args) throws InterruptedException {
         SpringApplication.run(ServiceApplication.class, args).registerShutdownHook();
         COUNT_DOWN_LATCH.await();
+    }
+
+    @PostConstruct
+    void setDefaultTimezone() {
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+//  TimeZone.setDefault(TimeZone.getTimeZone("GMT+8"));
     }
 }

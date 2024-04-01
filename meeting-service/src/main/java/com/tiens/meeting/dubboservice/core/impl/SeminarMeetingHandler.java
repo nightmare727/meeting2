@@ -37,6 +37,8 @@ import java.util.List;
 @Service
 @Slf4j
 public class SeminarMeetingHandler extends HwMeetingRoomHandler {
+
+    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     /**
      * 创建华为会议
      *
@@ -52,18 +54,17 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
 
         //是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
+
+
+        //当前UTC时间
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
         //处理开始时间
-        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now),DateUtils.TIME_ZONE_GMT);
 
         //锁定开始时间
         DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
-        subsCribeFlag = subsCribeFlag && DateUtil.date().isBefore(lockStartTime);
-
-        ZoneId zoneId3 = ZoneId.of("GMT");
-        DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
-        LocalDateTime of = LocalDateTimeUtil.of(dateTime);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        String startTimeStr = dateTimeFormatter.format(of);
+        subsCribeFlag = subsCribeFlag && now.isBefore(lockStartTime);
+        String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
         Boolean exceptionHappenFlag = false;
         try {
             if (publicFlag) {
@@ -150,16 +151,15 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         Date startTime = meetingRoomContextDTO.getStartTime();
         //是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
+        //当前UTC时间
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(),DateUtils.TIME_ZONE_GMT);
         //处理开始时间
-        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now),DateUtils.TIME_ZONE_GMT);
+
         //锁定开始时间
         DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
-        subsCribeFlag = subsCribeFlag && DateUtil.date().isBefore(lockStartTime);
-        ZoneId zoneId3 = ZoneId.of("GMT");
-        DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
-        LocalDateTime of = LocalDateTimeUtil.of(dateTime);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        String startTimeStr = dateTimeFormatter.format(of);
+        subsCribeFlag = subsCribeFlag && now.isBefore(lockStartTime);
+        String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
         try {
             //分配云会议资源
             if (publicFlag) {

@@ -1,5 +1,6 @@
 package com.tiens.api.dto;
 
+import common.util.date.DateUtils;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -20,4 +21,9 @@ public class EnterMeetingRoomCheckDTO implements Serializable {
      * 会议号
      */
     private String meetRoomCode;
+
+    /**
+     * （需要传）时区偏移量
+     */
+    private String timeZoneOffset= DateUtils.ZONE_STR_DEFAULT;
 }

@@ -8,16 +8,23 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import java.time.*;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * 时间工具类
  */
 public class DateUtils {
 
+    public static final String ZONE_STR_DEFAULT = "GMT+08:00";
+
     /**
      * 时区 - 默认
      */
-    public static final String TIME_ZONE_DEFAULT = "GMT+8";
+    public static final ZoneId TIME_ZONE_DEFAULT = ZoneId.of(ZONE_STR_DEFAULT);
+    /**
+     * UTC时区
+     */
+    public static final ZoneId TIME_ZONE_GMT = ZoneId.of("GMT");
 
     /**
      * 秒转换成毫秒
@@ -29,23 +36,41 @@ public class DateUtils {
     public static final String FORMAT_HOUR_MINUTE_SECOND = "HH:mm:ss";
 
     /**
+     * @param originalDate
+     * @param userZone
+     * @param targetZone
+     * @return
+     */
+    public static DateTime convertTimeZone(Date originalDate, ZoneId userZone, ZoneId targetZone) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(originalDate);
+        TimeZone userTimeZone = TimeZone.getTimeZone(userZone);
+        TimeZone targetTimeZone = TimeZone.getTimeZone(targetZone);
+        int timeZoneOffset = targetTimeZone.getRawOffset() - userTimeZone.getRawOffset();
+        calendar.add(Calendar.MILLISECOND, timeZoneOffset);
+        return DateTime.of(calendar);
+    }
+
+    /**
      * 将给定的时间四舍五入到最近的半点时间
      *
      * @param dateTime 给定的时间
      * @return 最近的半点时间
      */
-    public static DateTime roundToHalfHour(DateTime dateTime) {
+    public static DateTime roundToHalfHour(Date dateTime, ZoneId zoneId) {
         DateTime result = DateUtil.dateNew(dateTime);
-        int newUear = dateTime.getField(DateField.YEAR);
-        int newDay = dateTime.getField(DateField.DAY_OF_YEAR);
-        int newHour = dateTime.getField(DateField.HOUR_OF_DAY);
-        int newMinute = dateTime.getField(DateField.MINUTE);
-        int newSecond= dateTime.getField(DateField.SECOND);
-        if (newMinute==0&&newSecond==0){
+        TimeZone timeZone = TimeZone.getTimeZone(zoneId);
+        result.setTimeZone(timeZone);
+        int newUear = result.getField(DateField.YEAR);
+        int newDay = result.getField(DateField.DAY_OF_YEAR);
+        int newHour = result.getField(DateField.HOUR_OF_DAY);
+        int newMinute = result.getField(DateField.MINUTE);
+        int newSecond = result.getField(DateField.SECOND);
+        if (newMinute == 0 && newSecond == 0) {
             //正点不做处理
-        }else if (newMinute <30) {
+        } else if (newMinute < 30) {
             newMinute = 30;
-        }else if (newMinute == 30&&newSecond!=0) {
+        } else if (newMinute == 30 && newSecond != 0) {
             //等于30分钟并且秒不为0
             if (newHour == 23) {
                 //取当天最后一分
@@ -55,7 +80,7 @@ public class DateUtils {
                 newHour++;
                 newMinute = 0;
             }
-        }else if(newMinute >30){
+        } else if (newMinute > 30) {
             //大于30分钟
             if (newHour == 23) {
                 //取当天最后一分
@@ -145,8 +170,7 @@ public class DateUtils {
      * @param second 秒
      * @return 指定时间
      */
-    public static Date buildTime(int year, int mouth, int day,
-        int hour, int minute, int second) {
+    public static Date buildTime(int year, int mouth, int day, int hour, int minute, int second) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, mouth - 1);

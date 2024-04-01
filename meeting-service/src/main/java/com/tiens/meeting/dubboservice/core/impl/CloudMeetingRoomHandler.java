@@ -2,9 +2,9 @@ package com.tiens.meeting.dubboservice.core.impl;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.huaweicloud.sdk.core.exception.ServiceResponseException;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.*;
@@ -19,7 +19,6 @@ import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -35,6 +34,7 @@ import java.util.List;
 @Service
 @Slf4j
 public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
+    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     /**
      * 创建华为会议
@@ -46,23 +46,21 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
     public MeetingRoomModel createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         //资源是否公有
         boolean publicFlag = NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
-
         Date startTime = meetingRoomContextDTO.getStartTime();
         //是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
+
+        //当前UTC时间
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+
         //处理开始时间
-        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now), DateUtils.TIME_ZONE_GMT);
 
         //锁定开始时间
         DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
-        subsCribeFlag = subsCribeFlag && DateUtil.date().isBefore(lockStartTime);
+        subsCribeFlag = subsCribeFlag && now.isBefore(lockStartTime);
 
-        ZoneId zoneId3 = ZoneId.of("GMT");
-        DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
-        LocalDateTime of = LocalDateTimeUtil.of(dateTime);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        String startTimeStr = dateTimeFormatter.format(of);
-
+        String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
         Boolean exceptionHappenFlag = false;
         try {
             //分配云会议资源
@@ -76,13 +74,15 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             CreateMeetingRequest request = new CreateMeetingRequest();
             RestScheduleConfDTO body = new RestScheduleConfDTO();
             RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
+            //是否私人会议
+            boolean isPrivate = !NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
             confConfigInfobody.withIsGuestFreePwd(false)
                 //允许加入会议的范围。企业
                 .withCallInRestriction(2)
                 //随机会议id-私人会议，固定会议id
                 .withVmrIDType(1)
-                //自动延时30分钟
-                .withProlongLength(0).withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
+                //私人会议延长60分钟，否则不延迟
+                .withProlongLength(isPrivate ? 60 : 0).withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
                 //是否开启等候室
                 .withEnableWaitingRoom(false);
             body.withVmrID(meetingRoomContextDTO.getVmrId());
@@ -110,9 +110,9 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withSupportSimultaneousInterpretation(Boolean.TRUE);
 
             request.withBody(body);
-            log.info("创建云会议结果入参：{}", request);
+            log.info("创建云会议结果入参：{}", JSON.toJSONString(request));
             CreateMeetingResponse response = userMeetingClient.createMeeting(request);
-            log.info("创建云会议结果响应：{}", response);
+            log.info("创建云会议结果响应：{}", JSON.toJSONString(response));
             List<ConferenceInfo> body1 = response.getBody();
             ConferenceInfo conferenceInfo = body1.get(0);
             //会议id
@@ -181,17 +181,17 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         Date startTime = meetingRoomContextDTO.getStartTime();
         //是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
+        //当前UTC时间
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+
         //处理开始时间
-        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(DateUtil.date(startTime), DateUtil.date()));
+        startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now),DateUtils.TIME_ZONE_GMT);
+
         //锁定开始时间
         DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
-        subsCribeFlag = subsCribeFlag && DateUtil.date().isBefore(lockStartTime);
+        subsCribeFlag = subsCribeFlag && now.isBefore(lockStartTime);
 
-        ZoneId zoneId3 = ZoneId.of("GMT");
-        DateTime dateTime = DateUtil.convertTimeZone(startTime, zoneId3);
-        LocalDateTime of = LocalDateTimeUtil.of(dateTime);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        String startTimeStr = dateTimeFormatter.format(of);
+        String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
 
         try {
             //分配云会议资源

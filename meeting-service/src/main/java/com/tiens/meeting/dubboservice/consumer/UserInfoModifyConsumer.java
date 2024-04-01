@@ -95,8 +95,8 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
             .set(MeetingHostUserPO::getEmail, email).update();
         log.info("修改主持人结果：{}", update);
 
-        meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getOwnerImUserId, accid)
-            .set(MeetingResourcePO::getOwnerImUserName, nickName).update();
+//        meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getOwnerImUserId, accid)
+//            .set(MeetingResourcePO::getOwnerImUserName, nickName).update();
 
         Boolean aBoolean = hwMeetingUserService.modHwUser(BeanUtil.copyProperties(data, VMUserVO.class));
         log.info("修改华为云用户信息结果：{}", aBoolean);

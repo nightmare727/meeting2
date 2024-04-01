@@ -21,6 +21,7 @@ import com.tiens.api.dto.hwevent.HwEventReq;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
+import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
@@ -173,7 +174,7 @@ public class MeetingController {
     }
 
     /**
-     * 首页查询即将召开和进行中的会议列表
+     * (旧版-建议更新)首页查询即将召开和进行中的会议列表
      *
      * @param finalUserId
      * @return
@@ -182,19 +183,60 @@ public class MeetingController {
     @GetMapping("/getFutureAndRunningMeetingRoomList")
     CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(
         @RequestHeader("finalUserId") String finalUserId) {
-        return rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(finalUserId);
+        FutureAndRunningMeetingRoomListGetDTO futureAndRunningMeetingRoomListGetDTO =
+            new FutureAndRunningMeetingRoomListGetDTO();
+
+        futureAndRunningMeetingRoomListGetDTO.setFinalUserId(finalUserId);
+        futureAndRunningMeetingRoomListGetDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
+        return rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(futureAndRunningMeetingRoomListGetDTO);
     }
 
     /**
-     * 查询历史会议列表
+     * (旧版-建议更新)查询历史会议列表
      *
+     * @param
      * @return
      */
     @ResponseBody
     @GetMapping("/getHistoryMeetingRoomList/{month}")
     CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(@RequestHeader("finalUserId") String finalUserId,
         @PathVariable("month") Integer month) {
-        return rpcMeetingRoomService.getHistoryMeetingRoomList(finalUserId, month);
+        HistoryMeetingRoomListGetDTO historyMeetingRoomListGetDTO = new HistoryMeetingRoomListGetDTO();
+        historyMeetingRoomListGetDTO.setFinalUserId(finalUserId);
+        historyMeetingRoomListGetDTO.setMonth(month);
+        historyMeetingRoomListGetDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
+        return rpcMeetingRoomService.getHistoryMeetingRoomList(historyMeetingRoomListGetDTO);
+    }
+
+    /**
+     * 首页查询即将召开和进行中的会议列表
+     *
+     * @param finalUserId
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/v19_0/getFutureAndRunningMeetingRoomList")
+    CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(
+        @RequestHeader("finalUserId") String finalUserId,
+        @RequestBody FutureAndRunningMeetingRoomListGetDTO futureAndRunningMeetingRoomListGetDTO) {
+        futureAndRunningMeetingRoomListGetDTO.setFinalUserId(finalUserId);
+
+        return rpcMeetingRoomService.getFutureAndRunningMeetingRoomList(futureAndRunningMeetingRoomListGetDTO);
+    }
+
+    /**
+     * 查询历史会议列表
+     *
+     * @param historyMeetingRoomListGetDTO
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/v19_0/getHistoryMeetingRoomList")
+    CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(@RequestHeader("finalUserId") String finalUserId,
+        @RequestBody HistoryMeetingRoomListGetDTO historyMeetingRoomListGetDTO) {
+        historyMeetingRoomListGetDTO.setFinalUserId(finalUserId);
+
+        return rpcMeetingRoomService.getHistoryMeetingRoomList(historyMeetingRoomListGetDTO);
     }
 
     /**

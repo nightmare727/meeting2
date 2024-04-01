@@ -74,17 +74,18 @@ public interface RpcMeetingRoomService {
     /**
      * 首页查询即将召开和进行中的会议列表
      *
-     * @param imUserId
+     * @param futureAndRunningMeetingRoomListGetDTO
      * @return
      */
-    CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(String imUserId);
+    CommonResult<FutureAndRunningMeetingRoomListVO> getFutureAndRunningMeetingRoomList(
+        FutureAndRunningMeetingRoomListGetDTO futureAndRunningMeetingRoomListGetDTO);
 
     /**
      * 首页查询历史30天的会议列表
      *
      * @return
      */
-    CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(String imUserId, Integer month);
+    CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(HistoryMeetingRoomListGetDTO historyMeetingRoomListGetDTO);
 
     /**
      * 查询资源可用的时间段

@@ -9,10 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.redisson.api.RedissonClient;
-import org.slf4j.MDC;
-import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -54,9 +51,10 @@ public class HeaderResolveFilter implements Filter {
         whiteListSet.add("/vmeeting/web/mtuser/queryLiveVMUser");
         whiteListSet.add("/vmeeting/web/mtuser/getCredential");
         whiteListSet.add("/vmeeting/web/mtuser/queryMeetingHostUser");
+        whiteListSet.add("/vmeeting/web/mtuser/batchQueryLiveVMUser");
         whiteListSet.add("/vmeeting/web/ping");
         whiteListSet.add("/vmeeting/web/mtuser/addMeetingHostUser");
-        whiteListSet.add("/vmeeting/web//version/queryList");
+        whiteListSet.add("/vmeeting/web/version/queryList");
 
         //临时增加白名单，注意后期删除
 //        whiteListSet.add("/meeting/web/courses/increCoursePv");
