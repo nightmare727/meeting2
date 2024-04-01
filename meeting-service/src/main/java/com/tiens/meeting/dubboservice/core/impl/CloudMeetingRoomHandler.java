@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.huaweicloud.sdk.core.exception.ServiceResponseException;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.*;
@@ -109,9 +110,9 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withSupportSimultaneousInterpretation(Boolean.TRUE);
 
             request.withBody(body);
-            log.info("创建云会议结果入参：{}", request);
+            log.info("创建云会议结果入参：{}", JSON.toJSONString(request));
             CreateMeetingResponse response = userMeetingClient.createMeeting(request);
-            log.info("创建云会议结果响应：{}", response);
+            log.info("创建云会议结果响应：{}", JSON.toJSONString(response));
             List<ConferenceInfo> body1 = response.getBody();
             ConferenceInfo conferenceInfo = body1.get(0);
             //会议id
