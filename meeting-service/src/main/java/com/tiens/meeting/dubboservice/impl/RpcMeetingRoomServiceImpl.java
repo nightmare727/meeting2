@@ -546,10 +546,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         //开始时间小于当前时间
         if (showStartTime.before(now)) {
+            log.info("开始时间小于当前时间,开始时间：{}，当前时间：{}", showStartTime, now);
             return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
         }
         //无法创建3个月后的会议
         if (showStartTime.after(DateUtil.offsetMonth(now, 3))) {
+            log.info("无法创建3个月后的会议,开始时间：{}，3个月后时间：{}", showStartTime, DateUtil.offsetMonth(now, 3));
             return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
         }
         if (ObjectUtil.isNull(meetingResourcePO)) {
