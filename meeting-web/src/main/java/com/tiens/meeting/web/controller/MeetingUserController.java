@@ -10,6 +10,7 @@ import com.tiens.api.vo.VMMeetingCredentialVO;
 import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.web.entity.req.BatchQueryUserRequest;
 import com.tiens.meeting.web.entity.req.QueryUserRequest;
+import com.tiens.meeting.web.entity.resp.BatchQueryUserResponse;
 import com.tiens.meeting.web.entity.resp.QueryUserResponse;
 import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,7 @@ public class MeetingUserController {
     @GetMapping("/queryMeetingHostUser/{accid}")
     public CommonResult<MeetingHostUserVO> queryMeetingHostUser(@PathVariable("accid") String accid) throws Exception {
         CommonResult<MeetingHostUserVO> meetingHostUserVOCommonResult =
-                rpcMeetingUserService.queryMeetingHostUser(accid);
+            rpcMeetingUserService.queryMeetingHostUser(accid);
         return meetingHostUserVOCommonResult;
     }
 
@@ -73,9 +74,9 @@ public class MeetingUserController {
     @ResponseBody
     @PostMapping("/queryLiveVMUser")
     public CommonResult<QueryUserResponse> queryLiveVMUser(@RequestBody QueryUserRequest queryUserRequest)
-            throws Exception {
+        throws Exception {
         CommonResult<VMUserVO> vmUserVOCommonResult =
-                rpcMeetingUserService.queryVMUser(queryUserRequest.getUniqueSign(), queryUserRequest.getAccid());
+            rpcMeetingUserService.queryVMUser(queryUserRequest.getUniqueSign(), queryUserRequest.getAccid());
         VMUserVO data = vmUserVOCommonResult.getData();
         if (ObjectUtil.isEmpty(data)) {
             return CommonResult.success(null);
@@ -98,25 +99,29 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/batchQueryLiveVMUser")
-    public CommonResult<List<QueryUserResponse>> batchQueryLiveVMUser(@RequestBody BatchQueryUserRequest batchQueryUserRequest)
-            throws Exception {
+    public CommonResult<List<BatchQueryUserResponse>> batchQueryLiveVMUser(
+        @RequestBody BatchQueryUserRequest batchQueryUserRequest) throws Exception {
 
         List<QueryUserRequest> queryUserRequestList = batchQueryUserRequest.getQueryUserRequestList();
 
-        List<QueryUserResponse> collect = queryUserRequestList.stream().map(t -> {
-                    VMUserVO data = rpcMeetingUserService.queryVMUser(t.getUniqueSign(), t.getAccid()).getData();
-                    QueryUserResponse queryUserResponse = new QueryUserResponse();
-                    queryUserResponse.setUserId(data.getAccid());
-                    queryUserResponse.setNickName(data.getNickName());
-                    queryUserResponse.setUserPhone(data.getMobile());
-                    queryUserResponse.setUserPhoto(data.getHeadImg());
-                    return queryUserResponse;
+        List<BatchQueryUserResponse> collect = queryUserRequestList.stream().map(t -> {
+            VMUserVO data = rpcMeetingUserService.queryVMUser(t.getUniqueSign(), t.getAccid()).getData();
+            BatchQueryUserResponse batchQueryUserResponse = new BatchQueryUserResponse();
+            batchQueryUserResponse.setUniqueSign(t.getUniqueSign());
+            batchQueryUserResponse.setAccid(t.getAccid());
+            if (ObjectUtil.isNotNull(data)) {
+                QueryUserResponse queryUserResponse = new QueryUserResponse();
+                queryUserResponse.setUserId(data.getAccid());
+                queryUserResponse.setNickName(data.getNickName());
+                queryUserResponse.setUserPhone(data.getMobile());
+                queryUserResponse.setUserPhoto(data.getHeadImg());
+                batchQueryUserResponse.setData(queryUserResponse);
+            }
+            return batchQueryUserResponse;
+        }).collect(Collectors.toList());
 
-                })
-                .collect(Collectors.toList());
         return CommonResult.success(collect);
     }
-
 
     /**
      * 查询登录认证
@@ -146,7 +151,7 @@ public class MeetingUserController {
     @PostMapping("/addMeetingHostUser")
     CommonResult addMeetingHostUser(@RequestBody MeetingResourceAwardDTO meetingResourceAwardDTO) {
         CommonResult commonResult = rpcMeetingUserService.addMeetingHostUser(meetingResourceAwardDTO.getJoyoCode(),
-                meetingResourceAwardDTO.getResourceType());
+            meetingResourceAwardDTO.getResourceType());
         return commonResult;
     }
 }
