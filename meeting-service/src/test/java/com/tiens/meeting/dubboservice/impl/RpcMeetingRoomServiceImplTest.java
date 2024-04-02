@@ -230,10 +230,10 @@ class RpcMeetingRoomServiceImplTest {
     @Test
     @SneakyThrows
     void batchInsert() {
-        ArrayList<@Nullable MeetingAttendeePO> objects = Lists.newArrayListWithExpectedSize(1500);
-        for (int i = 0; i < 1500; i++) {
+        ArrayList<@Nullable MeetingAttendeePO> objects = Lists.newArrayListWithExpectedSize(10000);
+        for (int i = 0; i < 10000; i++) {
             MeetingAttendeePO meetingAttendeePO = new MeetingAttendeePO();
-            meetingAttendeePO.setMeetingRoomId(12222222311231313L);
+            meetingAttendeePO.setMeetingRoomId(12345L);
             meetingAttendeePO.setAttendeeUserId(RandomUtil.randomNumbers(32));
             meetingAttendeePO.setAttendeeUserName("张三");
             meetingAttendeePO.setSource(MeetingUserJoinSourceEnum.APPOINT.getCode());

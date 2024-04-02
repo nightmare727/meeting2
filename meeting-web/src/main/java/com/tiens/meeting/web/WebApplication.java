@@ -17,9 +17,9 @@ public class WebApplication {
         SpringApplication.run(WebApplication.class, args);
     }
 
-    @PostConstruct
+   /* @PostConstruct
     void setDefaultTimezone() {
         TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 //  TimeZone.setDefault(TimeZone.getTimeZone("GMT+8"));
-    }
+    }*/
 }
