@@ -22,7 +22,7 @@ public class WebApplication {
     @PostConstruct
     void setDefaultTimezone() {
         log.info("设置消费者默认时区为：{GMT}");
-        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 //        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 //  TimeZone.setDefault(TimeZone.getTimeZone("GMT+8"));
     }
