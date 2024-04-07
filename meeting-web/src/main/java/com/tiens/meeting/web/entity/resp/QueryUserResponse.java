@@ -31,4 +31,11 @@ public class QueryUserResponse {
      */
     @Schema(description = "粉丝数")
     private String fansNum;
+
+
+    /**
+     * 级别
+     */
+    private Integer levelCode;
+
 }

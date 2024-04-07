@@ -118,6 +118,7 @@ public class MeetingUserController {
                 queryUserResponse.setInviteCode(data.getJoyoCode());
                 queryUserResponse.setCountry(data.getCountry());
                 queryUserResponse.setFansNum(data.getFansNum());
+                queryUserResponse.setLevelCode(data.getLevelCode());
                 batchQueryUserResponse.setData(queryUserResponse);
             }
             return batchQueryUserResponse;
