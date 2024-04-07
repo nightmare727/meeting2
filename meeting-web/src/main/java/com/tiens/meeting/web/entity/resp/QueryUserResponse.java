@@ -1,5 +1,6 @@
 package com.tiens.meeting.web.entity.resp;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -21,4 +22,13 @@ public class QueryUserResponse {
     private String userPhoto;
 
     private String inviteCode;
+
+    @Schema(description = "国家")
+    private String country;
+
+    /**
+     * 粉丝数
+     */
+    @Schema(description = "粉丝数")
+    private String fansNum;
 }

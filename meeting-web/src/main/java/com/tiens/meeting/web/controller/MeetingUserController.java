@@ -116,6 +116,8 @@ public class MeetingUserController {
                 queryUserResponse.setUserPhone(data.getMobile());
                 queryUserResponse.setUserPhoto(data.getHeadImg());
                 queryUserResponse.setInviteCode(data.getJoyoCode());
+                queryUserResponse.setCountry(data.getCountry());
+                queryUserResponse.setFansNum(data.getFansNum());
                 batchQueryUserResponse.setData(queryUserResponse);
             }
             return batchQueryUserResponse;
