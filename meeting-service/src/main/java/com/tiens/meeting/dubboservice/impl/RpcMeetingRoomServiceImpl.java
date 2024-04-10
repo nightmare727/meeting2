@@ -134,7 +134,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("加入会议校验入参：{}", enterMeetingRoomCheckDTO);
         //查询会议code是否存在
         Optional<MeetingRoomInfoPO> meetingRoomInfoPOOpt =
-            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetRoomCode).oneOpt();
+            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetRoomCode)
+                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
+                .oneOpt();
         if (!meetingRoomInfoPOOpt.isPresent()) {
             //不存在会议
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
@@ -1209,6 +1211,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult<List<AvailableResourcePeriodVO>> getAvailableResourcePeriod(
         AvailableResourcePeriodGetDTO availableResourcePeriodGetDTO) {
         Date date = availableResourcePeriodGetDTO.getDate();
+        if (ObjectUtil.isEmpty(availableResourcePeriodGetDTO.getTimeZoneOffset())) {
+            availableResourcePeriodGetDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
+        }
+
         ZoneId userZoneId = ZoneId.of(availableResourcePeriodGetDTO.getTimeZoneOffset());
 
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), userZoneId);
@@ -1308,7 +1314,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Payload payload = eventInfo.getPayload();
             String meetingID = payload.getMeetingInfo().getMeetingID();
             Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional =
-                meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID).oneOpt();
+                meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                    .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
+                    .oneOpt();
             RLongAdder count = redissonClient.getLongAdder(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));
             int maxErrorCount = 3;
             if (!meetingRoomInfoPOOptional.isPresent()) {
@@ -1354,6 +1362,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                         //会议关闭事件
                         boolean update =
                             meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+
                                 .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
                                 .set(MeetingRoomInfoPO::getRelEndTime, DateUtil.date(timestamp)).update();
                         //回收资源
@@ -1468,7 +1477,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult<MeetingRoomDetailDTO> getMeetingRoomByCode(String meetingCode) {
         log.info("【查询会议详情】 meetingCode：{}", meetingCode);
         MeetingRoomInfoPO meetingRoomInfoPO =
-            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingCode).one();
+            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingCode)
+                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
+                .one();
         if (ObjectUtil.isNull(meetingRoomInfoPO)) {
             return CommonResult.success(null);
         }
