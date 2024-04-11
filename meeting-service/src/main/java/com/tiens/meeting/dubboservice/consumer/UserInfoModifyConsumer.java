@@ -84,6 +84,14 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
             log.error("用户修改-查无此用户！,userId：{}", imUserId);
             return;
         }
+        RedisKeyCleanUtil redisKeyClean = SpringUtil.getBean(RedisKeyCleanUtil.class);
+
+        //移除VM用户缓存
+        redisKeyClean.sendCleanCacheMsg(
+            new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(imUserId), null));
+
+        redisKeyClean.sendCleanCacheMsg(
+            new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(data.getJoyo_code()), null));
         //同步修改直播主播数据
         userAsyncTaskService.updateLiveAnchorInfo(data);
 
@@ -103,8 +111,5 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
         Boolean aBoolean = hwMeetingUserService.modHwUser(BeanUtil.copyProperties(data, VMUserVO.class));
         log.info("修改华为云用户信息结果：{}", aBoolean);
 
-        //移除VM用户缓存
-        SpringUtil.getBean(RedisKeyCleanUtil.class).sendCleanCacheMsg(
-            new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(imUserId), null));
     }
 }
