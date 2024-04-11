@@ -8,10 +8,10 @@ import com.tiens.china.circle.api.bo.HomepageBo;
 import com.tiens.china.circle.api.common.result.Result;
 import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
+import com.tiens.meeting.dubboservice.async.UserAsyncTaskService;
 import com.tiens.meeting.dubboservice.bo.MqCacheCleanBO;
 import com.tiens.meeting.dubboservice.core.HwMeetingUserService;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
-import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.util.RedisKeyCleanUtil;
@@ -61,6 +61,9 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
     @Value("${rocketmq.producer.clean_cache_topic}")
     String cleanCacheTopic;
 
+    @Autowired
+    UserAsyncTaskService userAsyncTaskService;
+
     @Override
     public void onMessage(MessageExt messageExt) {
 
@@ -73,10 +76,6 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
             throw new RuntimeException(e);
         }
 
-        //移除VM用户缓存
-        SpringUtil.getBean(RedisKeyCleanUtil.class).sendCleanCacheMsg(
-            new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(imUserId), null));
-
         HomepageBo homepageBo = new HomepageBo();
         homepageBo.setAccId(imUserId);
         Result<HomepageUserDTO> dtoResult = dubboCommonUserService.queryUserInfoAccId(null, homepageBo);
@@ -85,6 +84,9 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
             log.error("用户修改-查无此用户！,userId：{}", imUserId);
             return;
         }
+        //同步修改直播主播数据
+        userAsyncTaskService.updateLiveAnchorInfo(data);
+
         String accid = data.getAccid();
         String nickName = data.getNickName();
         String mobile = data.getMobile();
@@ -100,5 +102,9 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
 
         Boolean aBoolean = hwMeetingUserService.modHwUser(BeanUtil.copyProperties(data, VMUserVO.class));
         log.info("修改华为云用户信息结果：{}", aBoolean);
+
+        //移除VM用户缓存
+        SpringUtil.getBean(RedisKeyCleanUtil.class).sendCleanCacheMsg(
+            new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(imUserId), null));
     }
 }
