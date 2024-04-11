@@ -1,15 +1,11 @@
 package com.tiens.meeting.dubboservice.async;
 
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
-import com.tiens.api.vo.VMUserVO;
 import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import com.tiens.meeting.dubboservice.bo.UpdateVMAnchorInfoRequest;
-import common.util.cache.CacheKeyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,9 +42,10 @@ public class UserAsyncTaskServiceImpl implements UserAsyncTaskService {
 
         String country = homepageUserDTO.getCountry();
         String accid = homepageUserDTO.getAccid();
+        String joyoCode = homepageUserDTO.getJoyo_code();
 
         //查询缓存
-        RBucket<VMUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(accid));
+       /* RBucket<VMUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(accid));
 
         VMUserVO vmUserCacheVO = bucket.get();
         //数据为空，未知用户则直接同步
@@ -59,11 +56,11 @@ public class UserAsyncTaskServiceImpl implements UserAsyncTaskService {
                 log.info("VM用户头像昵称均无变化，无需操作");
                 return;
             }
-        }
+        }*/
         UpdateVMAnchorInfoRequest updateVMAnchorInfoRequest = new UpdateVMAnchorInfoRequest();
         updateVMAnchorInfoRequest.setHeadUrl(headImg);
         updateVMAnchorInfoRequest.setAnchorName(nickName);
-        updateVMAnchorInfoRequest.setJoyoCode(vmUserCacheVO.getJoyoCode());
+        updateVMAnchorInfoRequest.setJoyoCode(joyoCode);
 
         //同步直播主播修改
         try {
