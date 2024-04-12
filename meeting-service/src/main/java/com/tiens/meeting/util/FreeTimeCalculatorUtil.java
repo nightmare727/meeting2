@@ -80,7 +80,7 @@ public class FreeTimeCalculatorUtil {
 
         List<TimeRange> freeTimeRanges = new ArrayList<>();
 
-        //当前时间
+        //用户当前时区时间
         DateTime now = DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId), userZoneId);
 
         //当前天

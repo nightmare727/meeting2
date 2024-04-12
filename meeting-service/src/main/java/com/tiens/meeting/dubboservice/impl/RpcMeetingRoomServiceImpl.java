@@ -1216,8 +1216,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
 
         ZoneId userZoneId = ZoneId.of(availableResourcePeriodGetDTO.getTimeZoneOffset());
+        //用户当前时间
+        DateTime now = DateUtils.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT, userZoneId);
 
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), userZoneId);
         //查询不到当前时间之前的会议
         if (date.before(DateUtil.beginOfDay(now))) {
             return CommonResult.success(Collections.emptyList());
