@@ -10,6 +10,7 @@ import common.util.date.DateUtils;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -80,18 +81,20 @@ public class FreeTimeCalculatorUtil {
 
         List<TimeRange> freeTimeRanges = new ArrayList<>();
 
-        //当前时间
+        //用户当前时区时间
         DateTime now = DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId), userZoneId);
-
         //当前天
-        boolean isToday = DateUtil.formatDate(targetDate).equals(DateUtil.formatDate(now));
+        SimpleDateFormat simpleDateFormat =
+            DateUtil.newSimpleFormat("yyyy-MM-dd", null, TimeZone.getTimeZone(userZoneId));
+
+        boolean isToday = simpleDateFormat.format(now).equals(DateUtil.formatDate(targetDate));
 
         // 当前时间，则取当前时间时分，否则假设一天从0点开始，到23点59分结束
         LocalTime startOfDay =
             isToday ? LocalTime.of(DateUtil.hour(now, true), DateUtil.minute(now)) : LocalTime.of(0, 0);
 
         boolean isExpireDay =
-            DatePattern.NORM_DATE_FORMAT.format(targetDate).equals(DatePattern.NORM_DATE_FORMAT.format(expireDate));
+            DateUtil.formatDate(targetDate).equals(DatePattern.NORM_DATE_FORMAT.format(expireDate));
 
         //结束时间需要计算资源过期时间
         LocalTime endOfDay = isExpireDay ? LocalTime.of(DateUtil.hour(expireDate, true), DateUtil.minute(expireDate))
@@ -133,7 +136,10 @@ public class FreeTimeCalculatorUtil {
             DateUtils.roundToHalfHour(DateUtil.convertTimeZone(DateUtil.date(), userZoneId), userZoneId);
 
         //当前天
-        boolean isToday = DateUtil.formatDate(targetDate).equals(DateUtil.formatDate(nowDateTime));
+        SimpleDateFormat simpleDateFormat =
+            DateUtil.newSimpleFormat("yyyy-MM-dd", null, TimeZone.getTimeZone(userZoneId));
+
+        boolean isToday = simpleDateFormat.format(nowDateTime).equals(DateUtil.formatDate(targetDate));
 
         LocalTime beginDay = LocalTime.of(0, 0);
         LocalTime endDay = LocalTime.of(23, 59);

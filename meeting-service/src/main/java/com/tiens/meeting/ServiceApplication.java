@@ -1,6 +1,7 @@
 package com.tiens.meeting;
 
 import cn.hutool.extra.spring.EnableSpringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -21,6 +22,7 @@ import java.util.concurrent.CountDownLatch;
 @MapperScan("com.tiens.meeting.repository.mapper")
 @EnableSpringUtil
 @EnableAspectJAutoProxy
+@Slf4j
 public class ServiceApplication {
     /**
      * 使用jar方式打包的启动方式
@@ -34,6 +36,7 @@ public class ServiceApplication {
 
     @PostConstruct
     void setDefaultTimezone() {
+        log.info("设置生产者默认时区为：{GMT}");
         TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 //  TimeZone.setDefault(TimeZone.getTimeZone("GMT+8"));
     }

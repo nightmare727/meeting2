@@ -96,6 +96,15 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                 return CommonResult.success(vmUserCacheVO);
             }
         }
+        if (StringUtils.isNotBlank(joyoCode)) {
+            //查询缓存
+            bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(joyoCode));
+            VMUserVO vmUserCacheVO = bucket.get();
+            if (ObjectUtil.isNotNull(vmUserCacheVO)) {
+                return CommonResult.success(vmUserCacheVO);
+            }
+        }
+
         HomepageBo homepageBo = new HomepageBo();
         homepageBo.setJoyoCode(joyoCode);
         homepageBo.setAccId(accid);
@@ -114,6 +123,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         vmUserVO.setJoyoCode(data.getJoyo_code());
         //设置缓存
         if (StringUtils.isNotBlank(accid)) {
+            bucket.set(vmUserVO);
+        }
+        if (StringUtils.isNotBlank(joyoCode)) {
             bucket.set(vmUserVO);
         }
         return CommonResult.success(vmUserVO);
