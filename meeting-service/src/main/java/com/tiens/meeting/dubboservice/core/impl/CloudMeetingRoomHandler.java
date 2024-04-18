@@ -86,7 +86,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
                 //是否开启等候室
                 .withEnableWaitingRoom(false);
             body.withVmrID(meetingRoomContextDTO.getVmrId());
-            body.withVmrFlag(1);
+            //是否使用云会议室或者个人会议ID召开预约会议。默认0
+            body.withVmrFlag(isPrivate ? 0 : 1);
             body.withConfConfigInfo(confConfigInfobody);
             //录播类型。默认为禁用。
             //0: 禁用
@@ -193,6 +194,9 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
 
         String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
 
+        //是否私人会议
+        boolean isPrivate = !NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
+
         try {
             //分配云会议资源
             if (publicFlag) {
@@ -208,10 +212,13 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             RestScheduleConfDTO body = new RestScheduleConfDTO();
             RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
             confConfigInfobody.withCallInRestriction(2).withAllowGuestStartConf(false)
-                .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag()).withVmrIDType(1).withProlongLength(0)
+                .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
+
+                .withVmrIDType(isPrivate ? 0 : 1)
+                .withProlongLength(0)
                 .withEnableWaitingRoom(Boolean.FALSE);
             body.withVmrID(meetingRoomContextDTO.getVmrId());
-            body.withVmrFlag(1);
+            body.withVmrFlag(isPrivate ? 0 : 1);
             body.withRecordAuthType(1);
             body.withConfConfigInfo(confConfigInfobody);
             body.withRecordType(0);
