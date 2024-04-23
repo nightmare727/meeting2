@@ -29,4 +29,12 @@ public interface RoomAsyncTaskService {
      */
     void batchSendIMMessage(MeetingRoomInfoPO meetingRoomInfoPO, List<String> toAccIds);
 
+    /**
+     * 发放多人会议奖励
+     *
+     * @param meetingRoomInfoPO
+     */
+
+    void doSendMultiPersonsAward(MeetingRoomInfoPO meetingRoomInfoPO);
+
 }

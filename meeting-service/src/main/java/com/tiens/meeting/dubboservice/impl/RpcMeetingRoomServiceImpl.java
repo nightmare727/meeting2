@@ -185,17 +185,31 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
         }
 
-        MeetingAttendeePO meetingAttendeePO = new MeetingAttendeePO();
-        meetingAttendeePO.setMeetingRoomId(one.getId());
-        meetingAttendeePO.setAttendeeUserId(joinMeetingRoomDTO.getImUserId());
-        meetingAttendeePO.setAttendeeUserName(joinMeetingRoomDTO.getAttendeeUserName());
-        meetingAttendeePO.setSource(MeetingUserJoinSourceEnum.MIDWAY.getCode());
-        try {
-            meetingAttendeeDaoService.save(meetingAttendeePO);
-        } catch (DuplicateKeyException e) {
-            log.info("【加入会议】 重复添加会议与会者");
+        MeetingAttendeePO exMeetingAttendeePO = meetingAttendeeDaoService.lambdaQuery()
+            .eq(MeetingAttendeePO::getMeetingRoomId, one.getId())
+            .eq(MeetingAttendeePO::getAttendeeUserId, joinMeetingRoomDTO.getImUserId())
+            .one();
+        if (ObjectUtil.isNotNull(exMeetingAttendeePO) && MeetingUserJoinStatusEnum.UN_JOINED.getCode()
+            .equals(exMeetingAttendeePO.getJoinStatus())) {
+            //更新与会者入会状态
+            meetingAttendeeDaoService.lambdaUpdate().eq(MeetingAttendeePO::getId, exMeetingAttendeePO.getId())
+                .set(MeetingAttendeePO::getJoinStatus, MeetingUserJoinStatusEnum.JOINED.getCode())
+                .update();
+
+        } else {
+            MeetingAttendeePO meetingAttendeePO = new MeetingAttendeePO();
+            meetingAttendeePO.setMeetingRoomId(one.getId());
+            meetingAttendeePO.setAttendeeUserId(joinMeetingRoomDTO.getImUserId());
+            meetingAttendeePO.setAttendeeUserName(joinMeetingRoomDTO.getAttendeeUserName());
+            meetingAttendeePO.setSource(MeetingUserJoinSourceEnum.MIDWAY.getCode());
+            meetingAttendeePO.setJoinStatus(MeetingUserJoinStatusEnum.JOINED.getCode());
+            try {
+                meetingAttendeeDaoService.save(meetingAttendeePO);
+            } catch (DuplicateKeyException e) {
+                log.info("【加入会议】 重复添加会议与会者");
+            }
         }
-        //发送新人任务
+
         return CommonResult.success(null);
     }
 
@@ -1373,6 +1387,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                             hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
                                 Collections.singletonList(meetingResourcePO.getVmrId()));
                         }
+                        //发放多人会议奖励
+                        roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
+
                         log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
                     } finally {
                         if (lock.isLocked() && lock.isHeldByCurrentThread()) {

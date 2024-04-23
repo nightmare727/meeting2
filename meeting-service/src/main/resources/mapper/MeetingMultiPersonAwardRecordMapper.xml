@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiens.meeting.repository.mapper.MeetingMultiPersonAwardRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.tiens.meeting.repository.po.MeetingMultiPersonAwardRecordPO">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="meetingId" column="meeting_id" jdbcType="BIGINT"/>
+            <result property="meetingCode" column="meeting_code" jdbcType="VARCHAR"/>
+            <result property="meetingRelPersonCount" column="meeting_rel_person_count" jdbcType="INTEGER"/>
+            <result property="awardCount" column="award_count" jdbcType="INTEGER"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,meeting_id,meeting_code,
+        meeting_rel_person_count,award_count,create_time
+    </sql>
+</mapper>

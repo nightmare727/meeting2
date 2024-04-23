@@ -118,6 +118,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             ConferenceInfo conferenceInfo = body1.get(0);
             //会议id
             String conferenceID = conferenceInfo.getConferenceID();
+            String vmrConferenceID = conferenceInfo.getVmrConferenceID();
+
             //云会议室会议ID或个人会议ID。如果“vmrFlag”为“1”，则该字段不为空。
             String vmrID = conferenceInfo.getVmrID();
             //会议的UUID-只有创建立即开始的会议才返回UUID，如果是预约未来的会议，不会返回UUID

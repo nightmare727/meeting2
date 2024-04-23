@@ -15,7 +15,7 @@ import java.util.Objects;
 
 /**
  * 会议与会者表
- *
+ *meeting_resource
  * @TableName meeting_attendee
  */
 @TableName(value = "meeting_attendee")
@@ -57,6 +57,12 @@ public class MeetingAttendeePO implements Serializable {
      */
     @TableField(value = "source")
     private Integer source;
+
+    /**
+     * 加入状态 1：已入会  2：未入会
+     */
+    @TableField(value = "join_status")
+    private Integer joinStatus;
 
     /**
      * 创建时间
