@@ -1,5 +1,6 @@
 package com.tiens.meeting.dubboservice.async;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -22,11 +23,11 @@ import com.tiens.meeting.dubboservice.bo.PushMessageDto;
 import com.tiens.meeting.dubboservice.common.entity.SyncCommonResult;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.LanguageService;
-import com.tiens.meeting.repository.po.MeetingHwEventCallbackPO;
-import com.tiens.meeting.repository.po.MeetingResourcePO;
-import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
-import com.tiens.meeting.repository.service.MeetingHwEventCallbackDaoService;
-import com.tiens.meeting.repository.service.MeetingResourceDaoService;
+import com.tiens.meeting.dubboservice.model.UserExpAddEntity;
+import com.tiens.meeting.repository.po.*;
+import com.tiens.meeting.repository.service.*;
+import com.tiens.meeting.util.VmUserUtil;
+import common.enums.MeetingUserJoinStatusEnum;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +75,15 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
 
     @Autowired
     LanguageService languageService;
+
+    @Autowired
+    MeetingResourceDaoService meetingResourceDaoService;
+    @Autowired
+    MeetingAttendeeDaoService meetingAttendeeDaoService;
+    @Autowired
+    MeetingMultiPersonAwardDaoService multiPersonAwardDaoService;
+    @Autowired
+    MeetingMultiPersonAwardRecordDaoService meetingMultiPersonAwardRecordDaoService;
 
     /**
      * 保存回调记录
@@ -135,31 +145,26 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
                 ObjectUtil.defaultIfBlank(meetingRoomInfoPO.getGeneralPwd(), meetingRoomInfoPO.getAudiencePasswd());
             String timeZoneOffset = meetingRoomInfoPO.getTimeZoneOffset();
 
-            String meetingTime = DateUtil
-                .format(DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
-                    ZoneId.of(timeZoneOffset)), YMDFormat)
-                + " "
-                + DateUtil.format(DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(),
-                    DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset)), HMFormat)
-                + "-" + DateUtil.format(DateUtils.convertTimeZone(meetingRoomInfoPO.getShowEndTime(),
-                    DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset)), HMFormat)
-                + "(" + timeZoneOffset + ")";
+            String meetingTime = DateUtil.format(
+                DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
+                    ZoneId.of(timeZoneOffset)), YMDFormat) + " " + DateUtil.format(
+                DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
+                    ZoneId.of(timeZoneOffset)), HMFormat) + "-" + DateUtil.format(
+                DateUtils.convertTimeZone(meetingRoomInfoPO.getShowEndTime(), DateUtils.TIME_ZONE_GMT,
+                    ZoneId.of(timeZoneOffset)), HMFormat) + "(" + timeZoneOffset + ")";
 
             JSONObject pushData = JSONUtil.createObj().set("contentImage", meetingConfig.getMeetingIcon())
                 .set("contentStr", languageService.getLanguageValue(languageId, meetingConfig.getInviteContentKey()))
                 .set("im_prefix",
                     languageService.getLanguageValue(languageId, meetingConfig.getInviteImPrefixContentKey()))
                 .set("landingType", 2).set("landingUrl", "TencentMeetingPage").set("contentSubTitle",
-                    languageService.getLanguageValue(languageId, meetingConfig.getMeetingTitleKey()) + "："
-                        + meetingRoomInfoPO.getSubject() + "\n"
-                        + languageService.getLanguageValue(languageId, meetingConfig.getMeetingTimeKey()) + "："
-                        + meetingTime + "\n"
-                        + languageService.getLanguageValue(languageId, meetingConfig.getMeetingCodeKey()) + "："
-                        + hwMeetingCode
-                        + (StrUtil.isNotBlank(invitePwd)
-                            ? "\n" + languageService.getLanguageValue(languageId, meetingConfig.getMeetingPwdKey())
-                                + "：" + invitePwd
-                            : ""));
+                    languageService.getLanguageValue(languageId,
+                        meetingConfig.getMeetingTitleKey()) + "：" + meetingRoomInfoPO.getSubject() + "\n" + languageService.getLanguageValue(
+                        languageId,
+                        meetingConfig.getMeetingTimeKey()) + "：" + meetingTime + "\n" + languageService.getLanguageValue(
+                        languageId, meetingConfig.getMeetingCodeKey()) + "：" + hwMeetingCode + (
+                        StrUtil.isNotBlank(invitePwd) ? "\n" + languageService.getLanguageValue(languageId,
+                            meetingConfig.getMeetingPwdKey()) + "：" + invitePwd : ""));
 
             body.put("type", "212");
             body.put("data", pushData);
@@ -187,12 +192,11 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
             pushMessageDto.setContent(languageWordBOS);
             pushMessageDto.setBody(body);
             pushMessageDto.setPayload(messagePayloadDTO);
-            pushMessageDto
-                .setPushContent(languageService.getLanguageValue(languageId, meetingConfig.getInviteContentKey()));
+            pushMessageDto.setPushContent(
+                languageService.getLanguageValue(languageId, meetingConfig.getInviteContentKey()));
             pushMessageDto.setSubtype(1);
-            Message<String> message = MessageBuilder
-                .withPayload(JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect))
-                .build();
+            Message<String> message = MessageBuilder.withPayload(
+                JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect)).build();
             log.info("【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(pushMessageDto));
             SendResult sendResult = rocketMQTemplate.syncSend(pushMessageTopic, message);
             log.info("【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(sendResult));
