@@ -27,6 +27,7 @@ public interface RoomAsyncTaskService {
      * @param meetingRoomInfoPO
      * @param toAccIds
      */
+    @Async
     void batchSendIMMessage(MeetingRoomInfoPO meetingRoomInfoPO, List<String> toAccIds);
 
     /**
