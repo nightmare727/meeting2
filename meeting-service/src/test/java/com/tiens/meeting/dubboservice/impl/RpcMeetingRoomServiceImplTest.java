@@ -9,10 +9,13 @@ import com.google.common.collect.Lists;
 import com.tiens.api.dto.*;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.ServiceApplication;
+import com.tiens.meeting.dubboservice.async.RoomAsyncTaskService;
+import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.job.AppointMeetingTask;
 import com.tiens.meeting.dubboservice.job.HWResourceTask;
 import com.tiens.meeting.dubboservice.job.MeetingStopTask;
 import com.tiens.meeting.repository.po.MeetingAttendeePO;
+import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
 import common.enums.MeetingResourceHandleEnum;
 import common.enums.MeetingUserJoinSourceEnum;
@@ -55,6 +58,12 @@ class RpcMeetingRoomServiceImplTest {
 
     @Autowired
     MeetingAttendeeDaoService meetingAttendeeDaoService;
+
+    @Autowired
+    RoomAsyncTaskService roomAsyncTaskService;
+
+    @Autowired
+    MeetingConfig meetingConfig;
 
     @Test
     void getCredential() {
@@ -245,4 +254,16 @@ class RpcMeetingRoomServiceImplTest {
         stopWatch.stop();
         System.out.println(stopWatch.prettyPrint(TimeUnit.MILLISECONDS));
     }
+
+    @Test
+    @SneakyThrows
+    void doSendMultiPersonsAward() {
+        MeetingRoomInfoPO meetingRoomInfoPO = new MeetingRoomInfoPO();
+        meetingRoomInfoPO.setOwnerImUserId("cb4b8cc1be09409eb108baf982d7e196");
+        meetingRoomInfoPO.setHwMeetingCode("939259254");
+        meetingRoomInfoPO.setId(1783042528646344706L);
+        roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
+
+    }
+
 }

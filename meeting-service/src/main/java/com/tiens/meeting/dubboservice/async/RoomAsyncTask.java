@@ -2,7 +2,6 @@ package com.tiens.meeting.dubboservice.async;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpResponse;
@@ -214,6 +213,18 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
     public void doSendMultiPersonsAward(MeetingRoomInfoPO meetingRoomInfoPO) {
+        log.info("同步会议多人经验奖励入参：{}", JSON.toJSONString(meetingRoomInfoPO));
+        //校验会议是否已发放奖励
+        boolean SyncResult = meetingMultiPersonAwardRecordDaoService.lambdaQuery()
+            .select(MeetingMultiPersonAwardRecordPO::getId)
+            .eq(MeetingMultiPersonAwardRecordPO::getMeetingId, meetingRoomInfoPO.getId())
+            .last("limit 1").count() >= 1;
+        if (SyncResult) {
+            //已同步过，无休同步
+            log.error("重复同步会议多人经验奖励，本次不操作");
+            return;
+        }
+
         String ownerImUserId = meetingRoomInfoPO.getOwnerImUserId();
 
         //发放经验集合
