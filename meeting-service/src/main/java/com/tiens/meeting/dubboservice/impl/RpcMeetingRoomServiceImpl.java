@@ -1002,6 +1002,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String vmrId = byId1.getVmrId();
         String currentUseImUserId = byId1.getCurrentUseImUserId();
         meetingRoomInfoDaoService.removeById(meetingRoomId);
+        meetingRoomInfoDaoService.lambdaUpdate()
+            .eq(MeetingRoomInfoPO::getHwMeetingId, meetingRoomId)
+            .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Cancel.getState())
+            .set(MeetingRoomInfoPO::getIsDeleted, DeleteEnum.DELETE.getStatus())
+            .update();
         //直接取消华为云会议
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).cancelMeetingRoom(
             new CancelMeetingRoomModel(ownerImUserId, hwMeetingCode, vmrId, NumberUtil.isNumber(byId.getResourceType()),
