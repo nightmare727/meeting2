@@ -1001,9 +1001,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String hwMeetingCode = byId.getHwMeetingCode();
         String vmrId = byId1.getVmrId();
         String currentUseImUserId = byId1.getCurrentUseImUserId();
-        meetingRoomInfoDaoService.removeById(meetingRoomId);
+//        meetingRoomInfoDaoService.removeById(meetingRoomId);
         meetingRoomInfoDaoService.lambdaUpdate()
-            .eq(MeetingRoomInfoPO::getHwMeetingId, meetingRoomId)
+            .eq(MeetingRoomInfoPO::getId, meetingRoomId)
             .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Cancel.getState())
             .set(MeetingRoomInfoPO::getIsDeleted, DeleteEnum.DELETE.getStatus())
             .update();
