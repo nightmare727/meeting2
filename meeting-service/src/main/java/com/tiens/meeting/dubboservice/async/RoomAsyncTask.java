@@ -131,12 +131,12 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
             ;
             String hwMeetingCode = meetingRoomInfoPO.getHwMeetingCode();
 
-            if (!NumberUtil.isNumber(meetingRoomInfoPO.getResourceType())) {
+            /*if (!NumberUtil.isNumber(meetingRoomInfoPO.getResourceType())) {
                 MeetingResourcePO one = meetingResourceDaoService.lambdaQuery()
                     .eq(MeetingResourcePO::getId, meetingRoomInfoPO.getResourceId()).one();
                 hwMeetingCode = one.getVmrConferenceId();
 
-            }
+            }*/
 
             SimpleDateFormat YMDFormat = new SimpleDateFormat("yyyy/MM/dd");
             SimpleDateFormat HMFormat = new SimpleDateFormat("HH:mm");

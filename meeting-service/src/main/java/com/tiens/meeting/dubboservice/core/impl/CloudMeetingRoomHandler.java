@@ -137,7 +137,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             }
             MeetingRoomModel meetingRoomModel = new MeetingRoomModel();
             meetingRoomModel.setHwMeetingId(confUUID);
-            meetingRoomModel.setHwMeetingCode(conferenceID);
+            meetingRoomModel.setHwMeetingCode(isPrivate ? vmrConferenceID : conferenceID);
+            meetingRoomModel.setConferenceId(conferenceID);
             meetingRoomModel.setState(conferenceState);
             meetingRoomModel.setChairmanPwd(chairPwd);
             meetingRoomModel.setGeneralPwd(generalPwd);
@@ -214,10 +215,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             RestScheduleConfDTO body = new RestScheduleConfDTO();
             RestConfConfigDTO confConfigInfobody = new RestConfConfigDTO();
             confConfigInfobody.withCallInRestriction(2).withAllowGuestStartConf(false)
-                .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
-                .withVmrIDType(isPrivate ? 0 : 1)
-                .withProlongLength(0)
-                .withEnableWaitingRoom(Boolean.FALSE);
+                .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag()).withVmrIDType(isPrivate ? 0 : 1)
+                .withProlongLength(0).withEnableWaitingRoom(Boolean.FALSE);
             body.withVmrID(meetingRoomContextDTO.getVmrId());
             body.withVmrFlag(1);
             body.withRecordAuthType(1);

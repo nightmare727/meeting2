@@ -1,11 +1,18 @@
 package com.tiens.meeting.util;
 
+import cn.hutool.cache.CacheUtil;
+import cn.hutool.cache.impl.TimedCache;
+import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.crypto.SecureUtil;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.Data;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,5 +34,18 @@ public class VmUserUtil {
         String sign = SecureUtil.md5(signBase);
         headers.put("sign", sign);
         return headers;
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+         TimedCache<String, List<String>> holiday = CacheUtil.newTimedCache(1000 * 3);
+        holiday.schedulePrune(500);
+        List<String> stringList = holiday.get("hello");
+        System.out.println("第一次结果：" + stringList);
+        holiday.put("hello", Lists.newArrayList("world"));
+        while (true) {
+            System.out.println("循环打印" + holiday.get("hello",false));
+            Thread.sleep(500);
+        }
+
     }
 }

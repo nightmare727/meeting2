@@ -518,6 +518,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (ObjectUtil.isNotNull(meetingRoom)) {
             build.setHwMeetingId(meetingRoom.getHwMeetingId());
             build.setHwMeetingCode(meetingRoom.getHwMeetingCode());
+            build.setConferenceId(meetingRoom.getConferenceId());
             build.setHostPwd(meetingRoom.getChairmanPwd());
             build.setGeneralPwd(meetingRoom.getGeneralPwd());
             build.setAudiencePasswd(meetingRoom.getAudiencePasswd());
@@ -1329,7 +1330,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Payload payload = eventInfo.getPayload();
             String meetingID = payload.getMeetingInfo().getMeetingID();
             Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional =
-                meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getConferenceId, meetingID)
                     .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
                     .oneOpt();
             RLongAdder count = redissonClient.getLongAdder(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));

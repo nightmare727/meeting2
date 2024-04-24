@@ -3,7 +3,6 @@ package com.tiens.meeting.dubboservice.job;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
@@ -117,7 +116,8 @@ public class AppointMeetingTask {
             MeetingResourcePO byId = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
             resourceMap.putIfAbsent(meetingRoomInfoPO.getResourceId(), byId);
             if (!byId.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
-                log.info("【定时任务：会议开始前30分钟】 执行分配资源，ownerImUserId：{},vmrId:{}", ownerImUserId, byId.getVmrId());
+                log.info("【定时任务：会议开始前30分钟】 执行分配资源，ownerImUserId：{},vmrId:{}", ownerImUserId,
+                    byId.getVmrId());
                 hwMeetingCommonService.associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
             } else {
                 // 私有专属会议，如果该资源存在进行中的会议，即上一个会议自动延期没结束,此次不分配资源
@@ -129,9 +129,11 @@ public class AppointMeetingTask {
                     CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
                     cancelMeetingRoomDTO.setMeetingRoomId(meetingRoomInfoPO.getId());
                     cancelMeetingRoomDTO.setImUserId(meetingRoomInfoPO.getOwnerImUserId());
-                    log.info("【定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议入参：{}", JSON.toJSONString(cancelMeetingRoomDTO));
+                    log.info("【定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议入参：{}",
+                        JSON.toJSONString(cancelMeetingRoomDTO));
                     CommonResult commonResult = rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
-                    log.info("定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议结果：{}", JSON.toJSONString(commonResult));
+                    log.info("定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议结果：{}",
+                        JSON.toJSONString(commonResult));
                 }
             }
         }
@@ -168,12 +170,12 @@ public class AppointMeetingTask {
 
             String hwMeetingCode = meetingRoomInfoPO.getHwMeetingCode();
 
-            if (!NumberUtil.isNumber(meetingRoomInfoPO.getResourceType())) {
+          /*  if (!NumberUtil.isNumber(meetingRoomInfoPO.getResourceType())) {
                 MeetingResourcePO meetingResourcePO = resourceMap.get(resourceId);
                 // 私人会议
                 hwMeetingCode = meetingResourcePO.getVmrConferenceId();
 
-            }
+            }*/
 
             SimpleDateFormat YMDFormat = new SimpleDateFormat("yyyy/MM/dd");
             SimpleDateFormat HMFormat = new SimpleDateFormat("HH:mm");
@@ -187,9 +189,9 @@ public class AppointMeetingTask {
                     ZoneId.of(timeZoneOffset)), YMDFormat)
                 + " "
                 + DateUtil.format(DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(),
-                    DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset)), HMFormat)
+                DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset)), HMFormat)
                 + "-" + DateUtil.format(DateUtils.convertTimeZone(meetingRoomInfoPO.getShowEndTime(),
-                    DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset)), HMFormat)
+                DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset)), HMFormat)
                 + "(" + timeZoneOffset + ")";
 
             JSONObject pushData = JSONUtil.createObj().set("contentImage", meetingConfig.getMeetingIcon())
@@ -205,9 +207,9 @@ public class AppointMeetingTask {
                         + languageService.getLanguageValue(languageId, meetingConfig.getMeetingCodeKey()) + "："
                         + hwMeetingCode
                         + (StrUtil.isNotBlank(invitePwd)
-                            ? "\n" + languageService.getLanguageValue(languageId, meetingConfig.getMeetingPwdKey())
-                                + "：" + invitePwd
-                            : ""));
+                        ? "\n" + languageService.getLanguageValue(languageId, meetingConfig.getMeetingPwdKey())
+                        + "：" + invitePwd
+                        : ""));
 
             body.put("type", "212");
             body.put("data", pushData);

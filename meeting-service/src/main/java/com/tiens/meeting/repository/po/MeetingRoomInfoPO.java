@@ -35,6 +35,11 @@ public class MeetingRoomInfoPO implements Serializable {
      */
     @TableField(value = "hw_meeting_code", updateStrategy = FieldStrategy.IGNORED)
     private String hwMeetingCode;
+    /**
+     * 华为真实会议id
+     */
+    @TableField(value = "conference_id", updateStrategy = FieldStrategy.IGNORED)
+    private String conferenceId;
 
     /**
      * 会议开始时间
