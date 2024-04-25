@@ -7,6 +7,10 @@ import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.tiens.api.dto.*;
+import com.tiens.api.dto.hwevent.EventInfo;
+import com.tiens.api.dto.hwevent.HwEventReq;
+import com.tiens.api.dto.hwevent.MeetingInfo;
+import com.tiens.api.dto.hwevent.Payload;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.dubboservice.async.RoomAsyncTaskService;
@@ -19,6 +23,7 @@ import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
 import common.enums.MeetingResourceHandleEnum;
 import common.enums.MeetingUserJoinSourceEnum;
+import common.pojo.CommonResult;
 import common.util.date.DateUtils;
 import lombok.SneakyThrows;
 import org.apache.dubbo.config.annotation.Reference;
@@ -32,6 +37,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * @Author: 蔚文杰
@@ -265,5 +271,39 @@ class RpcMeetingRoomServiceImplTest {
         roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
 
     }
+    @Test
+    public void updateMeetingRoomStatus(){
 
+        HwEventReq hwEventReq = new HwEventReq();
+        hwEventReq.setAppID("11");
+        hwEventReq.setTimestamp(1L);
+        hwEventReq.setNonce("12");
+        hwEventReq.setSignature("123");
+
+        EventInfo eventInfo = new EventInfo();
+        eventInfo.setEvent("meeting.end");
+        eventInfo.setTimestamp(11L);
+        Payload payload = new Payload();
+        MeetingInfo meetingInfo = new MeetingInfo();
+        meetingInfo.setMeetingID("960538659");
+        meetingInfo.setMeetingUUID("3083cfc1bf694f9b8f4a35b34c1d6648");
+        meetingInfo.setMeetingCycleSubID("");
+
+
+        payload.setMeetingInfo(meetingInfo);
+
+
+
+        eventInfo.setPayload(payload);
+
+
+
+        hwEventReq.setEventInfo(eventInfo);
+
+        CommonResult<String> stringCommonResult = rpcMeetingRoomService.updateMeetingRoomStatus(hwEventReq);
+        System.out.println(stringCommonResult);
+
+        LockSupport.park();
+
+    }
 }

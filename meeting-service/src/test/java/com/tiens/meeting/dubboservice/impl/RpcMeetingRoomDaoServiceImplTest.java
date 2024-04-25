@@ -122,4 +122,6 @@ class RpcMeetingRoomDaoServiceImplTest {
         long size = redisTemplate.opsForHyperLogLog().size(unionKey);
         System.out.println(size);
     }
+
+
 }

@@ -1363,12 +1363,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             }
 
             MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOptional.get();
+            Long meetingId = meetingRoomInfoPO.getId();
+
             MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
 
             if ("meeting.started".equals(event)) {
                 //推送会议开始事件
                 boolean update =
-                    meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                    meetingRoomInfoDaoService.lambdaUpdate()
+                        .eq(MeetingRoomInfoPO::getId, meetingId)
                         .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
                         .set(MeetingRoomInfoPO::getHwMeetingId, payload.getMeetingInfo().getMeetingUUID())
                         .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState())
@@ -1385,7 +1388,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                         //会议结束事件-当企业下的某个会议结束，服务端会推送会议结束事件消息的post请求到企业开发者回调URL。会议结束后，如果会议预定的结束时间还没到，可以再次加入该会议。
                         //会议关闭事件
                         boolean update =
-                            meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                            meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getId, meetingId)
 
                                 .set(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
                                 .set(MeetingRoomInfoPO::getRelEndTime, DateUtil.date(timestamp)).update();
@@ -1397,7 +1400,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                                 Collections.singletonList(meetingResourcePO.getVmrId()));
                         }
                         //发放多人会议奖励
-                        roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
+//                        roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
 
                         log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
                     } finally {
@@ -1413,7 +1416,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             } else if ("record.finish".equals(event)) {
                 //录制结束事件-当企业下的某个会议结束，服务端会推送录制结束事件消息的post请求到企业开发者回调URL
                 boolean update =
-                    meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getHwMeetingCode, meetingID)
+                    meetingRoomInfoDaoService.lambdaUpdate().eq(MeetingRoomInfoPO::getId, meetingId)
                         .set(MeetingRoomInfoPO::getRecordStatus, 1).update();
                 log.info("【企业级华为云事件】华为云会议录制会议id：{}，结果：{}", meetingID, update);
             }
