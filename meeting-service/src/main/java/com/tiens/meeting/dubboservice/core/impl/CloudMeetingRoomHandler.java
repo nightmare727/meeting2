@@ -240,9 +240,9 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             body.withLength(meetingRoomContextDTO.getLength() + 60);
             body.withStartTime(startTimeStr);
             request.withBody(body);
-            log.info("编辑云会议会议结果入参：{}", request);
+            log.info("编辑云会议会议结果入参：{}", JSON.toJSONString(request));
             UpdateMeetingResponse response = userMeetingClient.updateMeeting(request);
-            log.info("编辑云会议会议结果响应：{}", response);
+            log.info("编辑云会议会议结果响应：{}", JSON.toJSONString(response));
         } catch (Exception e) {
             log.error("编辑云会议、预约会议异常", e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_MOD_MEETING_ERROR);

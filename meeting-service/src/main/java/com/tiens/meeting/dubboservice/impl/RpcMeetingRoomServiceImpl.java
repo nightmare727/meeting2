@@ -781,6 +781,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             meetingRoom.setHwMeetingCode(oldMeetingRoomInfoPO.getHwMeetingCode());
             meetingRoom.setState("");
             meetingRoom.setChairmanPwd(oldMeetingRoomInfoPO.getHostPwd());
+            meetingRoom.setConferenceId(oldMeetingRoomInfoPO.getConferenceId());
             // meetingRoom.setGuestPwd();
             // meetingRoom.setAudiencePasswd();
             // meetingRoom.setGeneralPwd();
