@@ -5,13 +5,14 @@
         <property name="COMMON_FILE_NAME">meeting-service</property>
         <property name="MAX_FILE_SIZE">500MB</property>
         <property name="MAX_FILE_COUNT">5</property>
-        <Property name="FILE_LOG_PATTERN">%date{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId}] %level [%thread][%file:%line] - %msg%n
+        <Property name="FILE_LOG_PATTERN">%date{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId}] %level [%thread][%file:%line] -
+            %msg%n
         </Property>
     </properties>
 
     <Appenders>
         <!-- 增加 sentry 监听 -->
-       <!-- <Sentry name="Sentry"/>-->
+        <!-- <Sentry name="Sentry"/>-->
         <Console name="Console" target="SYSTEM_OUT">
             <!-- 1.1、增加 traceId 配置项 -->
             <PatternLayout pattern="${FILE_LOG_PATTERN}" charset="UTF-8"/>
@@ -19,7 +20,7 @@
                              onMismatch="DENY"/>
         </Console>
         <!-- 2、配置日志级别、文件名、文件格式、文件路径 -->
-        <!--<RollingRandomAccessFile name="FILE-INFO" fileName="${LOG_HOME}/${COMMON_FILE_NAME}-info.log"
+        <RollingRandomAccessFile name="FILE-INFO" fileName="${LOG_HOME}/${COMMON_FILE_NAME}-info.log"
                                  filePattern="${LOG_HOME}/%date{yyyy-MM-dd}/${COMMON_FILE_NAME}-%i-info.log">
             <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="${FILE_LOG_PATTERN}" charset="UTF-8"/>
@@ -27,8 +28,14 @@
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                 <SizeBasedTriggeringPolicy size="${MAX_FILE_SIZE}"/>
             </Policies>
-            &lt;!&ndash;保存日志文件个数&ndash;&gt;
-            <DefaultRolloverStrategy max="${MAX_FILE_COUNT}"/>
+            <!--保存日志文件个数-->
+            <!--保存日志文件个数-->
+            <DefaultRolloverStrategy max="${MAX_FILE_COUNT}">
+                <Delete basePath="${baseDir}" maxDepth="1">
+                    <IfFileName glob="info_*.log.*"/>
+                    <IfLastModified age="3d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
         </RollingRandomAccessFile>
 
         <RollingRandomAccessFile name="FILE-ERROR" fileName="${LOG_HOME}/${COMMON_FILE_NAME}-error.log"
@@ -39,9 +46,16 @@
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                 <SizeBasedTriggeringPolicy size="${MAX_FILE_SIZE}"/>
             </Policies>
-            &lt;!&ndash;保存日志文件个数&ndash;&gt;
-            <DefaultRolloverStrategy max="${MAX_FILE_COUNT}"/>
-        </RollingRandomAccessFile>-->
+            <!--保存日志文件个数-->
+            <DefaultRolloverStrategy max="${MAX_FILE_COUNT}">
+                <Delete basePath="${baseDir}" maxDepth="1">
+                    <IfFileName glob="info_*.log.*"/>
+                    <IfLastModified age="3d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+
+
+        </RollingRandomAccessFile>
     </Appenders>
     <Loggers>
         <logger name="org.apache" level="WARN"/>
@@ -50,9 +64,9 @@
         <Logger name="com.alibaba.nacos.client.naming" level="WARN"/>
         <AsyncRoot level="INFO" includeLocation="true">
             <AppenderRef ref="Console"/>
-            <!--<AppenderRef ref="FILE-INFO"/>
+            <AppenderRef ref="FILE-INFO"/>
             <AppenderRef ref="FILE-ERROR"/>
-            <AppenderRef ref="Sentry" level="WARN"/>-->
+            <!--            <AppenderRef ref="Sentry" level="WARN"/>-->
         </AsyncRoot>
     </Loggers>
 </Configuration>
