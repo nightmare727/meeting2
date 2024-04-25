@@ -1,5 +1,7 @@
 package com.tiens.api.vo;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,6 +36,11 @@ public class MeetingRoomDetailDTO implements Serializable {
      * 华为会议code
      */
     private String hwMeetingCode;
+
+    /**
+     * 华为真实会议id
+     */
+    private String conferenceId;
 
     /**
      * 会议开始时间
@@ -79,7 +86,7 @@ public class MeetingRoomDetailDTO implements Serializable {
      */
     private String state;
     /**
-     * 录制状态 0：未录制完成  1：录制完成
+     * 录制状态 0：未录制完成 1：录制完成
      */
     private Integer recordStatus;
 
