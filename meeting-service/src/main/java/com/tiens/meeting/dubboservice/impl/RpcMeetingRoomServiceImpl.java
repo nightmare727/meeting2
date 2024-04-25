@@ -133,17 +133,20 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String timeZoneOffset = enterMeetingRoomCheckDTO.getTimeZoneOffset();
         log.info("加入会议校验入参：{}", enterMeetingRoomCheckDTO);
         //查询会议code是否存在
-        Optional<MeetingRoomInfoPO> meetingRoomInfoPOOpt =
+
+        List<MeetingRoomInfoPO> list =
             meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetRoomCode)
                 .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
-                .oneOpt();
-        if (!meetingRoomInfoPOOpt.isPresent()) {
+                .orderByAsc(MeetingRoomInfoPO::getLockStartTime)
+                .list();
+
+        if (CollectionUtil.isEmpty(list)) {
             //不存在会议
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
         }
 
         // 若为共有资源会议，需判断是否为开始时间 30min内，若在则直接进入会议，
-        MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOpt.get();
+        MeetingRoomInfoPO meetingRoomInfoPO = list.get(0);
 
         String state = meetingRoomInfoPO.getState();
         if (MeetingRoomStateEnum.Destroyed.getState().equals(state)) {
