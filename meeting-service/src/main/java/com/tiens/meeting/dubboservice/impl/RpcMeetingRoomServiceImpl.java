@@ -179,9 +179,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @NewComerTasks
     public CommonResult enterMeetingRoom(JoinMeetingRoomDTO joinMeetingRoomDTO) {
         log.info("【加入会议】 入参：{}", JSON.toJSONString(joinMeetingRoomDTO));
-
-        List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
-            .eq(MeetingRoomInfoPO::getHwMeetingCode, joinMeetingRoomDTO.getMeetRoomCode())
+        String meetRoomCode = joinMeetingRoomDTO.getMeetRoomCode();
+        List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery().and(
+                wrapper1 -> wrapper1.eq(MeetingRoomInfoPO::getHwMeetingCode, meetRoomCode)
+                    .or(wrapper2 -> wrapper2.eq(MeetingRoomInfoPO::getConferenceId, meetRoomCode)))
             .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
             .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list();
 
