@@ -5,8 +5,7 @@
         <property name="COMMON_FILE_NAME">meeting-service</property>
         <property name="MAX_FILE_SIZE">500MB</property>
         <property name="MAX_FILE_COUNT">5</property>
-        <Property name="FILE_LOG_PATTERN">%date{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId}] %level [%thread][%file:%line] -
-            %msg%n
+        <Property name="FILE_LOG_PATTERN">%date{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId}] %level [%thread][%file:%line] - %msg%n
         </Property>
     </properties>
 
