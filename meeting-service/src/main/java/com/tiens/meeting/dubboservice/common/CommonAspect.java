@@ -1,16 +1,15 @@
 package com.tiens.meeting.dubboservice.common;
 
-import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.http.param.MediaType;
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.tiens.meeting.dubboservice.common.entity.NewComerTasksModel;
 import com.tiens.meeting.dubboservice.common.entity.SyncCommonResult;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
+import com.tiens.meeting.util.VmUserUtil;
 import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -18,13 +17,11 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
@@ -81,7 +78,7 @@ public class CommonAspect {
         newComerTasksModel.setSource(1);
         newComerTasksModel.setCoinSource(73);
 
-        Map<String, String> authHead = getAuthHead(getImUserId);
+        Map<String, String> authHead = VmUserUtil.getAuthHead(getImUserId);
         String param = JSON.toJSONString(newComerTasksModel);
 
         listeningExecutorService.submit(() -> {
@@ -101,18 +98,6 @@ public class CommonAspect {
             }
         });
 
-    }
-
-    Map<String, String> getAuthHead(String imUserId) {
-
-        HashMap<@Nullable String, @Nullable String> headers = Maps.newHashMapWithExpectedSize(3);
-        long timeStamp = System.currentTimeMillis();
-        headers.put("finalUserId", imUserId);
-        headers.put("timeStamp", String.valueOf(timeStamp));
-        String signBase = imUserId + timeStamp + "VMO";
-        String sign = SecureUtil.md5(signBase);
-        headers.put("sign", sign);
-        return headers;
     }
 
 }

@@ -62,7 +62,7 @@ import java.util.Optional;
 @Slf4j
 public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
-    //    @Reference(version = "1.0", mock = "com.tiens.meeting.dubboservice.mock.DubboCommonUserServiceMock")
+    // @Reference(version = "1.0", mock = "com.tiens.meeting.dubboservice.mock.DubboCommonUserServiceMock")
     @Reference(version = "1.0")
     DubboCommonUserService dubboCommonUserService;
 
@@ -89,7 +89,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         }
         RBucket<VMUserVO> bucket = null;
         if (StringUtils.isNotBlank(accid)) {
-            //查询缓存
+            // 查询缓存
             bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(accid));
             VMUserVO vmUserCacheVO = bucket.get();
             if (ObjectUtil.isNotNull(vmUserCacheVO)) {
@@ -97,7 +97,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             }
         }
         if (StringUtils.isNotBlank(joyoCode)) {
-            //查询缓存
+            // 查询缓存
             bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(joyoCode));
             VMUserVO vmUserCacheVO = bucket.get();
             if (ObjectUtil.isNotNull(vmUserCacheVO)) {
@@ -121,7 +121,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         HomepageUserDTO data = dtoResult.getData();
         VMUserVO vmUserVO = BeanUtil.copyProperties(data, VMUserVO.class);
         vmUserVO.setJoyoCode(data.getJoyo_code());
-        //设置缓存
+        // 设置缓存
         if (StringUtils.isNotBlank(accid)) {
             bucket.set(vmUserVO);
         }
@@ -141,33 +141,31 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     @Override
     @Transactional
     public CommonResult addMeetingHostUser(String joyoCode, Integer resourceType) throws ServiceException {
-        //1、查询主持人信息是否存在
+        // 1、查询主持人信息是否存在
         CommonResult<VMUserVO> vmUserVOCommonResult = queryVMUser(joyoCode, "");
         VMUserVO vmUserVO = vmUserVOCommonResult.getData();
         if (ObjectUtil.isEmpty(vmUserVO)) {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_HOST_INFO);
         }
-        //校验配置是否合法
+        // 校验配置是否合法
         boolean res = checkLevelResource(vmUserVO, resourceType);
         if (!res) {
             return CommonResult.error(GlobalErrorCodeConstants.EXIST_HOST_RESOURCE_CONFIGURATION);
         }
-        //2、添加到主持人表
+        // 2、添加到主持人表
 
         MeetingHostUserPO meetingHostUserPO = wrapperMeetingHostUserPO(vmUserVO, resourceType);
         try {
             meetingHostUserDaoService.save(meetingHostUserPO);
         } catch (DuplicateKeyException e) {
-            //重复则修改
-            meetingHostUserDaoService.lambdaUpdate()
-                .eq(MeetingHostUserPO::getAccId, vmUserVO.getAccid())
-                .set(MeetingHostUserPO::getResourceType, resourceType)
-                .update();
+            // 重复则修改
+            meetingHostUserDaoService.lambdaUpdate().eq(MeetingHostUserPO::getAccId, vmUserVO.getAccid())
+                .set(MeetingHostUserPO::getResourceType, resourceType).update();
 
-//            log.error("accId 重复异常");
-//            return CommonResult.error(GlobalErrorCodeConstants.EXIST_HOST_INFO);
+            // log.error("accId 重复异常");
+            // return CommonResult.error(GlobalErrorCodeConstants.EXIST_HOST_INFO);
         }
-        //3、添加主持人信息到华为云用户列表中
+        // 3、添加主持人信息到华为云用户列表中
         boolean result = hwMeetingUserService.addHwUser(vmUserVO);
         return CommonResult.success(result);
     }
@@ -175,15 +173,15 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     private boolean checkLevelResource(VMUserVO vmUserVO, Integer resourceType) {
         if (vmUserVO.getLevelCode() == 9) {
             if (!(resourceType >= 7)) {
-                //不符合规则
+                // 不符合规则
                 return false;
             }
         } else {
-            //1-8级逻辑处理
+            // 1-8级逻辑处理
             MeetingLevelResourceConfigPO configPO = meetingLevelResourceConfigDaoService.lambdaQuery()
                 .eq(MeetingLevelResourceConfigPO::getVmUserLevel, vmUserVO.getLevelCode()).oneOpt().get();
             if (resourceType <= configPO.getResourceType()) {
-                //不符合规则
+                // 不符合规则
                 return false;
             }
         }
@@ -203,18 +201,18 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         if (StrUtil.isNotBlank(userAddFlag)) {
             return CommonResult.success(userAddFlag);
         }
-        //1、通过accid查询用户
+        // 1、通过accid查询用户
         CommonResult<VMUserVO> vmUserVOCommonResult = queryVMUser("", accid);
         VMUserVO vmUserVO = vmUserVOCommonResult.getData();
-        if (ObjectUtil.isEmpty(vmUserVOCommonResult.getData())) {
+        if (ObjectUtil.isEmpty(vmUserVO)) {
             return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_HOST_INFO);
         }
-        //2、添加普通信息到华为云用户列表中
+        // 2、添加普通信息到华为云用户列表中
         boolean result = false;
         try {
             result = hwMeetingUserService.addHwUser(vmUserVO);
         } catch (Exception e) {
-            log.error("添加普通用户发生异常！", e);
+            log.error("添加普通用户发生异常，accid{}！", accid, e);
         }
         return CommonResult.success(result);
     }
@@ -256,9 +254,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult removeMeetingHostUser(Long hostUserId) {
-        //1、删除主持人数据库数据
+        // 1、删除主持人数据库数据
         boolean b = meetingHostUserDaoService.removeById(hostUserId);
-        //2、删除华为云用户数据
+        // 2、删除华为云用户数据
         return CommonResult.success(b);
     }
 

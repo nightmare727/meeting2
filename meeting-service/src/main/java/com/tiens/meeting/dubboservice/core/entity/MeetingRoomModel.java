@@ -26,6 +26,11 @@ public class MeetingRoomModel implements Serializable {
      * 华为会议code
      */
     private String hwMeetingCode;
+
+    /**
+     * 真实会议id
+     */
+    private String conferenceId;
     /**
      *
      */

@@ -30,10 +30,10 @@ import java.util.List;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MeetingClientTest {
 
-        public String appId = "ce1860512edc4e77a288283d79f08a27";
-//    public String appId = "89f4e01b24c54752aa6ef02c864efa42";
-        public String appKey = "502367f7fec27f77ddef76cd3b3129c71153431a9b45a5d4825e4f14e999d4dd";
-//    public String appKey = "3b6419481b81e65aee20946d84f1837924fe1b7c9d476fe781428e841217c72e";
+    public String appId = "ce1860512edc4e77a288283d79f08a27";
+    //    public String appId = "89f4e01b24c54752aa6ef02c864efa42";
+    public String appKey = "502367f7fec27f77ddef76cd3b3129c71153431a9b45a5d4825e4f14e999d4dd";
+    //    public String appKey = "3b6419481b81e65aee20946d84f1837924fe1b7c9d476fe781428e841217c72e";
     public String userId = "115e039f98e1441ba24e5e3584cef950";
 
     MeetingClient managerClient = null;
@@ -67,6 +67,15 @@ public class MeetingClientTest {
         SearchCorpVmrResponse searchCorpVmrResponse = managerClient.searchCorpVmr(searchCorpVmrRequest);
         List<QueryOrgVmrResultDTO> data1 = searchCorpVmrResponse.getData();
         System.out.println("云会议室资源列表结果：" + JSON.toJSONString(data1));
+    }
+
+    @Test
+    public void getUseridDetail() {
+        ShowUserDetailRequest request = new ShowUserDetailRequest();
+        request.withAccount("90a2aed7dcaf45c398ccb39dc6a22f2b");
+        request.withAccountType(1);
+        ShowUserDetailResponse response = managerClient.showUserDetail(request);
+        System.out.println(JSON.toJSONString(response));
     }
 
     @Test

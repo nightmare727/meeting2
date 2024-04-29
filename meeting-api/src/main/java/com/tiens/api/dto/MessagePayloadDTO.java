@@ -19,6 +19,7 @@ import java.util.Map;
  */
 @Data
 public class MessagePayloadDTO implements Serializable {
+
     /**
      * 公用参数，指定推送消息的标题
      */

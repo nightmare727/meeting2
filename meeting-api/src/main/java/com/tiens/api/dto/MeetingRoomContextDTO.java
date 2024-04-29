@@ -1,5 +1,7 @@
 package com.tiens.api.dto;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import common.util.date.DateUtils;
 import lombok.Data;
 
@@ -24,6 +26,11 @@ public class MeetingRoomContextDTO implements Serializable {
      * （不需要）会议号
      */
     private String meetingCode;
+
+    /**
+     * （不需要）华为真实会议id
+     */
+    private String conferenceId;
     /**
      * （需要传）会议开始时间。格 式：yyyy-MM-dd HH:mm。 说明 ● 创建预约会议时，如果没有指定 开始时间或填空串，则表示会议 马上开始
      */

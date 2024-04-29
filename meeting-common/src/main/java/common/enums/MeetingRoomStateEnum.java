@@ -18,6 +18,7 @@ public enum MeetingRoomStateEnum {
 
     Schedule("Schedule", "预定状态"), Creating("Creating", "正在创建状态"),
     Created("Created", "会议已经被创建，并正在召开"), Destroyed("Destroyed", "会议已经关闭"),
+    Cancel("Canceled", "会议已经取消"),
     ;
     private String state;
 

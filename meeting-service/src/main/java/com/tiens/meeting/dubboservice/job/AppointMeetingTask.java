@@ -94,7 +94,7 @@ public class AppointMeetingTask {
     @MDCLog
     public void jobHandler() {
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
-        //1、预约提前30分钟锁定资源
+        // 1、预约提前30分钟锁定资源
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Schedule.getState())
             .eq(MeetingRoomInfoPO::getNotifyRoomStartStatus, 0).le(MeetingRoomInfoPO::getLockStartTime, now).list();
@@ -106,76 +106,93 @@ public class AppointMeetingTask {
         log.info("【定时任务：会议开始前30分钟】 处理会议列表:{}", JSON.toJSONString(list));
 
         List<Long> roomIds = list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList());
-        //修改分配资源状态及通知状态
+        // 修改分配资源状态及通知状态
         boolean update = meetingRoomInfoDaoService.lambdaUpdate().set(MeetingRoomInfoPO::getNotifyRoomStartStatus, 1)
             .set(MeetingRoomInfoPO::getAssignResourceStatus, 1).in(MeetingRoomInfoPO::getId, roomIds).update();
 
+        HashMap<@Nullable Integer, @Nullable MeetingResourcePO> resourceMap = Maps.newHashMap();
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
             String ownerImUserId = meetingRoomInfoPO.getOwnerImUserId();
             MeetingResourcePO byId = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
+            resourceMap.putIfAbsent(meetingRoomInfoPO.getResourceId(), byId);
             if (!byId.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
                 log.info("【定时任务：会议开始前30分钟】 执行分配资源，ownerImUserId：{},vmrId:{}", ownerImUserId,
                     byId.getVmrId());
                 hwMeetingCommonService.associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
             } else {
-                //私有专属会议，如果该资源存在进行中的会议，即上一个会议自动延期没结束,此次不分配资源
+                // 私有专属会议，如果该资源存在进行中的会议，即上一个会议自动延期没结束,此次不分配资源
                 List<MeetingRoomInfoPO> privateRoomInfoPOS =
                     meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, byId.getId())
                         .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState()).list();
                 if (ObjectUtil.isNotEmpty(privateRoomInfoPOS)) {
-                        //取消本次私人会议
-                        CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
-                        cancelMeetingRoomDTO.setMeetingRoomId(meetingRoomInfoPO.getId());
-                        cancelMeetingRoomDTO.setImUserId(meetingRoomInfoPO.getOwnerImUserId());
-                        log.info("【定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议入参：{}",
-                            JSON.toJSONString(cancelMeetingRoomDTO));
-                        CommonResult commonResult = rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
-                        log.info("定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议结果：{}",
-                            JSON.toJSONString(commonResult));
+                    // 取消本次私人会议
+                    CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
+                    cancelMeetingRoomDTO.setMeetingRoomId(meetingRoomInfoPO.getId());
+                    cancelMeetingRoomDTO.setImUserId(meetingRoomInfoPO.getOwnerImUserId());
+                    log.info("【定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议入参：{}",
+                        JSON.toJSONString(cancelMeetingRoomDTO));
+                    CommonResult commonResult = rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
+                    log.info("定时任务：会议开始前30分钟】 私人会议去取消即将开始的会议结果：{}",
+                        JSON.toJSONString(commonResult));
                 }
             }
         }
 
         log.info("【定时任务：会议开始前30分钟】锁定资源分配完成，roomIds:{},result:{}", roomIds, update);
 
-        //发送通知
+        // 发送通知
         Set<@Nullable String> toAccids = Sets.newHashSet();
         for (MeetingRoomInfoPO meetingRoomInfoPO : list) {
-//            BatchAttachMessageVo batchMessageVo = new BatchAttachMessageVo();
-//            batchMessageVo.setFromAccid(fromAccid);
+            // BatchAttachMessageVo batchMessageVo = new BatchAttachMessageVo();
+            // batchMessageVo.setFromAccid(fromAccid);
 
             toAccids.add(meetingRoomInfoPO.getOwnerImUserId());
 
-            //查询与会者集合
+            // 查询与会者集合
             toAccids.addAll(meetingAttendeeDaoService.lambdaQuery().select(MeetingAttendeePO::getAttendeeUserId)
                 .eq(MeetingAttendeePO::getMeetingRoomId, meetingRoomInfoPO.getId()).list().stream()
                 .map(MeetingAttendeePO::getAttendeeUserId).collect(Collectors.toList()));
 
             String languageId = meetingRoomInfoPO.getLanguageId();
+
+            Integer resourceId = meetingRoomInfoPO.getResourceId();
+
             /**
              * 消息内容，最大长度 5000 字符，JSON 格式
              */
 
             HashMap<@Nullable String, @Nullable Object> body = Maps.newHashMap();
-/*
-        JSONObject roomPush = JSONUtil.createObj().set("subject", meetingRoomInfoPO.getSubject())
+            /*
+                    JSONObject roomPush = JSONUtil.createObj().set("subject", meetingRoomInfoPO.getSubject())
             .set("meetingCode", meetingRoomInfoPO.getHwMeetingCode())
             .set("startTime", DateUtil.formatDateTime(meetingRoomInfoPO.getShowStartTime()))*/
             ;
+
+            String hwMeetingCode = meetingRoomInfoPO.getHwMeetingCode();
+
+          /*  if (!NumberUtil.isNumber(meetingRoomInfoPO.getResourceType())) {
+                MeetingResourcePO meetingResourcePO = resourceMap.get(resourceId);
+                // 私人会议
+                hwMeetingCode = meetingResourcePO.getVmrConferenceId();
+
+            }*/
+
             SimpleDateFormat YMDFormat = new SimpleDateFormat("yyyy/MM/dd");
             SimpleDateFormat HMFormat = new SimpleDateFormat("HH:mm");
             String timeZoneOffset = meetingRoomInfoPO.getTimeZoneOffset();
-            //邀请密码
+            // 邀请密码
             String invitePwd =
                 ObjectUtil.defaultIfBlank(meetingRoomInfoPO.getGeneralPwd(), meetingRoomInfoPO.getAudiencePasswd());
-            //会议时间
-            String meetingTime =
-                DateUtil.format(DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
-                    ZoneId.of(timeZoneOffset)), YMDFormat) + " " + DateUtil.format(
-                    DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
-                        ZoneId.of(timeZoneOffset)), HMFormat) + "-" + DateUtil.format(
-                    DateUtils.convertTimeZone(meetingRoomInfoPO.getShowEndTime(), DateUtils.TIME_ZONE_GMT,
-                        ZoneId.of(timeZoneOffset)), HMFormat) + "(" + timeZoneOffset + ")";
+            // 会议时间
+            String meetingTime = DateUtil
+                .format(DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(), DateUtils.TIME_ZONE_GMT,
+                    ZoneId.of(timeZoneOffset)), YMDFormat)
+                + " "
+                + DateUtil.format(DateUtils.convertTimeZone(meetingRoomInfoPO.getShowStartTime(),
+                DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset)), HMFormat)
+                + "-" + DateUtil.format(DateUtils.convertTimeZone(meetingRoomInfoPO.getShowEndTime(),
+                DateUtils.TIME_ZONE_GMT, ZoneId.of(timeZoneOffset)), HMFormat)
+                + "(" + timeZoneOffset + ")";
 
             JSONObject pushData = JSONUtil.createObj().set("contentImage", meetingConfig.getMeetingIcon())
                 .set("contentStr",
@@ -183,13 +200,16 @@ public class AppointMeetingTask {
                 .set("im_prefix",
                     languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartPrefixContentKey()))
                 .set("landingType", 2).set("landingUrl", "TencentMeetingPage").set("contentSubTitle",
-                    languageService.getLanguageValue(languageId,
-                        meetingConfig.getMeetingTitleKey()) + "：" + meetingRoomInfoPO.getSubject() + "\n" + languageService.getLanguageValue(
-                        languageId,
-                        meetingConfig.getMeetingTimeKey()) + "：" + meetingTime + "\n" + languageService.getLanguageValue(
-                        languageId, meetingConfig.getMeetingCodeKey()) + "：" + meetingRoomInfoPO.getHwMeetingCode() + (
-                        StrUtil.isNotBlank(invitePwd) ? "\n" + languageService.getLanguageValue(languageId,
-                            meetingConfig.getMeetingPwdKey()) + "：" + invitePwd : ""));
+                    languageService.getLanguageValue(languageId, meetingConfig.getMeetingTitleKey()) + "："
+                        + meetingRoomInfoPO.getSubject() + "\n"
+                        + languageService.getLanguageValue(languageId, meetingConfig.getMeetingTimeKey()) + "："
+                        + meetingTime + "\n"
+                        + languageService.getLanguageValue(languageId, meetingConfig.getMeetingCodeKey()) + "："
+                        + hwMeetingCode
+                        + (StrUtil.isNotBlank(invitePwd)
+                        ? "\n" + languageService.getLanguageValue(languageId, meetingConfig.getMeetingPwdKey())
+                        + "：" + invitePwd
+                        : ""));
 
             body.put("type", "212");
             body.put("data", pushData);
@@ -200,15 +220,14 @@ public class AppointMeetingTask {
              */
             MessagePayloadDTO messagePayloadDTO = new MessagePayloadDTO(body);
             ArrayList<@Nullable LanguageWordBO> languageWordBOS = Lists.newArrayList();
-            //邀请您参加V-Meeting会议
+            // 邀请您参加V-Meeting会议
             languageWordBOS.add(new LanguageWordBO(meetingConfig.getInviteTopicKey(), ""));
-            //会议主题
+            // 会议主题
             languageWordBOS.add(new LanguageWordBO(meetingConfig.getMeetingTitleKey(), meetingRoomInfoPO.getSubject()));
-            //会议时间
+            // 会议时间
             languageWordBOS.add(new LanguageWordBO(meetingConfig.getMeetingTimeKey(), meetingTime));
-            //会议号
-            languageWordBOS.add(
-                new LanguageWordBO(meetingConfig.getMeetingCodeKey(), meetingRoomInfoPO.getHwMeetingCode()));
+            // 会议号
+            languageWordBOS.add(new LanguageWordBO(meetingConfig.getMeetingCodeKey(), hwMeetingCode));
 
             PushMessageDto pushMessageDto = new PushMessageDto();
             pushMessageDto.setAccId(meetingRoomInfoPO.getOwnerImUserId());
@@ -221,8 +240,9 @@ public class AppointMeetingTask {
             pushMessageDto.setPushContent(
                 languageService.getLanguageValue(languageId, meetingConfig.getMeetingStartContentKey()));
             pushMessageDto.setSubtype(2);
-            Message<String> message = MessageBuilder.withPayload(
-                JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect)).build();
+            Message<String> message = MessageBuilder
+                .withPayload(JSON.toJSONString(pushMessageDto, SerializerFeature.DisableCircularReferenceDetect))
+                .build();
             log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】调用入参：{}", JSON.toJSONString(pushMessageDto));
             SendResult sendResult = rocketMQTemplate.syncSend(pushMessageTopic, message);
             log.info("【定时任务：会议开始前30分钟】【批量发送点对点IM消息】结果返回：{}", JSON.toJSONString(sendResult));

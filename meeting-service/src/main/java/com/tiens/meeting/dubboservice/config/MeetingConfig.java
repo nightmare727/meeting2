@@ -88,5 +88,26 @@ public class MeetingConfig {
      * 新人奖励任务同步
      */
     private String newComerTasksSynUrl;
+    /**
+     * 多人开会奖励配置
+     */
+    private List<MultiPersonsAwardInner> multiPersonsAwardConfig;
+
+    /**
+     * 新人奖励任务同步
+     */
+    private String multiPersonsAwardSyncUrl;
+
+    @Data
+    public static class MultiPersonsAwardInner {
+
+        private Integer personNum;
+
+        private Integer count;
+
+        private Integer awardValue;
+
+        private Integer coinSource;
+    }
 
 }
