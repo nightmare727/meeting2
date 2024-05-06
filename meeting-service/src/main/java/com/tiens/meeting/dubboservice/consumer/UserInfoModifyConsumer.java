@@ -92,6 +92,7 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
 
         redisKeyClean.sendCleanCacheMsg(
             new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(data.getJoyo_code()), null));
+
         //同步修改直播主播数据
         userAsyncTaskService.updateLiveAnchorInfo(data);
 
