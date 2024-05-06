@@ -279,7 +279,7 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
                     MeetingMultiPersonAwardRecordPO meetingMultiPersonAwardRecordPO =
                         new MeetingMultiPersonAwardRecordPO();
                     meetingMultiPersonAwardRecordPO.setMeetingId(meetingRoomInfoPO.getId());
-                    meetingMultiPersonAwardRecordPO.setMeetingCode(meetingRoomInfoPO.getHwMeetingCode());
+                    meetingMultiPersonAwardRecordPO.setMeetingCode(meetingRoomInfoPO.getConferenceId());
                     meetingMultiPersonAwardRecordPO.setMeetingRelPersonCount(Math.toIntExact(count));
                     meetingMultiPersonAwardRecordPO.setAwardCount(k);
                     meetingMultiPersonAwardRecordPO.setImUserId(ownerImUserId);
@@ -291,7 +291,7 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
                     meetingMultiPersonAwardPO.setImUserId(ownerImUserId);
                     meetingMultiPersonAwardPO.setAwardSize(multiPersonsAwardInner.getPersonNum());
                     meetingMultiPersonAwardPO.setRemark(
-                        String.format("来自会议号:%s 新增一次经验奖励", meetingRoomInfoPO.getHwMeetingCode()));
+                        String.format("来自会议号:%s 新增一次经验奖励", meetingRoomInfoPO.getConferenceId()));
                     meetingMultiPersonAwardPOS.add(meetingMultiPersonAwardPO);
                 }
             });
