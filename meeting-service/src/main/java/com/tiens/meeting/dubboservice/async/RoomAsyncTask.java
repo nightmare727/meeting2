@@ -273,6 +273,7 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
                     userExpAddEntity.setExperience(multiPersonsAwardInner.getAwardValue());
                     userExpAddEntity.setOperateType(1);
                     userExpAddEntity.setCoinSource(multiPersonsAwardInner.getCoinSource());
+                    userExpAddEntity.setCoinSourceCode(String.valueOf(k));
                     userExpAddEntityMap.put(k, userExpAddEntity);
 
                     //构建会议多人奖励日志实体

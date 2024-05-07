@@ -89,16 +89,16 @@ public class MeetingClientTest {
         System.out.println("研讨会资源列表结果：" + JSON.toJSONString(data1));
     }
 
-    /*@Test
+    @Test
     public void addUser() {
         AddUserRequest request = new AddUserRequest();
         AddUserDTO body = new AddUserDTO();
-        body.withThirdAccount("3c707cb4cd7943c384ca6c9b70bcf7c8");
+        body.withThirdAccount("yuwenjie111222");
         body.withName("胡教粉");
         request.withBody(body);
         AddUserResponse response = managerClient.addUser(request);
         System.out.println(response.toString());
-    }*/
+    }
     @Test
     @DisplayName("华为云SDK-研讨会详情接口")
     public void getWebinarDetail() {
