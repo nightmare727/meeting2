@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="off" monitorInterval="10" packages="org.apache.logging.log4j.core,io.sentry.log4j2">
     <properties>
-        <!--        <property name="LOG_HOME">/data/logs/meeting-service</property>-->
-        <property name="LOG_HOME">D:\log\meeting-service</property>
+        <property name="LOG_HOME">/data/logs/meeting-service</property>
+<!--        <property name="LOG_HOME">D:\log\meeting-service</property>-->
         <property name="COMMON_FILE_NAME">meeting-service</property>
         <property name="MAX_FILE_SIZE">1MB</property>
         <property name="MAX_FILE_COUNT">5</property>
