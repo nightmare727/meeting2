@@ -227,6 +227,15 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
 
         String ownerImUserId = meetingRoomInfoPO.getOwnerImUserId();
 
+        // 判断白名单功能是否开启
+        List<String> multiPersonsAwardWhiteList = meetingConfig.getMultiPersonsAwardWhiteList();
+
+        if (CollectionUtil.isNotEmpty(multiPersonsAwardWhiteList)
+            && !multiPersonsAwardWhiteList.contains(ownerImUserId)) {
+            log.info("白名单开启：imUserId：{}不在白名单内", ownerImUserId);
+            return;
+        }
+
         //发放经验集合
         LinkedHashMap<Integer, UserExpAddEntity> userExpAddEntityMap = Maps.newLinkedHashMap();
 
@@ -273,13 +282,14 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
                     userExpAddEntity.setExperience(multiPersonsAwardInner.getAwardValue());
                     userExpAddEntity.setOperateType(1);
                     userExpAddEntity.setCoinSource(multiPersonsAwardInner.getCoinSource());
+                    userExpAddEntity.setCoinSourceCode(String.valueOf(k));
                     userExpAddEntityMap.put(k, userExpAddEntity);
 
                     //构建会议多人奖励日志实体
                     MeetingMultiPersonAwardRecordPO meetingMultiPersonAwardRecordPO =
                         new MeetingMultiPersonAwardRecordPO();
                     meetingMultiPersonAwardRecordPO.setMeetingId(meetingRoomInfoPO.getId());
-                    meetingMultiPersonAwardRecordPO.setMeetingCode(meetingRoomInfoPO.getHwMeetingCode());
+                    meetingMultiPersonAwardRecordPO.setMeetingCode(meetingRoomInfoPO.getConferenceId());
                     meetingMultiPersonAwardRecordPO.setMeetingRelPersonCount(Math.toIntExact(count));
                     meetingMultiPersonAwardRecordPO.setAwardCount(k);
                     meetingMultiPersonAwardRecordPO.setImUserId(ownerImUserId);
@@ -291,7 +301,7 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
                     meetingMultiPersonAwardPO.setImUserId(ownerImUserId);
                     meetingMultiPersonAwardPO.setAwardSize(multiPersonsAwardInner.getPersonNum());
                     meetingMultiPersonAwardPO.setRemark(
-                        String.format("来自会议号:%s 新增一次经验奖励", meetingRoomInfoPO.getHwMeetingCode()));
+                        String.format("来自会议号:%s 新增一次经验奖励", meetingRoomInfoPO.getConferenceId()));
                     meetingMultiPersonAwardPOS.add(meetingMultiPersonAwardPO);
                 }
             });

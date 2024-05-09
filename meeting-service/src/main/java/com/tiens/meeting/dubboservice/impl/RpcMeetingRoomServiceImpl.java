@@ -1398,7 +1398,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                                 Collections.singletonList(meetingResourcePO.getVmrId()));
                         }
                         // 发放多人会议奖励
-                        // roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
+                         roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
 
                         log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
                     } finally {

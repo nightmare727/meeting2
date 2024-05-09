@@ -30,7 +30,7 @@ public class UserExpAddEntity implements Serializable {
     /**
      * 国家编码
      */
-    private String country="cn";
+    private String country = "cn";
     /**
      * 渠道来源：1-平台、2-国内vmo币积分商城、3-VShare vmo币商城
      */
@@ -40,4 +40,8 @@ public class UserExpAddEntity implements Serializable {
      * 订单号
      */
     private String orderNo = "";
+    /**
+     * 经验来源次数等信息，如：订单累计50，则值为50
+     */
+    private String coinSourceCode;
 }

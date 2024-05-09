@@ -3,6 +3,7 @@ package com.tiens.meeting.dubboservice.job;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.google.common.collect.Lists;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.QueryOrgVmrResultDTO;
@@ -102,7 +103,8 @@ public class HWResourceTask {
         List<QueryOrgVmrResultDTO> data1 = response1.getData();
         if (CollectionUtil.isNotEmpty(data1)) {
             results.addAll(
-                data1.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.CLOUD)).collect(Collectors.toList()));
+                data1.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.CLOUD)).filter(ObjectUtil::isNotNull)
+                    .collect(Collectors.toList()));
         }
 
         //2、研讨会资源
@@ -111,13 +113,19 @@ public class HWResourceTask {
         List<QueryOrgVmrResultDTO> data2 = response2.getData();
         if (CollectionUtil.isNotEmpty(data2)) {
             results.addAll(
-                data2.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.SEMINAR)).collect(Collectors.toList()));
+                data2.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.SEMINAR)).filter(ObjectUtil::isNotNull)
+                    .collect(Collectors.toList()));
         }
         return results;
     }
 
     MeetingResourcePO convert(QueryOrgVmrResultDTO queryOrgVmrResultDTO,
         MeetingRoomHandlerEnum meetingRoomHandlerEnum) {
+        if (ObjectUtil.isNull(queryOrgVmrResultDTO.getExpireDate())) {
+            //过期时间为空，则资源无效
+            return null;
+
+        }
 
         Integer maxSize =
             NumberUtil.max(queryOrgVmrResultDTO.getVmrPkgParties(), queryOrgVmrResultDTO.getMaxAudienceParties());
