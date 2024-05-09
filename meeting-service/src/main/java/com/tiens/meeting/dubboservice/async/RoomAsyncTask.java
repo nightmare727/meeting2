@@ -227,6 +227,15 @@ public class RoomAsyncTask implements RoomAsyncTaskService {
 
         String ownerImUserId = meetingRoomInfoPO.getOwnerImUserId();
 
+        // 判断白名单功能是否开启
+        List<String> multiPersonsAwardWhiteList = meetingConfig.getMultiPersonsAwardWhiteList();
+
+        if (CollectionUtil.isNotEmpty(multiPersonsAwardWhiteList)
+            && !multiPersonsAwardWhiteList.contains(ownerImUserId)) {
+            log.info("白名单开启：imUserId：{}不在白名单内", ownerImUserId);
+            return;
+        }
+
         //发放经验集合
         LinkedHashMap<Integer, UserExpAddEntity> userExpAddEntityMap = Maps.newLinkedHashMap();
 

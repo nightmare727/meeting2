@@ -94,9 +94,11 @@ public class MeetingConfig {
     private List<MultiPersonsAwardInner> multiPersonsAwardConfig;
 
     /**
-     * 新人奖励任务同步
+     * 多人奖励任务同步
      */
     private String multiPersonsAwardSyncUrl;
+
+    private List<String> multiPersonsAwardWhiteList;
 
     @Data
     public static class MultiPersonsAwardInner {
