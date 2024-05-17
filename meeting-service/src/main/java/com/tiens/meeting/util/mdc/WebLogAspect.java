@@ -1,7 +1,6 @@
 package com.tiens.meeting.util.mdc;
 
 import cn.hutool.core.lang.UUID;
-import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -38,11 +37,6 @@ public class WebLogAspect {
      */
     @Before("MDCLog()")
     public void doBefore(JoinPoint joinPoint) throws Throwable {
-        String traceId = MDC.get(TRACE_ID);
-        if (StrUtil.isBlank(traceId)) {
-            traceId = UUID.fastUUID().toString(true);
-            MDC.put(TRACE_ID, traceId);
-        }
     }
 
     /**
@@ -64,6 +58,8 @@ public class WebLogAspect {
      */
     @Around("MDCLog()")
     public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+        String traceId = UUID.fastUUID().toString(true);
+        MDC.put(TRACE_ID, traceId);
         long startTime = System.currentTimeMillis();
         Object result = proceedingJoinPoint.proceed();
         log.info("【定时任务执行】耗时: {} ms", System.currentTimeMillis() - startTime);

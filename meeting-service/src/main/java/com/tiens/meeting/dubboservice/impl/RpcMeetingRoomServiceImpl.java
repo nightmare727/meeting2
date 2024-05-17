@@ -463,7 +463,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(finalVmrMode))
                             .cancelMeetingRoom(new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
                                 finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
-                                NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId));
+                                NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId
+                                ,resourceId));
                     } catch (Exception e1) {
                         log.error("【创建、预约会议】异常取消会议异常，异常信息：{}", e1);
                     }
@@ -1014,7 +1015,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         // 直接取消华为云会议
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).cancelMeetingRoom(
             new CancelMeetingRoomModel(ownerImUserId, hwMeetingCode, vmrId, NumberUtil.isNumber(byId.getResourceType()),
-                currentUseImUserId));
+                currentUseImUserId, byId1.getId()));
         // 释放资源
         publicResourceHoldHandle(resourceId, MeetingResourceHandleEnum.HOLD_DOWN);
         // 会议资源已分配，则取消资源占用
@@ -1398,7 +1399,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                                 Collections.singletonList(meetingResourcePO.getVmrId()));
                         }
                         // 发放多人会议奖励
-                         roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
+                        roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
 
                         log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
                     } finally {

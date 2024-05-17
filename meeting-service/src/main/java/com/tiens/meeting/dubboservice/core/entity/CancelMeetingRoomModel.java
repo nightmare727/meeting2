@@ -25,4 +25,7 @@ public class CancelMeetingRoomModel implements Serializable {
      * 当前资源使用人id
      */
     private String currentResourceUserId;
+
+    private Integer resourceId;
+
 }
