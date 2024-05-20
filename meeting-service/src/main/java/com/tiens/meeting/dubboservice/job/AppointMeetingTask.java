@@ -100,7 +100,7 @@ public class AppointMeetingTask {
 
     @XxlJob("AppointMeetingJobHandler")
     @Transactional(rollbackFor = Exception.class)
-    @MDCLog
+    @MDCLog(description = "定时任务：会议开始前30分钟")
     public void jobHandler() {
 
         String lockName = CacheKeyUtil.BASE_CACHE_PREFIX + ClassUtil.getClassName(AppointMeetingTask.class, true);

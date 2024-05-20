@@ -67,7 +67,7 @@ public class MeetingStopTask {
 
     @XxlJob("MeetingStopJobHandler")
     @Transactional(rollbackFor = Exception.class)
-    @MDCLog
+    @MDCLog(description = "定时任务：会议定时结束")
     public void jobHandler() throws Exception {
 
         String lockName = CacheKeyUtil.BASE_CACHE_PREFIX + ClassUtil.getClassName(MeetingStopTask.class, true);

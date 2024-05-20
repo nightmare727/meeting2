@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+
+import java.lang.reflect.Method;
 
 import static common.log.LogInterceptor.TRACE_ID;
 
@@ -60,11 +63,30 @@ public class WebLogAspect {
     public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
         String traceId = UUID.fastUUID().toString(true);
         MDC.put(TRACE_ID, traceId);
+        String description = getDescription(proceedingJoinPoint);
+
         long startTime = System.currentTimeMillis();
         Object result = proceedingJoinPoint.proceed();
-        log.info("【定时任务执行】耗时: {} ms", System.currentTimeMillis() - startTime);
+        log.info("【{}】【定时任务执行】耗时: {} ms", description, System.currentTimeMillis() - startTime);
         MDC.remove(TRACE_ID);
         return result;
     }
 
+    String getDescription(ProceedingJoinPoint jp) throws NoSuchMethodException {
+        //1.获取目标对象类型
+        Class<?> targetCls = jp.getTarget().getClass();
+//2.获取目标方法对象
+//2.1获取方法签名信息
+        MethodSignature ms = (MethodSignature)jp.getSignature();
+//2.2获取方法对象
+//假如底层配置为jdk代理,则method指向接口中的抽象方法对象.
+//假如底层配置为CGLIB代理,则这个method指向具体目标对象中的方法对象
+//Method method=ms.getMethod();
+//假如希望无论是jdk代理还是cglib代理,我们让method变量指向的都是目标对象中的方法对象,那如何实现?
+        Method method = targetCls.getDeclaredMethod(ms.getName(), ms.getParameterTypes());
+//3.获取方法上的reqiredLog注解对象
+        MDCLog requiredLog = method.getAnnotation(MDCLog.class);
+//4.获取注解中的operation的值.
+        return requiredLog.description();
+    }
 }
