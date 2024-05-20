@@ -13,10 +13,12 @@ import com.tiens.api.vo.MeetingRoomDetailDTO;
 import com.tiens.meeting.dubboservice.core.HwMeetingRoomHandler;
 import com.tiens.meeting.dubboservice.core.entity.CancelMeetingRoomModel;
 import com.tiens.meeting.dubboservice.core.entity.MeetingRoomModel;
+import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
@@ -35,6 +37,9 @@ import java.util.List;
 @Slf4j
 public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    @Autowired
+    MeetingRoomInfoDaoService meetingRoomInfoDaoService;
 
     /**
      * 创建华为会议
@@ -158,9 +163,19 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
                         hwMeetingCommonService.associateVmr(currentResourceUserId,
                             Collections.singletonList(meetingRoomContextDTO.getVmrId()));
                     } else {
-                        // 如果已分配，则执行 回收-分配-再回收
-                        hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
-                            Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                        //再次校验是否有进行中的会议
+                        Boolean resourceHavingMeet =
+                            hwMeetingCommonService.getResourceHavingMeet(meetingRoomContextDTO.getResourceId());
+                        if (resourceHavingMeet) {
+                            log.info("资源：{} 存在进行中的会议，无需回收", meetingRoomContextDTO.getResourceId());
+                        } else {
+                            log.info("经查询，资源：{} 不存在存在进行中的会议，需回收",
+                                meetingRoomContextDTO.getResourceId());
+                            // 如果已分配，则执行 回收-分配-再回收
+                            hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                                Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                        }
+
                     }
                 } else if (exceptionHappenFlag) {
                     // 立即会议发生异常
@@ -255,9 +270,20 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
                     hwMeetingCommonService.associateVmr(currentResourceUserId,
                         Collections.singletonList(meetingRoomContextDTO.getVmrId()));
                 } else {
-                    // 如果已分配，则执行 回收-分配-再回收
-                    hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
-                        Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                    //再次校验是否有进行中的会议
+                    Boolean resourceHavingMeet =
+                        hwMeetingCommonService.getResourceHavingMeet(meetingRoomContextDTO.getResourceId());
+
+                    if (resourceHavingMeet) {
+                        log.info("资源：{} 存在进行中的会议，无需回收", meetingRoomContextDTO.getResourceId());
+                    } else {
+                        log.info("经查询，资源：{} 不存在存在进行中的会议，需回收",
+                            meetingRoomContextDTO.getResourceId());
+
+                        // 如果已分配，则执行 回收-分配-再回收
+                        hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),
+                            Collections.singletonList(meetingRoomContextDTO.getVmrId()));
+                    }
                 }
             }
         }
@@ -291,10 +317,12 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             if (e.getErrorCode().equals("MMC.111070005")) {
                 log.info("取消华为云--云会议信息不存在，当前会议号:{}", cancelMeetingRoomModel.getConferenceID());
             } else {
-                log.error("取消华为云--云会议信息发生其他异常，当前会议号:{}，异常信息：{}", cancelMeetingRoomModel.getConferenceID(), e);
+                log.error("取消华为云--云会议信息发生其他异常，当前会议号:{}，异常信息：{}",
+                    cancelMeetingRoomModel.getConferenceID(), e);
             }
         } catch (Exception e) {
-            log.error("取消华为云--云会议信息发生系统异常，当前会议号:{}，异常信息：{}", cancelMeetingRoomModel.getConferenceID(), e);
+            log.error("取消华为云--云会议信息发生系统异常，当前会议号:{}，异常信息：{}",
+                cancelMeetingRoomModel.getConferenceID(), e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
         } finally {
             // 回收资源
@@ -304,9 +332,20 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
                     hwMeetingCommonService.associateVmr(currentResourceUserId,
                         Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
                 } else {
-                    // 如果已分配，则执行 回收-分配-再回收
-                    hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
-                        Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+                    //再次校验是否有进行中的会议
+                    Boolean resourceHavingMeet =
+                        hwMeetingCommonService.getResourceHavingMeet(cancelMeetingRoomModel.getResourceId());
+                    if (resourceHavingMeet) {
+                        log.info("资源：{} 存在进行中的会议，无需回收", cancelMeetingRoomModel.getResourceId());
+
+                    } else {
+                        log.info("经查询，资源：{} 不存在存在进行中的会议，需回收",
+                            cancelMeetingRoomModel.getResourceId());
+                        // 如果已分配，则执行 回收-分配-再回收
+                        hwMeetingCommonService.disassociateVmr(cancelMeetingRoomModel.getImUserId(),
+                            Collections.singletonList(cancelMeetingRoomModel.getVmrId()));
+                    }
+
                 }
             }
         }
@@ -362,12 +401,15 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             meetingRoomDetailDTO.setAudienceJoinUri(conferenceData.getAudienceJoinUri());
         } catch (ServiceResponseException e) {
             if (e.getErrorCode().equals("MMC.111070005")) {
-                log.error("查询华为云会议信息不存在，当前会议号:{}，异常信息：{}", meetingRoomDetailDTO.getHwMeetingCode(), e);
+                log.error("查询华为云会议信息不存在，当前会议号:{}，异常信息：{}", meetingRoomDetailDTO.getHwMeetingCode(),
+                    e);
             } else {
-                log.error("查询华为云会议信息发生其他异常，当前会议号:{}，异常信息：{}", meetingRoomDetailDTO.getHwMeetingCode(), e);
+                log.error("查询华为云会议信息发生其他异常，当前会议号:{}，异常信息：{}",
+                    meetingRoomDetailDTO.getHwMeetingCode(), e);
             }
         } catch (Exception e) {
-            log.error("查询华为云会议信息系统异常，当前会议号:{}，异常信息：{}", meetingRoomDetailDTO.getHwMeetingCode(), e);
+            log.error("查询华为云会议信息系统异常，当前会议号:{}，异常信息：{}", meetingRoomDetailDTO.getHwMeetingCode(),
+                e);
             // throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
         }
 

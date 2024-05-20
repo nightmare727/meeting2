@@ -48,7 +48,7 @@ public class HWResourceTask {
     HwMeetingCommonService hwMeetingCommonService;
 
     @XxlJob("HWResourceJobHandler")
-    @MDCLog
+    @MDCLog(description = "定时执行华为资源同步")
     public void jobHandler() throws Exception {
         List<MeetingResourcePO> hwResourceList = getHwResourceList();
         Map<String, MeetingResourcePO> hwResourceMap =

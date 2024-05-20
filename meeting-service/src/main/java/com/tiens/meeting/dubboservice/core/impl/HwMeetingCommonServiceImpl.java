@@ -1,6 +1,7 @@
 package com.tiens.meeting.dubboservice.core.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import com.huaweicloud.sdk.core.exception.ClientRequestException;
 import com.huaweicloud.sdk.core.exception.ConnectionException;
@@ -13,7 +14,10 @@ import com.tiens.api.vo.RecordVO;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
+import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
+import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
+import common.enums.MeetingRoomStateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +40,9 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
 
     @Autowired
     RedissonClient redissonClient;
+
+    @Autowired
+    MeetingRoomInfoDaoService meetingRoomInfoDaoService;
 
     public MeetingClient getMgrMeetingClient() {
         MeetingCredentials auth =
@@ -72,7 +79,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         MeetingClient meetingClient = getMgrMeetingClient();
         log.info("分配会议室入参：{}", JSON.toJSONString(request));
         AssociateVmrResponse response = meetingClient.associateVmr(request);
-        log.info("分配会议室结果：{}", response);
+        log.info("分配会议室结果：{}", JSON.toJSONString(response));
         for (String vmrId : vmrIds) {
             //设置当前使用者
             meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getVmrId, vmrId)
@@ -95,7 +102,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
             MeetingClient meetingClient = getMgrMeetingClient();
             log.info("回收云会议室入参：{}", JSON.toJSONString(request));
             DisassociateVmrResponse response = meetingClient.disassociateVmr(request);
-            log.info("回收云会议室结果：{}", response);
+            log.info("回收云会议室结果：{}", JSON.toJSONString(response));
             for (String vmrId : vmrIds) {
                 //取消当前使用者
                 meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getVmrId, vmrId)
@@ -164,5 +171,20 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
             log.error("会议结束异常 ，会议号：{},异常：{}", meetingCode, e);
             throw e;
         }
+    }
+
+    /**
+     * 查询资源是否有会议
+     *
+     * @param resourceId
+     * @return
+     */
+    @Override
+    public Boolean getResourceHavingMeet(Integer resourceId) {
+        List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
+            .eq(MeetingRoomInfoPO::getResourceId, resourceId)
+            .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState()).list();
+        log.info("资源id:{} 对应进行中的会议：{}", resourceId, JSON.toJSONString(list));
+        return CollectionUtil.isNotEmpty(list);
     }
 }

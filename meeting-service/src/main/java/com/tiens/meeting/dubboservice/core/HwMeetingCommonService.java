@@ -16,6 +16,7 @@ import java.util.List;
 public interface HwMeetingCommonService {
     /**
      * 获取管理员client
+     *
      * @return
      */
     public MeetingClient getMgrMeetingClient();
@@ -48,4 +49,12 @@ public interface HwMeetingCommonService {
     public CreateConfTokenResponse getCreateConfToken(String meetingCode, String hostPwd);
 
     public StopMeetingResponse stopMeeting(String meetingCode, String hostPwd);
+
+    /**
+     * 查询资源是否有会议
+     *
+     * @param resourceId
+     * @return
+     */
+    public Boolean getResourceHavingMeet(Integer resourceId);
 }
