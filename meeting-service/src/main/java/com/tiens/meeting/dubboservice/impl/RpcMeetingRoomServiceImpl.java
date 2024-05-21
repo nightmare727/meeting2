@@ -464,7 +464,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                             .cancelMeetingRoom(new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
                                 finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
                                 NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId
-                                ,resourceId));
+                                , resourceId));
                     } catch (Exception e1) {
                         log.error("【创建、预约会议】异常取消会议异常，异常信息：{}", e1);
                     }
@@ -1341,7 +1341,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             String meetingID = payload.getMeetingInfo().getMeetingID();
             Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional =
                 meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getConferenceId, meetingID)
-                    .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).oneOpt();
+//                    .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
+                    .orderByDesc(MeetingRoomInfoPO::getCreateTime)
+                    .last(" limit 1")
+                    .oneOpt();
             RLongAdder count = redissonClient.getLongAdder(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));
             int maxErrorCount = 3;
             if (!meetingRoomInfoPOOptional.isPresent()) {
