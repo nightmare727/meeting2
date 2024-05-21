@@ -100,6 +100,20 @@ public class MeetingConfig {
 
     private List<String> multiPersonsAwardWhiteList;
 
+    /**
+     * 最大华为用户数
+     */
+    private Integer maxHwUserCount;
+
+    /**
+     * 最大华为用户阈值百分比
+     */
+    private String  maxHwUserThresholdPe;
+    /**
+     * 最小华为用户阈值百分比
+     */
+    private String  minHwUserThresholdPe;
+
     @Data
     public static class MultiPersonsAwardInner {
 

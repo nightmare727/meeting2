@@ -51,6 +51,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         MeetingClient client =
             MeetingClient.newBuilder().withCredential(auth).withEndpoints(meetingConfig.getEndpoints()).build();
         return client;
+
     }
 
     @Autowired
