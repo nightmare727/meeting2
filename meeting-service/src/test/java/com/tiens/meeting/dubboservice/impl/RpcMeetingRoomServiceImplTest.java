@@ -17,6 +17,7 @@ import com.tiens.meeting.dubboservice.async.RoomAsyncTaskService;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.job.AppointMeetingTask;
 import com.tiens.meeting.dubboservice.job.HWResourceTask;
+import com.tiens.meeting.dubboservice.job.HWUserCleanTask;
 import com.tiens.meeting.dubboservice.job.MeetingStopTask;
 import com.tiens.meeting.repository.po.MeetingAttendeePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
@@ -70,6 +71,9 @@ class RpcMeetingRoomServiceImplTest {
 
     @Autowired
     MeetingConfig meetingConfig;
+
+    @Autowired
+    HWUserCleanTask hwUserCleanTask;
 
     @Test
     void getCredential() {
@@ -228,6 +232,13 @@ class RpcMeetingRoomServiceImplTest {
         appointMeetingTask.jobHandler();
     }
 
+
+    @Test
+    @SneakyThrows
+    void hwUserCleanTask() {
+        hwUserCleanTask.jobHandler();
+    }
+
     @Test
     @SneakyThrows
     void hwStopTask() {
@@ -238,7 +249,8 @@ class RpcMeetingRoomServiceImplTest {
     @SneakyThrows
     void getMeetingResourceTypeList() {
 
-        System.out.println(rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff", 2));
+        System.out.println(rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff", 2,
+            "CN"));
 
     }
 

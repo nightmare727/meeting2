@@ -342,9 +342,24 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      *
      * @param levelCode
      * @param imUserId
+     * @param nationId
      * @return
      */
-    public Integer getMaxLevel(Integer levelCode, String imUserId) {
+    public Integer getMaxLevel(Integer levelCode, String imUserId, String nationId) {
+        if ("CN".equals(nationId)) {
+            Optional<MeetingLevelResourceConfigPO> meetingLevelResourceConfigPO =
+                meetingLevelResourceConfigDaoService.lambdaQuery().select(MeetingLevelResourceConfigPO::getResourceType)
+                    .orderByDesc(MeetingLevelResourceConfigPO::getResourceNum).last(" limit 1").oneOpt();
+            if (meetingLevelResourceConfigPO.isPresent()) {
+                return meetingLevelResourceConfigPO.get().getResourceType();
+            } else {
+                //默认
+                int defaultMax = 9;
+                return defaultMax;
+            }
+
+        }
+
         // 根据等级查询资源
         MeetingLevelResourceConfigPO one =
             meetingLevelResourceConfigDaoService.lambdaQuery().select(MeetingLevelResourceConfigPO::getResourceType)
@@ -463,8 +478,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(finalVmrMode))
                             .cancelMeetingRoom(new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
                                 finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
-                                NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId
-                                ,resourceId));
+                                NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId,
+                                resourceId));
                     } catch (Exception e1) {
                         log.error("【创建、预约会议】异常取消会议异常，异常信息：{}", e1);
                     }
@@ -1444,12 +1459,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      *
      * @param imUserId
      * @param levelCode
+     * @param nationId
      * @return
      */
     @Override
-    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode) {
+    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode,
+        String nationId) {
         // 获取最大会议用户等级
-        Integer maxResourceType = getMaxLevel(levelCode, imUserId);
+        Integer maxResourceType = getMaxLevel(levelCode, imUserId, nationId);
         // 根据资源等级过滤资源类型
         List<ResourceTypeVO> levelResourceTypeVOList =
             Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)

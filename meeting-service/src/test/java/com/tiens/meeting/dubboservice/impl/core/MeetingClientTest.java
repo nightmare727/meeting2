@@ -99,6 +99,7 @@ public class MeetingClientTest {
         AddUserResponse response = managerClient.addUser(request);
         System.out.println(response.toString());
     }
+
     @Test
     @DisplayName("华为云SDK-研讨会详情接口")
     public void getWebinarDetail() {
@@ -211,6 +212,18 @@ public class MeetingClientTest {
         System.out.println("交集：" + CollectionUtil.intersection(integers1, integers2));
         System.out.println("差集1：" + CollectionUtil.subtractToList(integers1, integers2));
         System.out.println("差集2：" + CollectionUtil.subtractToList(integers2, integers1));
+
+    }
+
+    @Test
+    @DisplayName("查询用户列表")
+    public void searchUsers() {
+        SearchUsersRequest request = new SearchUsersRequest();
+        request.withAdminType(SearchUsersRequest.AdminTypeEnum.NUMBER_2);
+        request.withOffset(1);
+        request.setLimit(1);
+        SearchUsersResponse searchUsersResponse = managerClient.searchUsers(request);
+        System.out.println(searchUsersResponse);
 
     }
 
