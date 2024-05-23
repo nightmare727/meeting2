@@ -138,9 +138,9 @@ public class MeetingUserController {
     @GetMapping("/getCredential/{accid}")
     public CommonResult<VMMeetingCredentialVO> getCredential(@PathVariable("accid") String accid) throws Exception {
         //同步添加普通用户-必定成功
-        ThreadUtil.execute(() -> {
+       /* ThreadUtil.execute(() -> {
             rpcMeetingUserService.addMeetingCommonUser(accid);
-        });
+        });*/
         //查询登录认证
         return rpcMeetingRoomService.getCredential(accid);
     }

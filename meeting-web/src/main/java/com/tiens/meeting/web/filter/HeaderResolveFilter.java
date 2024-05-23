@@ -1,5 +1,6 @@
 package com.tiens.meeting.web.filter;
 
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.tiens.api.service.RpcMeetingUserService;
@@ -104,6 +105,15 @@ public class HeaderResolveFilter implements Filter {
         wrapperRequest.addHeader("levelCode", String.valueOf(levelCode));
         wrapperRequest.addHeader("joyoCode", joyoCode);
         wrapperRequest.addHeader("userName", nickName);
+
+        //异步同步华为用户-必定成功
+        ThreadUtil.execute(() -> {
+            try {
+                rpcMeetingUserService.addMeetingCommonUser(finalUserId);
+            } catch (Exception e) {
+                log.error("【过滤器流程】 增加会议用户 异常，accId：{}", finalUserId, e);
+            }
+        });
         chain.doFilter(wrapperRequest, response);
     }
 }

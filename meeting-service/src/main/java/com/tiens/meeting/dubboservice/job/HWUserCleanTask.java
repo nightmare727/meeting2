@@ -23,6 +23,7 @@ import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.redisson.api.RLock;
+import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,10 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -172,6 +170,14 @@ public class HWUserCleanTask {
 
         BatchDeleteUsersResponse response = mgrMeetingClient.batchDeleteUsers(batchDeleteUsersRequest);
         log.info("【定时删除华为用户】批次删除结果：{}", JSON.toJSONString(response));
+
+        //删除缓存
+        RMap<String, String> hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
+        String[] strings = accIds.stream().toArray(String[]::new);
+        long l = hwUserFlagMap.fastRemove(strings);
+
+        log.info("【定时删除华为用户】删除华为用户缓存结果数：{}", l);
+
         return accIds.size();
     }
 
@@ -198,8 +204,9 @@ public class HWUserCleanTask {
 
         HashSet<@Nullable String> result = Sets.newHashSet();
         //查询正在开的会议
-        List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
-            .eq(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Created.getState()).list();
+        List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery().in(MeetingRoomInfoPO::getState,
+                Lists.newArrayList(MeetingRoomStateEnum.Created.getState(), MeetingRoomStateEnum.Schedule.getState()))
+            .list();
         if (CollectionUtil.isEmpty(list)) {
             return result;
         }
@@ -230,5 +237,9 @@ public class HWUserCleanTask {
 
         System.out.println(multiply.divide(BigDecimal.valueOf(3), 0, RoundingMode.CEILING).toString());
 
+        HashSet<String> strings = Sets.newHashSet("1", "2", "3");
+        String[] arr = strings.stream().toArray(String[]::new);
+
+        Arrays.stream(arr).forEach(System.out::println);
     }
 }
