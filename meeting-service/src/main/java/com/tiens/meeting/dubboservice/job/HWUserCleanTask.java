@@ -75,7 +75,7 @@ public class HWUserCleanTask {
 
             boolean b = lock.tryLock(5, -1, TimeUnit.SECONDS);
             if (!b) {
-                log.info("【定时任务：会议开始前30分钟】未获取到锁");
+                log.info("【定时任务：清理华为用户】未获取到锁");
                 return;
             }
 
@@ -124,11 +124,21 @@ public class HWUserCleanTask {
                 //确认删除次数
                 int deleteTime = deleteCount.divide(BigDecimal.valueOf(100), 0, RoundingMode.CEILING).intValue();
 
+                int mo = deleteCount.intValue() % 100;
+
                 //再次查询华为用户列表
                 for (int i = 0; i < deleteTime; i++) {
                     // 最大100
                     request.withOffset(i);
-                    request.withLimit(100);
+
+                    if (deleteTime == 1) {
+                        request.withLimit(deleteCount.intValue());
+                    } else if (i == (deleteTime - 1)) {
+                        //最后一次
+                        request.withLimit(mo);
+                    } else {
+                        request.withLimit(100);
+                    }
                     SearchUsersResponse searchUsersResponse1 = mgrMeetingClient.searchUsers(request);
 
                     List<SearchUserResultDTO> data = searchUsersResponse1.getData();
@@ -192,6 +202,8 @@ public class HWUserCleanTask {
         List<MeetingResourcePO> list = meetingResourceDaoService.lambdaQuery()
             .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState()).list();
         Set<String> collect = list.stream().map(MeetingResourcePO::getOwnerImUserId).collect(Collectors.toSet());
+        log.info("【定时任务：清理华为用户】查询私有资源 是{}人 ", collect.size());
+
         return collect;
     }
 
@@ -225,21 +237,24 @@ public class HWUserCleanTask {
 
         result.addAll(AttendeeUserIds);
 
+        log.info("【定时任务：清理华为用户】查询当前开会的是{}人 ", result.size());
         return result;
     }
 
     public static void main(String[] args) {
-        BigDecimal bigDecimal1 = new BigDecimal(10000);
-        BigDecimal bigDecimal2 = new BigDecimal("0.85");
-        BigDecimal bigDecimal3 = new BigDecimal("0.65");
+//        BigDecimal bigDecimal1 = new BigDecimal(10000);
+//        BigDecimal bigDecimal2 = new BigDecimal("0.85");
+//        BigDecimal bigDecimal3 = new BigDecimal("0.65");
+//
+//        BigDecimal multiply = bigDecimal1.multiply(bigDecimal2.subtract(bigDecimal3));
+//
+//        System.out.println(multiply.divide(BigDecimal.valueOf(3), 0, RoundingMode.CEILING).toString());
+//
+//        HashSet<String> strings = Sets.newHashSet("1", "2", "3");
+//        String[] arr = strings.stream().toArray(String[]::new);
+//
+//        Arrays.stream(arr).forEach(System.out::println);
 
-        BigDecimal multiply = bigDecimal1.multiply(bigDecimal2.subtract(bigDecimal3));
 
-        System.out.println(multiply.divide(BigDecimal.valueOf(3), 0, RoundingMode.CEILING).toString());
-
-        HashSet<String> strings = Sets.newHashSet("1", "2", "3");
-        String[] arr = strings.stream().toArray(String[]::new);
-
-        Arrays.stream(arr).forEach(System.out::println);
     }
 }
