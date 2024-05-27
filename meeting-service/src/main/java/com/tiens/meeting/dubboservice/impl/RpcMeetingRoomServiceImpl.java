@@ -478,8 +478,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(finalVmrMode))
                             .cancelMeetingRoom(new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
                                 finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
-                                NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId,
-                                resourceId));
+                                NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId
+                                ,resourceId));
                     } catch (Exception e1) {
                         log.error("【创建、预约会议】异常取消会议异常，异常信息：{}", e1);
                     }
@@ -1356,7 +1356,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             String meetingID = payload.getMeetingInfo().getMeetingID();
             Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional =
                 meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getConferenceId, meetingID)
-                    .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).oneOpt();
+//                    .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
+                    .orderByDesc(MeetingRoomInfoPO::getCreateTime)
+                    .last(" limit 1")
+                    .oneOpt();
             RLongAdder count = redissonClient.getLongAdder(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));
             int maxErrorCount = 3;
             if (!meetingRoomInfoPOOptional.isPresent()) {
@@ -1459,14 +1462,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      *
      * @param imUserId
      * @param levelCode
-     * @param nationId
      * @return
      */
     @Override
-    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode,
-        String nationId) {
+    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode) {
         // 获取最大会议用户等级
-        Integer maxResourceType = getMaxLevel(levelCode, imUserId, nationId);
+        Integer maxResourceType = getMaxLevel(levelCode, imUserId);
         // 根据资源等级过滤资源类型
         List<ResourceTypeVO> levelResourceTypeVOList =
             Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
