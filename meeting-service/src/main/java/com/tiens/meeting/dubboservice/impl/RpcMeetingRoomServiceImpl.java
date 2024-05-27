@@ -479,7 +479,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                             .cancelMeetingRoom(new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
                                 finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
                                 NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId
-                                ,resourceId));
+                                , resourceId));
                     } catch (Exception e1) {
                         log.error("【创建、预约会议】异常取消会议异常，异常信息：{}", e1);
                     }
@@ -1465,9 +1465,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     @Override
-    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode) {
+    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode,
+        String nationId) {
         // 获取最大会议用户等级
-        Integer maxResourceType = getMaxLevel(levelCode, imUserId);
+        Integer maxResourceType = getMaxLevel(levelCode, imUserId, nationId);
         // 根据资源等级过滤资源类型
         List<ResourceTypeVO> levelResourceTypeVOList =
             Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
