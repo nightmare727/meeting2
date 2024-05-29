@@ -22,6 +22,7 @@ import common.enums.MeetingRoomStateEnum;
 import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.redisson.api.RKeys;
 import org.redisson.api.RLock;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
@@ -31,7 +32,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -110,11 +114,14 @@ public class HWUserCleanTask {
                 //查询私有资源的人
                 Set<String> privateResourceUsers = getPrivateResourceUsers();
 
+                Set<String> onlineUsers = getOnlineUser();
+
                 //1、不删除当前正在开会、已入会的人
                 //2、不删除分配专属会议资源的人
 
                 excludeAccidSet.addAll(meetingUserSet);
                 excludeAccidSet.addAll(privateResourceUsers);
+                excludeAccidSet.addAll(onlineUsers);
 
                 //删除华为用户直到最小华为用户阈值
 
@@ -161,6 +168,25 @@ public class HWUserCleanTask {
                 lock.unlock();
             }
         }
+    }
+
+    private Set<String> getOnlineUser() {
+        HashSet<String> result = Sets.newHashSet();
+
+        // 获取RKeys对象
+        RKeys keys = redissonClient.getKeys();
+
+        // 定义要查询的前缀
+        String prefix = CacheKeyUtil.getBaseLoginUserInfoKey();
+
+        // 使用getKeysByPattern方法查询具有固定前缀的缓存
+
+        Iterable<String> keysWithPrefix = keys.getKeysByPattern(prefix + "*");
+        for (String withPrefix : keysWithPrefix) {
+            result.add(withPrefix.replace(prefix, ""));
+        }
+        log.info("登录用户数量为：{}", result.size());
+        return result;
     }
 
     /**
@@ -254,7 +280,6 @@ public class HWUserCleanTask {
 //        String[] arr = strings.stream().toArray(String[]::new);
 //
 //        Arrays.stream(arr).forEach(System.out::println);
-
 
     }
 }

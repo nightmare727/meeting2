@@ -6,9 +6,11 @@ import com.alibaba.fastjson.JSON;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.VMUserVO;
 import common.pojo.CommonResult;
+import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
+import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -17,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static common.exception.enums.GlobalErrorCodeConstants.INVALID_ACC_ID;
 
@@ -109,6 +112,9 @@ public class HeaderResolveFilter implements Filter {
         //异步同步华为用户-必定成功
         ThreadUtil.execute(() -> {
             try {
+                //增加华为用户登录缓存
+                RBucket<Long> userLogin = redissonClient.getBucket(CacheKeyUtil.getLoginUserInfoKey(finalUserId));
+                userLogin.set(System.currentTimeMillis(), 3, TimeUnit.DAYS);
                 rpcMeetingUserService.addMeetingCommonUser(finalUserId);
             } catch (Exception e) {
                 log.error("【过滤器流程】 增加会议用户 异常，accId：{}", finalUserId, e);
