@@ -86,10 +86,15 @@ public class HWUserCleanTask {
             MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
             SearchUsersRequest request = new SearchUsersRequest();
             request.withAdminType(SearchUsersRequest.AdminTypeEnum.NUMBER_2);
-            request.withLimit(10);
+            request.withLimit(100);
             SearchUsersResponse searchUsersResponse = mgrMeetingClient.searchUsers(request);
 
             Integer count = searchUsersResponse.getCount();
+            int totalPage =
+                BigDecimal.valueOf(count).divide(BigDecimal.valueOf(100), 0, RoundingMode.CEILING).intValue();
+
+            int startPage = totalPage / 2;
+
             Integer maxHwUserCount = meetingConfig.getMaxHwUserCount();
 
             String maxHwUserThresholdPe = meetingConfig.getMaxHwUserThresholdPe();
@@ -134,18 +139,11 @@ public class HWUserCleanTask {
                 int mo = deleteCount.intValue() % 100;
 
                 //再次查询华为用户列表
-                for (int i = 0; i < deleteTime; i++) {
+                log.info("删除页码起始位置：{}，结束位置：{}", startPage, startPage + deleteTime - 1);
+                for (int i = startPage; i < startPage + deleteTime; i++) {
                     // 最大100
                     request.withOffset(i);
-
-                    if (deleteTime == 1) {
-                        request.withLimit(deleteCount.intValue());
-                    } else if (i == (deleteTime - 1)) {
-                        //最后一次
-                        request.withLimit(mo);
-                    } else {
-                        request.withLimit(100);
-                    }
+                    request.withLimit(100);
                     SearchUsersResponse searchUsersResponse1 = mgrMeetingClient.searchUsers(request);
 
                     List<SearchUserResultDTO> data = searchUsersResponse1.getData();
