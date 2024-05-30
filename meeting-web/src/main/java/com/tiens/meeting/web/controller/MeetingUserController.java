@@ -1,6 +1,5 @@
 package com.tiens.meeting.web.controller;
 
-import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.tiens.api.dto.MeetingResourceAwardDTO;
 import com.tiens.api.service.RpcMeetingRoomService;
@@ -107,9 +106,11 @@ public class MeetingUserController {
         List<BatchQueryUserResponse> collect = queryUserRequestList.stream().map(t -> {
             VMUserVO data = rpcMeetingUserService.queryVMUser(t.getUniqueSign(), t.getAccid()).getData();
             BatchQueryUserResponse batchQueryUserResponse = new BatchQueryUserResponse();
-            batchQueryUserResponse.setUniqueSign(t.getUniqueSign());
-            batchQueryUserResponse.setAccid(t.getAccid());
             if (ObjectUtil.isNotNull(data)) {
+
+                batchQueryUserResponse.setUniqueSign(data.getJoyoCode());
+                batchQueryUserResponse.setAccid(data.getAccid());
+
                 QueryUserResponse queryUserResponse = new QueryUserResponse();
                 queryUserResponse.setUserId(data.getAccid());
                 queryUserResponse.setNickName(data.getNickName());
@@ -120,6 +121,9 @@ public class MeetingUserController {
                 queryUserResponse.setFansNum(data.getFansNum());
                 queryUserResponse.setLevelCode(data.getLevelCode());
                 batchQueryUserResponse.setData(queryUserResponse);
+            } else {
+                batchQueryUserResponse.setAccid(t.getAccid());
+                batchQueryUserResponse.setUniqueSign(t.getUniqueSign());
             }
             return batchQueryUserResponse;
         }).collect(Collectors.toList());
@@ -138,9 +142,9 @@ public class MeetingUserController {
     @GetMapping("/getCredential/{accid}")
     public CommonResult<VMMeetingCredentialVO> getCredential(@PathVariable("accid") String accid) throws Exception {
         //同步添加普通用户-必定成功
-        ThreadUtil.execute(() -> {
+       /* ThreadUtil.execute(() -> {
             rpcMeetingUserService.addMeetingCommonUser(accid);
-        });
+        });*/
         //查询登录认证
         return rpcMeetingRoomService.getCredential(accid);
     }

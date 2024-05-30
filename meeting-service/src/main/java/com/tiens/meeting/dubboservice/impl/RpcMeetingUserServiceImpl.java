@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author: 蔚文杰
@@ -123,10 +124,10 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         vmUserVO.setJoyoCode(data.getJoyo_code());
         // 设置缓存
         if (StringUtils.isNotBlank(accid)) {
-            bucket.set(vmUserVO);
+            bucket.set(vmUserVO, 7, TimeUnit.DAYS);
         }
         if (StringUtils.isNotBlank(joyoCode)) {
-            bucket.set(vmUserVO);
+            bucket.set(vmUserVO, 7, TimeUnit.DAYS);
         }
         return CommonResult.success(vmUserVO);
     }
@@ -153,7 +154,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             return CommonResult.error(GlobalErrorCodeConstants.EXIST_HOST_RESOURCE_CONFIGURATION);
         }
         // 2、添加到主持人表
-
         MeetingHostUserPO meetingHostUserPO = wrapperMeetingHostUserPO(vmUserVO, resourceType);
         try {
             meetingHostUserDaoService.save(meetingHostUserPO);
