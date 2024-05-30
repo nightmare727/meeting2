@@ -1,8 +1,11 @@
 package com.tiens.meeting.dubboservice.impl.core;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.huaweicloud.sdk.core.auth.ICredential;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.MeetingCredentials;
@@ -19,6 +22,12 @@ import org.junit.jupiter.api.TestInstance;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
+import java.util.stream.Collectors;
 
 /**
  * @Author: 蔚文杰
@@ -35,6 +44,10 @@ public class MeetingClientTest {
     public String appKey = "502367f7fec27f77ddef76cd3b3129c71153431a9b45a5d4825e4f14e999d4dd";
     //    public String appKey = "3b6419481b81e65aee20946d84f1837924fe1b7c9d476fe781428e841217c72e";
     public String userId = "115e039f98e1441ba24e5e3584cef950";
+
+    ThreadPoolExecutor executorService =
+        new ThreadPoolExecutor(16, 32, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(10000),
+            new ThreadFactoryBuilder().setNameFormat("hw-user-clean-%d").build());
 
     MeetingClient managerClient = null;
     MeetingClient userClient = null;
@@ -91,13 +104,23 @@ public class MeetingClientTest {
 
     @Test
     public void addUser() {
-        AddUserRequest request = new AddUserRequest();
-        AddUserDTO body = new AddUserDTO();
-        body.withThirdAccount("yuwenjie111222");
-        body.withName("胡教粉");
-        request.withBody(body);
-        AddUserResponse response = managerClient.addUser(request);
-        System.out.println(response.toString());
+        for (int i = 0; i < 2000; i++) {
+            executorService.execute(() -> {
+                AddUserRequest request = new AddUserRequest();
+                AddUserDTO body = new AddUserDTO();
+                body.withThirdAccount("yuwenjie-" + UUID.fastUUID().toString());
+                body.withName("胡教粉-" + UUID.fastUUID().toString());
+                request.withBody(body);
+                AddUserResponse response = managerClient.addUser(request);
+                System.out.println(response.toString());
+
+            });
+
+        }
+
+        LockSupport.park();
+        ;
+
     }
 
     @Test
@@ -218,12 +241,20 @@ public class MeetingClientTest {
     @Test
     @DisplayName("查询用户列表")
     public void searchUsers() {
-        SearchUsersRequest request = new SearchUsersRequest();
-        request.withAdminType(SearchUsersRequest.AdminTypeEnum.NUMBER_2);
-        request.withOffset(1);
-        request.setLimit(1);
-        SearchUsersResponse searchUsersResponse = managerClient.searchUsers(request);
-        System.out.println(searchUsersResponse);
+        SearchUsersRequest request1 = new SearchUsersRequest();
+//        request1.withAdminType(SearchUsersRequest.AdminTypeEnum.NUMBER_2);
+        request1.withOffset(38);
+        request1.withLimit(100);
+        SearchUsersResponse searchUsersResponse1 = managerClient.searchUsers(request1);
+
+        List<SearchUserResultDTO> data = searchUsersResponse1.getData();
+
+        System.out.println(JSON.toJSONString(data));
+        Set<String> collect =
+            data.stream().map(SearchUserResultDTO::getThirdAccount).filter(ObjectUtil::isNotEmpty)
+                .collect(Collectors.toSet());
+
+        System.out.println(searchUsersResponse1);
 
     }
 

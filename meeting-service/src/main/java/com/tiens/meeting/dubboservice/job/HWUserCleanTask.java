@@ -2,9 +2,11 @@ package com.tiens.meeting.dubboservice.job;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.*;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
@@ -31,11 +33,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -48,6 +51,8 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class HWUserCleanTask {
+
+    public static final Integer maxDeleteNum = 50;
 
     @Autowired
     HwMeetingCommonService hwMeetingCommonService;
@@ -66,6 +71,10 @@ public class HWUserCleanTask {
 
     @Autowired
     RedissonClient redissonClient;
+
+    ThreadPoolExecutor executorService =
+        new ThreadPoolExecutor(16, 32, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(10000),
+            new ThreadFactoryBuilder().setNameFormat("hw-user-clean-%d").build());
 
     @XxlJob("HWUserCleanTaskJobHandler")
     @Transactional(rollbackFor = Exception.class)
@@ -86,14 +95,15 @@ public class HWUserCleanTask {
             MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
             SearchUsersRequest request = new SearchUsersRequest();
             request.withAdminType(SearchUsersRequest.AdminTypeEnum.NUMBER_2);
-            request.withLimit(100);
+            request.withOffset(0);
+            request.withLimit(maxDeleteNum);
             SearchUsersResponse searchUsersResponse = mgrMeetingClient.searchUsers(request);
 
             Integer count = searchUsersResponse.getCount();
-            int totalPage =
-                BigDecimal.valueOf(count).divide(BigDecimal.valueOf(100), 0, RoundingMode.CEILING).intValue();
+//            int totalPage =
+//                BigDecimal.valueOf(count).divide(BigDecimal.valueOf(100), 0, RoundingMode.CEILING).intValue();
 
-            int startPage = totalPage / 2;
+//            int startPage = totalPage / 2;
 
             Integer maxHwUserCount = meetingConfig.getMaxHwUserCount();
 
@@ -133,31 +143,47 @@ public class HWUserCleanTask {
                 //确定需要删除的用户总数
                 BigDecimal deleteCount = bigDecimal2.multiply(bigDecimal3.subtract(bigDecimal4));
 
-                //确认删除次数
-                int deleteTime = deleteCount.divide(BigDecimal.valueOf(100), 0, RoundingMode.CEILING).intValue();
+                //3分之一开始删除
+                int startOffset = count / 3 <= 0 ? 0 : count / 3 - 1;
 
-                int mo = deleteCount.intValue() % 100;
+                int endOffSet = startOffset + deleteCount.intValue();
+
+                //确认删除次数
+//                int deleteTime =
+//                    deleteCount.divide(BigDecimal.valueOf(maxDeleteNum), 0, RoundingMode.CEILING).intValue();
 
                 //再次查询华为用户列表
-                log.info("删除页码起始位置：{}，结束位置：{}", startPage, startPage + deleteTime - 1);
-                for (int i = startPage; i < startPage + deleteTime; i++) {
+                log.info("删除offset起始位置：{}，结束位置：{}", startOffset, endOffSet);
+
+                Set<@Nullable String> finalDeleteUsers = Sets.newHashSet();
+
+                for (int i = startOffset; i < endOffSet; i += 100) {
                     // 最大100
-                    request.withOffset(i);
-                    request.withLimit(100);
-                    SearchUsersResponse searchUsersResponse1 = mgrMeetingClient.searchUsers(request);
+                    SearchUsersRequest request1 = new SearchUsersRequest();
+                    request1.withAdminType(SearchUsersRequest.AdminTypeEnum.NUMBER_2);
+                    request1.withOffset(i);
+                    request1.withLimit(100);
+                    SearchUsersResponse searchUsersResponse1 = mgrMeetingClient.searchUsers(request1);
 
                     List<SearchUserResultDTO> data = searchUsersResponse1.getData();
                     Set<String> collect =
-                        data.stream().map(SearchUserResultDTO::getThirdAccount).collect(Collectors.toSet());
+                        data.stream().map(SearchUserResultDTO::getThirdAccount).filter(ObjectUtil::isNotEmpty)
+                            .collect(Collectors.toSet());
 
                     //移除不需要删除的用户
                     collect.removeAll(excludeAccidSet);
-                    //删除华为用户
-                    doDeleteHwUser(collect);
 
+                    finalDeleteUsers.addAll(collect);
                 }
+                //删除华为用户
+                ArrayList<@Nullable String> objects = Lists.newArrayList();
+                objects.addAll(finalDeleteUsers);
+                List<List<@Nullable String>> partition = Lists.partition(objects, maxDeleteNum);
 
-                log.info("【定时删除华为用户】共删除用户数：{}", deleteCount);
+                for (List<String> stringList : partition) {
+                    doDeleteHwUser(stringList, mgrMeetingClient);
+                }
+                log.info("【定时删除华为用户】删除完成，共删除用户数：{}", finalDeleteUsers.size());
             }
         } catch (Exception e) {
             log.error("【定时删除华为用户】 执行异常", e);
@@ -193,17 +219,22 @@ public class HWUserCleanTask {
      * @param accIds
      * @return
      */
-    Integer doDeleteHwUser(Set<String> accIds) {
-        BatchDeleteUsersRequest batchDeleteUsersRequest = new BatchDeleteUsersRequest();
-        batchDeleteUsersRequest.withAccountType(1);
+    Integer doDeleteHwUser(List<String> accIds, MeetingClient mgrMeetingClient) {
+
+        BatchDeleteUsersRequest request = new BatchDeleteUsersRequest();
+        request.withAccountType(1);
         List<String> listbodyBody = new ArrayList<>();
         listbodyBody.addAll(accIds);
-        batchDeleteUsersRequest.withBody(listbodyBody);
-        //删除用户
-        MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
+        request.withBody(listbodyBody);
 
-        BatchDeleteUsersResponse response = mgrMeetingClient.batchDeleteUsers(batchDeleteUsersRequest);
-        log.info("【定时删除华为用户】批次删除结果：{}", JSON.toJSONString(response));
+        try {
+            MeetingClient mgrMeetingClient1 = hwMeetingCommonService.getMgrMeetingClient();
+            BatchDeleteUsersResponse response = mgrMeetingClient1.batchDeleteUsers(request);
+            log.info("【定时删除华为用户】批次删除结果：{}", JSON.toJSONString(response));
+
+        } catch (Exception e) {
+            log.info("【定时删除华为用户】异常,异常数据：{}", accIds, e);
+        }
 
         //删除缓存
         RMap<String, String> hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
