@@ -38,7 +38,7 @@ public class FreeTimeCalculatorUtil {
         // 计算空闲时间段
         List<TimeRange> freeTimeRanges =
             calculateFreeTimeRanges(knownTimeRanges, 1, 6, DateUtil.parse("2024-03-29 00:00:00"),
-                DateUtil.parse("2024-07-04 23:59:59"), userZoneId);
+                DateUtil.parse("2024-07-04 23:59:59"), userZoneId, 30);
 
         // 输出空闲时间段
         for (TimeRange range : freeTimeRanges) {
@@ -48,7 +48,7 @@ public class FreeTimeCalculatorUtil {
     }
 
     public static List<TimeRange> calculateFreeTimeRanges(List<TimeRange> knownTimeRanges, int minIntervalInHours,
-        int maxIntervalInHours, Date targetDate, Date expireDate, ZoneId userZoneId) {
+        int maxIntervalInHours, Date targetDate, Date expireDate, ZoneId userZoneId, Integer leadTime) {
 
         expireDate = DateUtil.convertTimeZone(expireDate, userZoneId);
         //        1、列出所有已知的占用时间段：首先，我们需要知道哪些时间段是忙碌的。这可以通过查看时间表或数据库中的记录来完成。
@@ -64,7 +64,7 @@ public class FreeTimeCalculatorUtil {
         List<TimeRange> rangeList = calculateFreeTimeRange(knownTimeRanges, targetDate, expireDate, userZoneId);
         //
         return rangeList.stream()
-            .map(s -> splitTimeInterval(s, targetDate, minIntervalInHours, maxIntervalInHours, userZoneId))
+            .map(s -> splitTimeInterval(s, targetDate, minIntervalInHours, maxIntervalInHours, userZoneId,leadTime))
             .flatMap(Collection::stream).collect(Collectors.toList());
     }
 
@@ -125,7 +125,7 @@ public class FreeTimeCalculatorUtil {
     }
 
     public static List<TimeRange> splitTimeInterval(TimeRange timeRange, Date targetDate, int minIntervalInHours,
-        int maxIntervalInHours, ZoneId userZoneId) {
+        int maxIntervalInHours, ZoneId userZoneId, Integer leadTime) {
         //计算开始时间和结束时间之间的小时数差。
         //将小时数差除以6，得到需要切割的时间段数量。
         //使用循环遍历每个时间段，计算每个时间段的开始和结束时间。
@@ -151,7 +151,7 @@ public class FreeTimeCalculatorUtil {
             if (now.compareTo(start) >= 0) {
                 start = now;
             } else {
-                LocalTime localTime = start.plusMinutes(30);
+                LocalTime localTime = start.plusMinutes(leadTime);
                 if (localTime.getHour() != 0) {
                     start = localTime;
                 }
@@ -161,7 +161,7 @@ public class FreeTimeCalculatorUtil {
             if (timeRange.getStart().equals(beginDay)) {
                 start = beginDay;
             } else {
-                LocalTime localTime = start.plusMinutes(30);
+                LocalTime localTime = start.plusMinutes(leadTime);
                 if (!LocalTime.MIN.equals(localTime)) {
                     start = localTime;
                 }
