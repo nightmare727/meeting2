@@ -92,12 +92,12 @@ public class HWUserCleanTask {
                 return;
             }
 
-            MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
+            MeetingClient initMgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
             SearchUsersRequest request = new SearchUsersRequest();
             request.withAdminType(SearchUsersRequest.AdminTypeEnum.NUMBER_2);
             request.withOffset(0);
             request.withLimit(maxDeleteNum);
-            SearchUsersResponse searchUsersResponse = mgrMeetingClient.searchUsers(request);
+            SearchUsersResponse searchUsersResponse = initMgrMeetingClient.searchUsers(request);
 
             Integer count = searchUsersResponse.getCount();
 //            int totalPage =
@@ -163,7 +163,8 @@ public class HWUserCleanTask {
                     request1.withAdminType(SearchUsersRequest.AdminTypeEnum.NUMBER_2);
                     request1.withOffset(i);
                     request1.withLimit(100);
-                    SearchUsersResponse searchUsersResponse1 = mgrMeetingClient.searchUsers(request1);
+                    MeetingClient queryUserClient = hwMeetingCommonService.getMgrMeetingClient();
+                    SearchUsersResponse searchUsersResponse1 = queryUserClient.searchUsers(request1);
 
                     List<SearchUserResultDTO> data = searchUsersResponse1.getData();
                     Set<String> collect =
@@ -181,7 +182,7 @@ public class HWUserCleanTask {
                 List<List<@Nullable String>> partition = Lists.partition(objects, maxDeleteNum);
 
                 for (List<String> stringList : partition) {
-                    doDeleteHwUser(stringList, mgrMeetingClient);
+                    doDeleteHwUser(stringList);
                 }
                 log.info("【定时删除华为用户】删除完成，共删除用户数：{}", finalDeleteUsers.size());
             }
@@ -219,7 +220,7 @@ public class HWUserCleanTask {
      * @param accIds
      * @return
      */
-    Integer doDeleteHwUser(List<String> accIds, MeetingClient mgrMeetingClient) {
+    Integer doDeleteHwUser(List<String> accIds) {
 
         BatchDeleteUsersRequest request = new BatchDeleteUsersRequest();
         request.withAccountType(1);
