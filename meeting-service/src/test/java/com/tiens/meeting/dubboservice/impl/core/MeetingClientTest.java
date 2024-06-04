@@ -104,7 +104,7 @@ public class MeetingClientTest {
 
     @Test
     public void addUser() {
-        for (int i = 0; i < 2000; i++) {
+        for (int i = 0; i < 1800; i++) {
             executorService.execute(() -> {
                 AddUserRequest request = new AddUserRequest();
                 AddUserDTO body = new AddUserDTO();

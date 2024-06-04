@@ -251,7 +251,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             // 1、查询用户私池资源
             result = getPrivateResourceList(freeResourceListDTO);
         }
-        log.info("空闲资源列表【1】初始过滤资源池结果：{}", result);
+//        log.info("空闲资源列表【1】初始过滤资源池结果：{}", result);
 
         List<Integer> originResourceIds =
             result.stream().filter(t -> t.getExpireDate().after(lockEndTime)).map(MeetingResourceVO::getId)
@@ -263,8 +263,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         List<MeetingRoomInfoPO> lockedMeetingRoomList =
             getOccupiedMeetingRoom(originResourceIds, lockStartTime, lockEndTime);
-        log.info("空闲资源列表【2】，锁定开始时间：{}，锁定结束时间：{}，查询锁定会议结果：{}", lockStartTime, lockEndTime,
-            lockedMeetingRoomList);
+//        log.info("空闲资源列表【2】，锁定开始时间：{}，锁定结束时间：{}，查询锁定会议结果：{}", lockStartTime, lockEndTime,
+//            lockedMeetingRoomList);
 
         // 该段时间正在锁定的资源
         List<Integer> lockedResourceIdList =
@@ -273,7 +273,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         result = result.stream()
             .filter(t -> originResourceIds.contains(t.getId()) && !lockedResourceIdList.contains(t.getId()))
             .peek(t -> t.setResourceType(freeResourceListDTO.getResourceType())).collect(Collectors.toList());
-        log.info("空闲资源列表结果：{}", result);
+//        log.info("空闲资源列表结果：{}", result);
         return CommonResult.success(result);
     }
 
