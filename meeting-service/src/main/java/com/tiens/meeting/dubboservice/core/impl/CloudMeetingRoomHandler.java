@@ -55,6 +55,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         // 是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
 
+        Integer leadTime = meetingRoomContextDTO.getLeadTime();
+
         // 当前UTC时间
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
 
@@ -62,7 +64,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now), DateUtils.TIME_ZONE_GMT);
 
         // 锁定开始时间
-        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
+        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -leadTime);
         subsCribeFlag = subsCribeFlag && now.isBefore(lockStartTime);
 
         String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
@@ -198,6 +200,9 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         boolean publicFlag = NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
 
         Date startTime = meetingRoomContextDTO.getStartTime();
+
+        Integer leadTime = meetingRoomContextDTO.getLeadTime();
+
         // 是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
         // 当前UTC时间
@@ -207,7 +212,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
         startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now), DateUtils.TIME_ZONE_GMT);
 
         // 锁定开始时间
-        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
+        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -leadTime);
         subsCribeFlag = subsCribeFlag && now.isBefore(lockStartTime);
 
         String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
@@ -277,8 +282,7 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
                     if (resourceHavingMeet) {
                         log.info("资源：{} 存在进行中的会议，无需回收", meetingRoomContextDTO.getResourceId());
                     } else {
-                        log.info("经查询，资源：{} 不存在存在进行中的会议，需回收",
-                            meetingRoomContextDTO.getResourceId());
+                        log.info("经查询，资源：{} 不存在存在进行中的会议，需回收", meetingRoomContextDTO.getResourceId());
 
                         // 如果已分配，则执行 回收-分配-再回收
                         hwMeetingCommonService.disassociateVmr(meetingRoomContextDTO.getImUserId(),

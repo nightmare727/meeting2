@@ -35,4 +35,9 @@ public class AvailableResourcePeriodGetDTO implements Serializable {
      */
     private String timeZoneOffset;
 
+    /**
+     * 前置开始时间
+     */
+    private Integer leadTime = 30;
+
 }

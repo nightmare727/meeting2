@@ -1,7 +1,5 @@
 package com.tiens.api.vo;
 
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
-import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -61,6 +59,11 @@ public class MeetingRoomDetailDTO implements Serializable {
      * 锁定结束时间
      */
     private Date lockEndTime;
+
+    /**
+     * 前置时间
+     */
+    private Integer leadTime;
 
     /**
      * 会议通知中会议时间的时区信息

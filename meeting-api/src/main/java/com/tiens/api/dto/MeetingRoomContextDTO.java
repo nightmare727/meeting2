@@ -1,8 +1,5 @@
 package com.tiens.api.dto;
 
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
-import com.baomidou.mybatisplus.annotation.TableField;
-import common.util.date.DateUtils;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -35,6 +32,10 @@ public class MeetingRoomContextDTO implements Serializable {
      * （需要传）会议开始时间。格 式：yyyy-MM-dd HH:mm。 说明 ● 创建预约会议时，如果没有指定 开始时间或填空串，则表示会议 马上开始
      */
     private Date startTime;
+    /**
+     * 前置开始时间
+     */
+    private Integer leadTime = 30;
     /**
      * （需要传）会议持续时长，单位分钟。默认 30分钟。 最大1440分钟（24小时），最 小15分钟。
      */

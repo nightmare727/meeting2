@@ -78,6 +78,12 @@ public class MeetingRoomInfoPO implements Serializable {
     private Date relEndTime;
 
     /**
+     * 前置时间
+     */
+    @TableField(value = "lead_time")
+    private Integer leadTime;
+
+    /**
      * 会议通知中会议时间的时区信息
      */
     @TableField(value = "time_zone_id")

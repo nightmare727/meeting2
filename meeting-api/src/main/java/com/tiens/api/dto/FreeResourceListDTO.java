@@ -1,6 +1,5 @@
 package com.tiens.api.dto;
 
-import common.util.date.DateUtils;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -39,4 +38,8 @@ public class FreeResourceListDTO implements Serializable {
      * (需要)资源类型
      */
     private String resourceType;
+    /**
+     * 前置时间
+     */
+    private Integer leadTime = 30;
 }

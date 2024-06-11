@@ -3,7 +3,6 @@ package com.tiens.meeting.dubboservice.core.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.huaweicloud.sdk.core.exception.ServiceResponseException;
@@ -21,8 +20,6 @@ import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Date;
@@ -53,6 +50,8 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
 
         Date startTime = meetingRoomContextDTO.getStartTime();
 
+        Integer leadTime = meetingRoomContextDTO.getLeadTime();
+
         // 是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
 
@@ -62,7 +61,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now), DateUtils.TIME_ZONE_GMT);
 
         // 锁定开始时间
-        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
+        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -leadTime);
         subsCribeFlag = subsCribeFlag && now.isBefore(lockStartTime);
         String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
         Boolean exceptionHappenFlag = false;
@@ -149,6 +148,9 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         boolean publicFlag = NumberUtil.isNumber(meetingRoomContextDTO.getResourceType());
 
         Date startTime = meetingRoomContextDTO.getStartTime();
+
+        Integer leadTime = meetingRoomContextDTO.getLeadTime();
+
         // 是否预约会议
         Boolean subsCribeFlag = ObjectUtil.isNotNull(startTime);
         // 当前UTC时间
@@ -157,7 +159,7 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
         startTime = DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(startTime, now), DateUtils.TIME_ZONE_GMT);
 
         // 锁定开始时间
-        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -30);
+        DateTime lockStartTime = DateUtil.offsetMinute(startTime, -leadTime);
         subsCribeFlag = subsCribeFlag && now.isBefore(lockStartTime);
         String startTimeStr = DateUtil.format(startTime, dateTimeFormatter);
         try {
@@ -237,10 +239,12 @@ public class SeminarMeetingHandler extends HwMeetingRoomHandler {
             if (e.getErrorCode().equals("MMC.111070005")) {
                 log.info("取消华为云--网络研讨会信息不存在，当前会议号:{}", cancelMeetingRoomModel.getConferenceID());
             } else {
-                log.error("取消华为云--网络研讨会信息发生其他异常，当前会议号:{}，异常信息：{}", cancelMeetingRoomModel.getConferenceID(), e);
+                log.error("取消华为云--网络研讨会信息发生其他异常，当前会议号:{}，异常信息：{}",
+                    cancelMeetingRoomModel.getConferenceID(), e);
             }
         } catch (Exception e) {
-            log.error("取消华为云--网络研讨会发生系统异常，当前会议号:{}，异常信息：{}", cancelMeetingRoomModel.getConferenceID(), e);
+            log.error("取消华为云--网络研讨会发生系统异常，当前会议号:{}，异常信息：{}",
+                cancelMeetingRoomModel.getConferenceID(), e);
             throw new ServiceException(GlobalErrorCodeConstants.HW_CANCEL_MEETING_ERROR);
         } finally {
             // 回收资源
