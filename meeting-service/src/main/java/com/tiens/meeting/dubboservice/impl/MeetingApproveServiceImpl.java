@@ -80,6 +80,7 @@ public class MeetingApproveServiceImpl implements MeetingApproveService {
             .eq(StrUtil.isNotBlank(condition.getJoyoCode()), MeetingApprovePO::getJoyoCode, condition.getJoyoCode())
             .like(StrUtil.isNotBlank(condition.getPhoneNum()), MeetingApprovePO::getPhoneNum, condition.getPhoneNum())
             .like(StrUtil.isNotBlank(condition.getEmail()), MeetingApprovePO::getEmail, condition.getEmail())
+            .like(StrUtil.isNotBlank(condition.getName()), MeetingApprovePO::getName, condition.getName())
             .eq(ObjectUtil.isNotNull(condition.getApproveStatus()), MeetingApprovePO::getApproveStatus,
                 condition.getApproveStatus())
             .eq(ObjectUtil.isNotNull(condition.getResourceArea()), MeetingApprovePO::getResourceArea,
