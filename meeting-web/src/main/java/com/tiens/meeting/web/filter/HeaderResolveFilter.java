@@ -105,9 +105,13 @@ public class HeaderResolveFilter implements Filter {
         Integer levelCode = vmUserVO.getLevelCode();
         String joyoCode = vmUserVO.getJoyoCode();
         String nickName = vmUserVO.getNickName();
+        String mobile = vmUserVO.getMobile();
+        String email = vmUserVO.getEmail();
         wrapperRequest.addHeader("levelCode", String.valueOf(levelCode));
         wrapperRequest.addHeader("joyoCode", joyoCode);
         wrapperRequest.addHeader("userName", nickName);
+        wrapperRequest.addHeader("phone", mobile);
+        wrapperRequest.addHeader("email", email);
 
         //异步同步华为用户-必定成功
         ThreadUtil.execute(() -> {
