@@ -65,8 +65,8 @@ public class MeetingApproveController {
     public CommonResult<List<MeetingApproveVO>> getApproveList(@RequestHeader("joyoCode") String joyoCode) {
 
         PageParam<MeetingApprovePageDTO> meetingApprovePageDTOPageParam = new PageParam<>();
-        meetingApprovePageDTOPageParam.setPageSize(1);
-        meetingApprovePageDTOPageParam.setPageNum(Integer.MAX_VALUE);
+        meetingApprovePageDTOPageParam.setPageSize(Integer.MAX_VALUE);
+        meetingApprovePageDTOPageParam.setPageNum(1);
 
         MeetingApprovePageDTO condition = new MeetingApprovePageDTO();
         condition.setJoyoCode(joyoCode);
