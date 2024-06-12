@@ -34,7 +34,7 @@ public class MeetingApproveController {
      */
     @ResponseBody
     @PostMapping("/approveOperate")
-    public CommonResult approveOperate(MeetingApproveOperateDTO meetingApproveOperateDTO) {
+    public CommonResult approveOperate(@RequestBody MeetingApproveOperateDTO meetingApproveOperateDTO) {
         return meetingApproveService.approveOperate(meetingApproveOperateDTO);
     }
 
