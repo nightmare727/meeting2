@@ -20,8 +20,8 @@ import com.tiens.api.vo.MeetingResourceTypeVO;
 import com.tiens.api.vo.VMUserVO;
 import com.tiens.china.circle.api.bo.HomepageBo;
 import com.tiens.china.circle.api.common.result.Result;
-import com.tiens.china.circle.api.dto.HomepageUserDTO;
-import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
+import com.tiens.china.circle.api.dto.DubboUserInfoDTO;
+import com.tiens.china.circle.api.dubbo.DubboUserAccountService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.core.HwMeetingUserService;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
@@ -65,7 +65,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
     // @Reference(version = "1.0", mock = "com.tiens.meeting.dubboservice.mock.DubboCommonUserServiceMock")
     @Reference(version = "1.0")
-    DubboCommonUserService dubboCommonUserService;
+    DubboUserAccountService dubboUserAccountService;
 
     private final MeetingHostUserDaoService meetingHostUserDaoService;
 
@@ -109,9 +109,10 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         HomepageBo homepageBo = new HomepageBo();
         homepageBo.setJoyoCode(joyoCode);
         homepageBo.setAccId(accid);
-        Result<HomepageUserDTO> dtoResult = null;
+        Result<DubboUserInfoDTO> dtoResult = null;
         try {
-            dtoResult = dubboCommonUserService.queryUserInfoAccId(null, homepageBo);
+            dtoResult = dubboUserAccountService.dubboGetUserInfo(accid, joyoCode);
+
             if (ObjectUtils.isEmpty(dtoResult.getData())) {
                 return CommonResult.success(null);
             }
@@ -119,9 +120,19 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             log.error("调用VM 查询用户异常，异常：{}", e);
             return CommonResult.success(null);
         }
-        HomepageUserDTO data = dtoResult.getData();
-        VMUserVO vmUserVO = BeanUtil.copyProperties(data, VMUserVO.class);
-        vmUserVO.setJoyoCode(data.getJoyo_code());
+        DubboUserInfoDTO data = dtoResult.getData();
+
+        VMUserVO vmUserVO = new VMUserVO();
+        vmUserVO.setAccid(data.getAccId());
+        vmUserVO.setMobile(data.getMobile());
+        vmUserVO.setEmail(data.getEmail());
+        vmUserVO.setNickName(data.getNickName());
+        vmUserVO.setHeadImg(data.getHeadImg());
+        vmUserVO.setFansNum(String.valueOf(data.getFansNum()));
+        vmUserVO.setLevelCode(data.getLevelCode());
+        vmUserVO.setCountry(data.getCountry());
+        vmUserVO.setJoyoCode(data.getJoyoCode());
+
         // 设置缓存
         if (StringUtils.isNotBlank(accid)) {
             bucket.set(vmUserVO, 7, TimeUnit.DAYS);

@@ -13,7 +13,6 @@ import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingRoomDetailDTO;
 import com.tiens.api.vo.VMUserVO;
-import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
@@ -28,7 +27,6 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -51,8 +49,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService {
 
-    @Reference(version = "1.0")
-    DubboCommonUserService dubboCommonUserService;
 
     private final MeetingResourceDaoService meetingResourceDaoService;
     private final MeetingRoomInfoDaoService meetingRoomInfoDaoService;
