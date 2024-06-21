@@ -50,7 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @Author: 蔚文杰
@@ -135,10 +134,10 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
         // 设置缓存
         if (StringUtils.isNotBlank(accid)) {
-            bucket.set(vmUserVO, 7, TimeUnit.DAYS);
+            bucket.set(vmUserVO);
         }
         if (StringUtils.isNotBlank(joyoCode)) {
-            bucket.set(vmUserVO, 7, TimeUnit.DAYS);
+            bucket.set(vmUserVO);
         }
         return CommonResult.success(vmUserVO);
     }
