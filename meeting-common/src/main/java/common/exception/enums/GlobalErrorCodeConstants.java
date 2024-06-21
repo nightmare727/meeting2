@@ -82,6 +82,9 @@ public interface GlobalErrorCodeConstants {
     ErrorCode TIME_OFFSET_ERROR =
         new ErrorCode("2000024", "无效的时区配置", "moment_meeting_back_032");
 
+    ErrorCode TOO_MANY_APPLYING_APPROVE =
+        new ErrorCode("2000025", "大型会议申请已超限，请等待后台人员操作", "moment_meeting_back_033");
+
     //词条从moment_meeting_back_039 开始
 
     /**

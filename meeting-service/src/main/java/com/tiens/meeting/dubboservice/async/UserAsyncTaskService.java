@@ -1,5 +1,6 @@
 package com.tiens.meeting.dubboservice.async;
 
+import com.tiens.china.circle.api.dto.DubboUserInfoDTO;
 import com.tiens.china.circle.api.dto.HomepageUserDTO;
 import org.springframework.scheduling.annotation.Async;
 
@@ -13,8 +14,8 @@ public interface UserAsyncTaskService {
     /**
      * 同步修改直播主播数据
      *
-     * @param homepageUserDTO
+     * @param dubboUserInfoDTO
      */
     @Async
-    void updateLiveAnchorInfo(HomepageUserDTO homepageUserDTO);
+    void updateLiveAnchorInfo(DubboUserInfoDTO dubboUserInfoDTO);
 }

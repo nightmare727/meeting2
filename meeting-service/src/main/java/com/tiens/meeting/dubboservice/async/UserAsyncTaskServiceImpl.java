@@ -2,14 +2,13 @@ package com.tiens.meeting.dubboservice.async;
 
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
-import com.tiens.china.circle.api.dto.HomepageUserDTO;
+import com.tiens.china.circle.api.dto.DubboUserInfoDTO;
 import com.tiens.meeting.dubboservice.bo.UpdateVMAnchorInfoRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
@@ -37,13 +36,13 @@ public class UserAsyncTaskServiceImpl implements UserAsyncTaskService {
     String domesticUserModUrl;
 
     @Override
-    public void updateLiveAnchorInfo(HomepageUserDTO homepageUserDTO) {
-        String nickName = homepageUserDTO.getNickName();
-        String headImg = homepageUserDTO.getHeadImg();
+    public void updateLiveAnchorInfo(DubboUserInfoDTO dubboUserInfoDTO) {
+        String nickName = dubboUserInfoDTO.getNickName();
+        String headImg = dubboUserInfoDTO.getHeadImg();
 
-        String country = homepageUserDTO.getCountry();
-        String accid = homepageUserDTO.getAccid();
-        String joyoCode = homepageUserDTO.getJoyo_code();
+        String country = dubboUserInfoDTO.getCountry();
+        String accid = dubboUserInfoDTO.getAccId();
+        String joyoCode = dubboUserInfoDTO.getJoyoCode();
 
         //查询缓存
        /* RBucket<VMUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(accid));

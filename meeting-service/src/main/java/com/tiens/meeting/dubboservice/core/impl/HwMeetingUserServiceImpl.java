@@ -84,7 +84,7 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
         } catch (ServiceResponseException e) {
             if ("USG.201040001".equals(e.getErrorCode())) {
                 //账号已经存在
-                log.error("账号已存在，无需添加,账号：{},异常：{}", vmUserVO.getAccid(), e);
+//                log.error("账号已存在，无需添加,账号：{},异常：{} ", vmUserVO.getAccid(), e);
                 //更新用户信息
                 this.modHwUser(vmUserVO);
 

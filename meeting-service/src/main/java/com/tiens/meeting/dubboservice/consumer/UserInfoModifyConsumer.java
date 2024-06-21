@@ -6,8 +6,8 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.tiens.api.vo.VMUserVO;
 import com.tiens.china.circle.api.bo.HomepageBo;
 import com.tiens.china.circle.api.common.result.Result;
-import com.tiens.china.circle.api.dto.HomepageUserDTO;
-import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
+import com.tiens.china.circle.api.dto.DubboUserInfoDTO;
+import com.tiens.china.circle.api.dubbo.DubboUserAccountService;
 import com.tiens.meeting.dubboservice.async.UserAsyncTaskService;
 import com.tiens.meeting.dubboservice.bo.MqCacheCleanBO;
 import com.tiens.meeting.dubboservice.core.HwMeetingUserService;
@@ -53,7 +53,7 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
     MeetingResourceDaoService meetingResourceDaoService;
 
     @Reference(version = "1.0")
-    DubboCommonUserService dubboCommonUserService;
+    DubboUserAccountService dubboUserAccountService;
 
     @Autowired
     HwMeetingUserService hwMeetingUserService;
@@ -78,8 +78,9 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
 
         HomepageBo homepageBo = new HomepageBo();
         homepageBo.setAccId(imUserId);
-        Result<HomepageUserDTO> dtoResult = dubboCommonUserService.queryUserInfoAccId(null, homepageBo);
-        HomepageUserDTO data = dtoResult.getData();
+        Result<DubboUserInfoDTO> dubboUserInfoDTOResult = dubboUserAccountService.dubboGetUserInfo(imUserId, null);
+        DubboUserInfoDTO data = dubboUserInfoDTOResult.getData();
+
         if (ObjectUtil.isEmpty(data)) {
             log.error("用户修改-查无此用户！,userId：{}", imUserId);
             return;
@@ -91,12 +92,12 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
             new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(imUserId), null));
 
         redisKeyClean.sendCleanCacheMsg(
-            new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(data.getJoyo_code()), null));
+            new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(data.getJoyoCode()), null));
 
         //同步修改直播主播数据
         userAsyncTaskService.updateLiveAnchorInfo(data);
 
-        String accid = data.getAccid();
+        String accid = data.getAccId();
         String nickName = data.getNickName();
         String mobile = data.getMobile();
         String email = data.getEmail();
