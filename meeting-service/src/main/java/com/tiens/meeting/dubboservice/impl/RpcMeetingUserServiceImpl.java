@@ -206,6 +206,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult addMeetingCommonUser(String accid) throws ServiceException {
+
         RMap<String, String> hwUserFlagMap = redissonClient.getMap(CacheKeyUtil.getHwUserSyncKey());
         String userAddFlag = hwUserFlagMap.get(accid);
         if (StrUtil.isNotBlank(userAddFlag)) {

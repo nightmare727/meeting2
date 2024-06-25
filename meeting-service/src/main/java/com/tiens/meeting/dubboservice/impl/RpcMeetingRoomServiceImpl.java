@@ -1370,7 +1370,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     .last(" limit 1")
                     .oneOpt();
             RLongAdder count = redissonClient.getLongAdder(CacheKeyUtil.getHwMeetingRoomMaxSyncKey(meetingID));
-            int maxErrorCount = 3;
+            int maxErrorCount = 20;
             if (!meetingRoomInfoPOOptional.isPresent()) {
                 log.error("事件回调数据异常，数据不存在 meetingID：{}", meetingID);
                 if (count.sum() >= maxErrorCount) {
