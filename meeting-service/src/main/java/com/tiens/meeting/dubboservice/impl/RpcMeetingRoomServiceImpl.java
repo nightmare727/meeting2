@@ -478,7 +478,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     try {
                         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(finalVmrMode))
                             .cancelMeetingRoom(new CancelMeetingRoomModel(meetingRoomContextDTO.getImUserId(),
-                                finalMeetingRoom.getHwMeetingCode(), finalMeetingResourcePO.getVmrId(),
+                                finalMeetingRoom.getConferenceId(), finalMeetingResourcePO.getVmrId(),
                                 NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()), finalCurrentUseImUserId
                                 , resourceId));
                     } catch (Exception e1) {
@@ -1028,7 +1028,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         MeetingResourcePO byId1 = meetingResourceDaoService.getById(resourceId);
         Integer vmrMode = byId.getVmrMode();
         String ownerImUserId = byId.getOwnerImUserId();
-        String hwMeetingCode = byId.getHwMeetingCode();
+        String conferenceId = byId.getConferenceId();
+
         String vmrId = byId1.getVmrId();
         String currentUseImUserId = byId1.getCurrentUseImUserId();
         // meetingRoomInfoDaoService.removeById(meetingRoomId);
@@ -1037,7 +1038,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .set(MeetingRoomInfoPO::getIsDeleted, DeleteEnum.DELETE.getStatus()).update();
         // 直接取消华为云会议
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).cancelMeetingRoom(
-            new CancelMeetingRoomModel(ownerImUserId, hwMeetingCode, vmrId, NumberUtil.isNumber(byId.getResourceType()),
+            new CancelMeetingRoomModel(ownerImUserId, conferenceId, vmrId, NumberUtil.isNumber(byId.getResourceType()),
                 currentUseImUserId, byId1.getId()));
         // 释放资源
         publicResourceHoldHandle(resourceId, MeetingResourceHandleEnum.HOLD_DOWN);
