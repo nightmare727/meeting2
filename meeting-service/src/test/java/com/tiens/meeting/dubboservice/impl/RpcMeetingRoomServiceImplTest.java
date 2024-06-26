@@ -15,10 +15,7 @@ import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.dubboservice.async.RoomAsyncTaskService;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
-import com.tiens.meeting.dubboservice.job.AppointMeetingTask;
-import com.tiens.meeting.dubboservice.job.HWResourceTask;
-import com.tiens.meeting.dubboservice.job.HWUserCleanTask;
-import com.tiens.meeting.dubboservice.job.MeetingStopTask;
+import com.tiens.meeting.dubboservice.job.*;
 import com.tiens.meeting.repository.po.MeetingAttendeePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
@@ -74,6 +71,10 @@ class RpcMeetingRoomServiceImplTest {
 
     @Autowired
     HWUserCleanTask hwUserCleanTask;
+
+
+    @Autowired
+    InvalidMeetingCleanTask invalidMeetingCleanTask;
 
     @Test
     void getCredential() {
@@ -237,6 +238,12 @@ class RpcMeetingRoomServiceImplTest {
     @SneakyThrows
     void hwUserCleanTask() {
         hwUserCleanTask.jobHandler();
+    }
+
+    @Test
+    @SneakyThrows
+    void invalidMeetingCleanTask() {
+        invalidMeetingCleanTask.jobHandler();
     }
 
     @Test

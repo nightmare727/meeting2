@@ -7,6 +7,8 @@ import cn.hutool.core.util.ObjectUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.tiens.api.dto.CancelMeetingRoomDTO;
+import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingAttendeePO;
@@ -58,11 +60,14 @@ public class InvalidMeetingCleanTask {
     @Autowired
     HwMeetingCommonService hwMeetingCommonService;
 
+    @Autowired
+    RpcMeetingRoomService rpcMeetingRoomService;
+
     ThreadPoolExecutor executorService =
         new ThreadPoolExecutor(16, 32, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(10000),
             new ThreadFactoryBuilder().setNameFormat("hw-meeting-clean-%d").build());
 
-    @XxlJob("HWUserCleanTaskJobHandler")
+    @XxlJob("InvalidMeetingCleanTask")
     @Transactional(rollbackFor = Exception.class)
     @MDCLog(description = "定时任务：清理无效会议")
     public void jobHandler() throws Exception {
@@ -89,28 +94,45 @@ public class InvalidMeetingCleanTask {
                 long endTime = t.getLockEndTime().getTime();
                 long middleTime = (startTime + endTime) / 2;
                 long nowTime = now.getTime();
-                return middleTime > nowTime;
+                return middleTime < nowTime;
             }).collect(Collectors.toList());
             if (ObjectUtil.isNotEmpty(list)) {
                 //查询会议中是否有主持人入会
                 List<MeetingAttendeePO> meetingAttendeePOList = meetingAttendeeDaoService.lambdaQuery()
                     .in(MeetingAttendeePO::getMeetingRoomId,
-                        list.stream().map(MeetingRoomInfoPO::getHwMeetingId).collect(Collectors.toList())).list();
+                        list.stream().map(MeetingRoomInfoPO::getId).collect(Collectors.toList())).list();
 
                 Map<Long, Set<String>> collect = meetingAttendeePOList.stream().collect(
                     Collectors.groupingBy(MeetingAttendeePO::getMeetingRoomId,
                         Collectors.collectingAndThen(Collectors.toSet(),
                             e -> e.stream().map(MeetingAttendeePO::getAttendeeUserId).collect(Collectors.toSet()))));
 
-                List<MeetingRoomInfoPO> invalidMeetingList = list.stream().filter(
-                        t -> !collect.getOrDefault(t.getHwMeetingId(), Sets.newHashSet()).contains(t.getOwnerImUserId()))
+                List<MeetingRoomInfoPO> invalidMeetingList = list.stream()
+                    .filter(t -> !collect.getOrDefault(t.getId(), Sets.newHashSet()).contains(t.getOwnerImUserId()))
                     .collect(Collectors.toList());
 
                 if (ObjectUtil.isNotEmpty(invalidMeetingList)) {
                     for (MeetingRoomInfoPO meetingRoomInfoPO : invalidMeetingList) {
                         log.info("【定时任务：清理无效会议】,删除会议信息：{}", meetingRoomInfoPO.getConferenceId());
-                        hwMeetingCommonService.stopMeeting(meetingRoomInfoPO.getConferenceId(),
-                            meetingRoomInfoPO.getHostPwd());
+                        String state = meetingRoomInfoPO.getState();
+
+                        if (MeetingRoomStateEnum.Created.getState().equals(state)) {
+                            //进行中的会议-停止
+                            log.info("【定时任务：清理无效会议】,进行中的会议-停止,会议信息：{}",
+                                meetingRoomInfoPO.getConferenceId());
+                            hwMeetingCommonService.stopMeeting(meetingRoomInfoPO.getConferenceId(),
+                                meetingRoomInfoPO.getHostPwd());
+                        } else if (MeetingRoomStateEnum.Schedule.getState().equals(state)) {
+                            //预约中的会议-取消
+                            CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
+                            cancelMeetingRoomDTO.setMeetingRoomId(meetingRoomInfoPO.getId());
+                            cancelMeetingRoomDTO.setImUserId(meetingRoomInfoPO.getOwnerImUserId());
+                            log.info("【定时任务：清理无效会议】,预约中的会议-取消,会议信息：{}",
+                                meetingRoomInfoPO.getConferenceId());
+
+                            rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
+
+                        }
                     }
                 }
             }
