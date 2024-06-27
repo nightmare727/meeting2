@@ -135,18 +135,18 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("加入会议校验入参：{}", enterMeetingRoomCheckDTO);
         // 查询会议code是否存在
 
-        List<MeetingRoomInfoPO> list =
-            meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetRoomCode)
-                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
-                .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list();
+        Optional<MeetingRoomInfoPO> meetingRoomInfoPOOpt = meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getHwMeetingCode, meetRoomCode)
+                .in(MeetingRoomInfoPO::getState, Lists.newArrayList(MeetingRoomStateEnum.Schedule.getState(),MeetingRoomStateEnum.Created.getState()))
+                .last(" limit 1")
+                .orderByAsc(MeetingRoomInfoPO::getLockStartTime).oneOpt();
 
-        if (CollectionUtil.isEmpty(list)) {
+        if (!meetingRoomInfoPOOpt.isPresent()) {
             // 不存在会议
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
         }
 
         // 若为共有资源会议，需判断是否为开始时间 30min内，若在则直接进入会议，
-        MeetingRoomInfoPO meetingRoomInfoPO = list.get(0);
+        MeetingRoomInfoPO meetingRoomInfoPO = meetingRoomInfoPOOpt.get();
 
         String state = meetingRoomInfoPO.getState();
         if (MeetingRoomStateEnum.Destroyed.getState().equals(state)) {
@@ -183,8 +183,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery().and(
                 wrapper1 -> wrapper1.eq(MeetingRoomInfoPO::getHwMeetingCode, meetRoomCode)
                     .or(wrapper2 -> wrapper2.eq(MeetingRoomInfoPO::getConferenceId, meetRoomCode)))
-            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
-            .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list();
+                .in(MeetingRoomInfoPO::getState, Lists.newArrayList(MeetingRoomStateEnum.Schedule.getState(),MeetingRoomStateEnum.Created.getState()))
+                .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list();
 
         if (ObjectUtil.isEmpty(list)) {
             log.error("【加入会议】 会议不存在，会议号：{}", joinMeetingRoomDTO.getMeetRoomCode());
@@ -301,7 +301,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         // 该段时间正在锁定的会议
         List<MeetingRoomInfoPO> lockedMeetingRoomList =
             meetingRoomInfoDaoService.lambdaQuery().in(MeetingRoomInfoPO::getResourceId, resourceIdList)
-                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).nested(consumer)
+                    .in(MeetingRoomInfoPO::getState, Lists.newArrayList(MeetingRoomStateEnum.Schedule.getState(),MeetingRoomStateEnum.Created.getState()))
+                    .nested(consumer)
                 .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list();
         return lockedMeetingRoomList;
     }
@@ -623,7 +624,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .eq(MeetingRoomInfoPO::getOwnerImUserId, meetingRoomContextDTO.getImUserId())
             .notLike(MeetingRoomInfoPO::getResourceType, "-")
             // 非结束的会议
-            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).count();
+                .in(MeetingRoomInfoPO::getState, Lists.newArrayList(MeetingRoomStateEnum.Schedule.getState(),MeetingRoomStateEnum.Created.getState()))
+                .count();
         if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && count >= 2) {
             // 每个用户只可同时存在2个预约的公用会议室，超出时，则主页创建入口，提示”只可以同时存在2个预约的会议室，不可再次预约“
             return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_MORE_THAN);
@@ -1113,7 +1115,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     // 查询是否有会议室占用该资源，如果没有则修改状态置为共有空闲或者私有
                     Long count =
                         meetingRoomInfoDaoService.lambdaQuery().eq(MeetingRoomInfoPO::getResourceId, resourceId)
-                            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).count();
+                                .in(MeetingRoomInfoPO::getState, Lists.newArrayList(MeetingRoomStateEnum.Schedule.getState(),MeetingRoomStateEnum.Created.getState()))
+                                .count();
                     if (count == 0) {
                         // 当前无占用会议室
                         boolean update1 =
