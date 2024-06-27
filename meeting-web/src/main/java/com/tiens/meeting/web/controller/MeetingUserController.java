@@ -70,7 +70,7 @@ public class MeetingUserController {
      * @return
      * @throws Exception
      */
-    @ResponseBody
+   /* @ResponseBody
     @PostMapping("/queryLiveVMUser")
     public CommonResult<QueryUserResponse> queryLiveVMUser(@RequestBody QueryUserRequest queryUserRequest)
         throws Exception {
@@ -87,7 +87,7 @@ public class MeetingUserController {
         queryUserResponse.setUserPhoto(data.getHeadImg());
         //        queryUserResponse.setInviteCode();
         return CommonResult.success(queryUserResponse);
-    }
+    }*/
 
     /**
      * 查询直播用户
@@ -96,7 +96,7 @@ public class MeetingUserController {
      * @return
      * @throws Exception
      */
-    @ResponseBody
+    /*@ResponseBody
     @PostMapping("/batchQueryLiveVMUser")
     public CommonResult<List<BatchQueryUserResponse>> batchQueryLiveVMUser(
         @RequestBody BatchQueryUserRequest batchQueryUserRequest) throws Exception {
@@ -129,7 +129,7 @@ public class MeetingUserController {
         }).collect(Collectors.toList());
 
         return CommonResult.success(collect);
-    }
+    }*/
 
     /**
      * 查询登录认证

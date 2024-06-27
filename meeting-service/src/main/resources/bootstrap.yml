@@ -53,6 +53,9 @@ dubbo:
   protocol:
     name: dubbo
     port: 20889
+    corethreads: 500
+    threads: 1000
+    accepts: 20
   scan:
     base-packages:
   provider:
@@ -95,6 +98,10 @@ dubbo:
     address: nacos://${nacos.host}:${nacos.port}?username=${nacos.username:nacos}&password=${nacos.password:nacos}&namespace=${spring.profiles.active}
   protocol:
     name: dubbo
+    port: 20889
+    corethreads: 500
+    threads: 1000
+    accepts: 100
   scan:
     base-packages:
   provider:
@@ -169,6 +176,9 @@ dubbo:
   protocol:
     name: dubbo
     port: 20889
+    corethreads: 500
+    threads: 1000
+    accepts: 100
   scan:
     base-packages:
   provider:

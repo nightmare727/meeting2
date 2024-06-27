@@ -15,6 +15,8 @@ public class CacheKeyUtil {
     private static final String IM_LOGIN_USER_KEY_PREFIX = "im-login-meeting-user:";
     private static final String IM_NEW_COMER_USER_KEY_PREFIX = "im-meeting-new_comer_user:";
     private static final String HW_USER_KEY_PREFIX = "im-hw-user-flag";
+
+    private static final String MEETING_KEY_PREFIX = "meetingCache";
     private static final String HW_ROOM_EVENT_SYNC_PREFIX = "hw_room_event_count:";
     private static final String LANGUAGE_ID_PREFIX = "language-word:";
 
@@ -47,7 +49,15 @@ public class CacheKeyUtil {
     public static String getHwUserSyncKey() {
         return new StringBuilder(BASE_CACHE_PREFIX).append(HW_USER_KEY_PREFIX).toString();
     }
-
+    /**
+     * 会议缓存
+     *
+     * @param
+     * @return
+     */
+    public static String getMeetingCacheKey() {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(MEETING_KEY_PREFIX).toString();
+    }
     /**
      * 资源分布式锁
      *

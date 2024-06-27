@@ -30,7 +30,7 @@ import static common.exception.enums.GlobalErrorCodeConstants.INVALID_ACC_ID;
  */
 @Slf4j
 public class HeaderResolveFilter implements Filter {
-    @Reference
+    @Reference(retries = 0)
     RpcMeetingUserService rpcMeetingUserService;
 
     @Autowired
