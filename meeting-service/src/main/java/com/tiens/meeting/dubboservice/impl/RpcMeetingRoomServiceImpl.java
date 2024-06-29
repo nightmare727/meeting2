@@ -12,6 +12,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.huaweicloud.sdk.meeting.v1.utils.HmacSHA256;
@@ -99,7 +100,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public static final String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
 
     ListeningExecutorService listeningExecutorService =
-        MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
+            MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
 
     /**
      * 前端获取认证资质
@@ -1040,10 +1041,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 .set(MeetingRoomInfoPO::getIsDeleted, DeleteEnum.DELETE.getStatus()).update();
         // 直接取消华为云会议
         hwMeetingRoomHandlers.get(MeetingRoomHandlerEnum.getHandlerNameByVmrMode(vmrMode)).cancelMeetingRoom(
-                new CancelMeetingRoomModel(ownerImUserId, hwMeetingCode, vmrId, NumberUtil.isNumber(byId.getResourceType()),
+                new CancelMeetingRoomModel(ownerImUserId, conferenceId, vmrId, NumberUtil.isNumber(byId.getResourceType()),
                         currentUseImUserId, byId1.getId()));
-            new CancelMeetingRoomModel(ownerImUserId, conferenceId, vmrId, NumberUtil.isNumber(byId.getResourceType()),
-                currentUseImUserId, byId1.getId()));
         // 释放资源
         publicResourceHoldHandle(resourceId, MeetingResourceHandleEnum.HOLD_DOWN);
         // 会议资源已分配，则取消资源占用
