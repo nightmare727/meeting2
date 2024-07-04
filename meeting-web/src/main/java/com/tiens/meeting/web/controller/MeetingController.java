@@ -22,6 +22,7 @@ import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
 import common.util.date.DateUtils;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping(value = "/room")
+@Tag(name = "会议管理接口")
 public class MeetingController {
 
     @Reference(version = "1.0", timeout = 20000)

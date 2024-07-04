@@ -4,6 +4,7 @@ import com.tiens.meeting.web.entity.resp.CredentialResponse;
 import com.tiens.meeting.web.util.HwClientUtil;
 import common.pojo.CommonResult;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("auth")
+@Tag(name = "会议权限接口")
 public class AuthController {
 
     @Value("${hw.obs.endPoint}")//obs.cn-north-4.myhuaweicloud.com

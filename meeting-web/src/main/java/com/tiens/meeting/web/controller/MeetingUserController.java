@@ -1,23 +1,16 @@
 package com.tiens.meeting.web.controller;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.tiens.api.dto.MeetingResourceAwardDTO;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingHostUserVO;
 import com.tiens.api.vo.VMMeetingCredentialVO;
 import com.tiens.api.vo.VMUserVO;
-import com.tiens.meeting.web.entity.req.BatchQueryUserRequest;
-import com.tiens.meeting.web.entity.req.QueryUserRequest;
-import com.tiens.meeting.web.entity.resp.BatchQueryUserResponse;
-import com.tiens.meeting.web.entity.resp.QueryUserResponse;
 import common.pojo.CommonResult;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @Author: 蔚文杰
@@ -28,6 +21,7 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/mtuser")
 @Slf4j
 @RestController
+@Tag(name = "会议用户接口")
 public class MeetingUserController {
 
     @Reference(version = "1.0", timeout = 20000)

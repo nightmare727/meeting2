@@ -7,6 +7,7 @@ import com.tiens.api.vo.MeetingApproveVO;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping(value = "/approve")
+@Tag(name = "会议申请接口")
 public class MeetingApproveController {
 
     @Reference(version = "1.0")

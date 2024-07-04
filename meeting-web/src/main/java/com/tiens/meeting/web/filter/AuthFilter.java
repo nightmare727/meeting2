@@ -95,7 +95,7 @@ public class AuthFilter implements Filter {
 
         String s = RandomUtil.randomString(16);
 
-        String md5Str = "1234567890" + "&" + "1720057260" + "&" + "uz06bl49uhy7kwxq";
+        String md5Str = "123456" + "&" + "110" + "&" + "uz06bl49uhy7kwxq";
 
         System.out.println(MD5.create().digestHex(md5Str));
 

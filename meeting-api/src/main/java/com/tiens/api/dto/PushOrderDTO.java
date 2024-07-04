@@ -51,4 +51,12 @@ public class PushOrderDTO implements Serializable {
      * 实际支付金额
      */
     private BigDecimal paidRealAmount;
+    /**
+     * 资源类型
+     */
+    private Integer resourceType;
+    /**
+     * 持续时长
+     */
+    private Integer duration;
 }

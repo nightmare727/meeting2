@@ -76,7 +76,7 @@ public class MeetingUserProfitRecordPO implements Serializable {
     private Integer resourceType;
 
     /**
-     * 生效状态 0：失效 1：生效
+     * 生效状态 0：失效 1：生效 2：预占用
      */
     @TableField(value = "status")
     private Integer status;

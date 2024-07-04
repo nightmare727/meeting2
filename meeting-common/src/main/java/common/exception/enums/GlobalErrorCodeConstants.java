@@ -60,7 +60,7 @@ public interface GlobalErrorCodeConstants {
     ErrorCode HW_MOD_MEETING_ERROR = new ErrorCode("2000014", "编辑会议错误，请稍后重试", "moment_meeting_back_016");
     ErrorCode HW_CANCEL_MEETING_ERROR = new ErrorCode("2000015", "取消会议错误，请稍后重试", "moment_meeting_back_017");
     ErrorCode HW_START_TIME_ERROR =
-        new ErrorCode("2000016", "会议开始时间错误，无法小于当前时间或者选择3个月后，请重新填写",
+        new ErrorCode("2000016", "会议开始时间错误，无法小于当前时间或者选择7天后，请重新填写",
             "moment_meeting_back_018");
     ErrorCode NOT_ARRIVE_START_TIME_ERROR = new ErrorCode("2000017", "%s", "");
     ErrorCode CAN_NOT_USE_PERSONAL_RESOURCE_ERROR =
@@ -84,6 +84,9 @@ public interface GlobalErrorCodeConstants {
 
     ErrorCode TOO_MANY_APPLYING_APPROVE =
         new ErrorCode("2000025", "大型会议申请已超限，请等待后台人员操作", "moment_meeting_back_033");
+
+    ErrorCode NOT_WHITE_USER_LIST =
+        new ErrorCode("2000026", "您非白名单人员，无法参会", "moment_meeting_back_039");
 
     //词条从moment_meeting_back_039 开始
 

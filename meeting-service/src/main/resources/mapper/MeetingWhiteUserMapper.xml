@@ -6,6 +6,7 @@
 
     <resultMap id="BaseResultMap" type="com.tiens.meeting.repository.po.MeetingWhiteUserPO">
             <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="meetingId" column="meeting_id" jdbcType="BIGINT"/>
             <result property="meetingCode" column="meeting_code" jdbcType="VARCHAR"/>
             <result property="userId" column="user_id" jdbcType="VARCHAR"/>
             <result property="joyoCode" column="joyo_code" jdbcType="VARCHAR"/>
@@ -15,8 +16,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,meeting_code,user_id,
-        joyo_code,status,create_time,
-        update_time
+        id,meeting_id,meeting_code,
+        user_id,joyo_code,status,
+        create_time,update_time
     </sql>
 </mapper>

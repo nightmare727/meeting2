@@ -22,6 +22,12 @@ public class MeetingWhiteUserPO implements Serializable {
     private Integer id;
 
     /**
+     * 会议id
+     */
+    @TableField(value = "meeting_id")
+    private Long meetingId;
+
+    /**
      * 会议号
      */
     @TableField(value = "meeting_code")

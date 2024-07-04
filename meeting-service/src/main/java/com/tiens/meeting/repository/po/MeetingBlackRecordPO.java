@@ -4,15 +4,17 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 黑名单记录表
+ *
  * @TableName meeting_black_record
  */
-@TableName(value ="meeting_black_record")
+@TableName(value = "meeting_black_record")
 @Data
 public class MeetingBlackRecordPO implements Serializable {
     /**
@@ -38,6 +40,12 @@ public class MeetingBlackRecordPO implements Serializable {
      */
     @TableField(value = "user_id")
     private String userId;
+
+    /**
+     * 0：无效 1：有效
+     */
+    @TableField(value = "user_id")
+    private Integer status;
 
     /**
      * 创建时间
