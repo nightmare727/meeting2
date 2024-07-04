@@ -11,7 +11,6 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +28,7 @@ import static common.exception.enums.GlobalErrorCodeConstants.VERIFICATION;
 @Slf4j
 public class AuthFilter implements Filter {
 
-    String secretKey= SpringUtil.getProperty("auth.secretKey");
+    String secretKey = SpringUtil.getProperty("auth.secretKey");
 
     public static final String signPrefix = "HMAC-SHA256 signature=";
 
@@ -87,16 +86,16 @@ public class AuthFilter implements Filter {
 
         String s = RandomUtil.randomString(16);
 
-        byte[] data = "我是一段测试字符串".getBytes();
+        String data = "{\"nationId\":\"CN\",\"accId\":\"1123\",\"joyoCode\":\"122\",\"orderNo\":\"order1\"," +
+            "\"skuId\":\"sku1\",\"orderStatus\":\"1\",\"paidVmAmount\":\"100\",\"paidRealAmount\":\"0\"}";
+
         ImmutableMap<String, String> build =
             ImmutableMap.<String, String>builder().put("nonce", "123456").put("timestamp", "110")
-                .put("uri", "/vmeeting/user/11").put("data", "json").build();
+                .put("uri", "/vmeeting/web/profit/pushOrder").put("data", data).build();
 
-        String sign = SecureUtil.signParams(DigestAlgorithm.SHA256, build, "1111111111111111");
-        System.out.println("签名：" + sign);
-
-        Sign sign1 = SecureUtil.sign(SignAlgorithm.SHA256withRSA_PSS);
+        String sign = SecureUtil.signParams(DigestAlgorithm.SHA256, build, "&", "=", true, "uz06bl49uhy7kwxq");
+        System.out.println(sign);
         //验证签名
-        System.out.println(sign1.verify(sign.getBytes(), "1111111111111111".getBytes()));
+//        System.out.println(sign1.verify(sign.getBytes(), "1111111111111111".getBytes()));
     }
 }
