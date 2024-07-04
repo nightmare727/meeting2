@@ -12,14 +12,17 @@ import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingAttendeePO;
+import com.tiens.meeting.repository.po.MeetingBlackRecordPO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
+import com.tiens.meeting.repository.service.MeetingBlackRecordDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import common.enums.MeetingRoomStateEnum;
 import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +65,8 @@ public class InvalidMeetingCleanTask {
 
     @Autowired
     RpcMeetingRoomService rpcMeetingRoomService;
+    @Autowired
+    MeetingBlackRecordDaoService meetingBlackRecordDaoService;
 
     ThreadPoolExecutor executorService =
         new ThreadPoolExecutor(16, 32, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(10000),
@@ -134,6 +139,17 @@ public class InvalidMeetingCleanTask {
 
                         }
                     }
+                    List<MeetingBlackRecordPO> blackRecordPOS = invalidMeetingList.stream().map(t -> {
+                        MeetingBlackRecordPO meetingBlackRecordPO = new MeetingBlackRecordPO();
+                        meetingBlackRecordPO.setMeetingCode(t.getHwMeetingCode());
+                        meetingBlackRecordPO.setMeetingId(t.getId());
+                        meetingBlackRecordPO.setUserId(t.getOwnerImUserId());
+                        return meetingBlackRecordPO;
+                    }).collect(Collectors.toList());
+
+                    meetingBlackRecordDaoService.saveBatch(blackRecordPOS);
+                    log.info("【定时清理无效会议】 记录黑名单共{}条",blackRecordPOS.size());
+
                 }
             }
 

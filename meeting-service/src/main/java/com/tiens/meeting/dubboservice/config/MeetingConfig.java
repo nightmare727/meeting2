@@ -108,11 +108,15 @@ public class MeetingConfig {
     /**
      * 最大华为用户阈值百分比
      */
-    private String  maxHwUserThresholdPe;
+    private String maxHwUserThresholdPe;
     /**
      * 最小华为用户阈值百分比
      */
-    private String  minHwUserThresholdPe;
+    private String minHwUserThresholdPe;
+    /**
+     * 头图展示
+     */
+    private String cmsShowConfig;
 
     @Data
     public static class MultiPersonsAwardInner {
