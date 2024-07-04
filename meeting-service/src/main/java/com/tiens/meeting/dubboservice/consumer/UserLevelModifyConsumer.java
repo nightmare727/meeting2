@@ -61,7 +61,7 @@ public class UserLevelModifyConsumer implements RocketMQListener<MessageExt> {
         }
         //移除VM用户缓存
         SpringUtil.getBean(RedisKeyCleanUtil.class).sendCleanCacheMsg(new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT,
-            CacheKeyUtil.getUserInfoKey(userLevelModEntity.getAccId()), null));
+                CacheKeyUtil.getUserInfoKey(userLevelModEntity.getAccId()), null));
 
         //逻辑校验   是否在表中有记录
         Optional<MeetingHostUserPO> meetingHostUserPO =

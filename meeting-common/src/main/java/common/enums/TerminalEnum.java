@@ -24,6 +24,19 @@ public enum TerminalEnum implements IntArrayValuable {
 
     public static final int[] ARRAYS = Arrays.stream(values()).mapToInt(TerminalEnum::getTerminal).toArray();
 
+
+    public static TerminalEnum getByTerminal(Integer terminal) {
+        for (TerminalEnum value : TerminalEnum.values()) {
+            if (value.getTerminal().equals(terminal)) {
+
+                return value;
+            }
+
+        }
+
+        return null;
+    }
+
     /**
      * 终端
      */

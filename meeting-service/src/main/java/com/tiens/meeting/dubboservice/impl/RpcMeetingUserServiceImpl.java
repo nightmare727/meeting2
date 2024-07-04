@@ -93,6 +93,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(accid));
             VMUserVO vmUserCacheVO = bucket.get();
             if (ObjectUtil.isNotNull(vmUserCacheVO)) {
+                log.info("缓存命中用户数据，accid:{}", accid);
                 return CommonResult.success(vmUserCacheVO);
             }
         }
@@ -101,6 +102,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(joyoCode));
             VMUserVO vmUserCacheVO = bucket.get();
             if (ObjectUtil.isNotNull(vmUserCacheVO)) {
+                log.info("缓存命中用户数据，joyoCode:{}", joyoCode);
                 return CommonResult.success(vmUserCacheVO);
             }
         }
@@ -170,7 +172,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         } catch (DuplicateKeyException e) {
             // 重复则修改
             meetingHostUserDaoService.lambdaUpdate().eq(MeetingHostUserPO::getAccId, vmUserVO.getAccid())
-                .set(MeetingHostUserPO::getResourceType, resourceType).update();
+                    .set(MeetingHostUserPO::getResourceType, resourceType).update();
 
             // log.error("accId 重复异常");
             // return CommonResult.error(GlobalErrorCodeConstants.EXIST_HOST_INFO);
@@ -189,7 +191,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         } else {
             // 1-8级逻辑处理
             MeetingLevelResourceConfigPO configPO = meetingLevelResourceConfigDaoService.lambdaQuery()
-                .eq(MeetingLevelResourceConfigPO::getVmUserLevel, vmUserVO.getLevelCode()).oneOpt().get();
+                    .eq(MeetingLevelResourceConfigPO::getVmUserLevel, vmUserVO.getLevelCode()).oneOpt().get();
             if (resourceType <= configPO.getResourceType()) {
                 // 不符合规则
                 return false;
@@ -281,11 +283,11 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     public CommonResult<MeetingHostUserVO> queryMeetingHostUser(String accId) {
 
         Optional<MeetingHostUserPO> meetingHostUserPOOptional =
-            meetingHostUserDaoService.lambdaQuery().eq(MeetingHostUserPO::getAccId, accId).oneOpt();
+                meetingHostUserDaoService.lambdaQuery().eq(MeetingHostUserPO::getAccId, accId).oneOpt();
 
         if (meetingHostUserPOOptional.isPresent()) {
             MeetingHostUserVO meetingHostUserVO =
-                BeanUtil.copyProperties(meetingHostUserPOOptional.get(), MeetingHostUserVO.class);
+                    BeanUtil.copyProperties(meetingHostUserPOOptional.get(), MeetingHostUserVO.class);
             return CommonResult.success(meetingHostUserVO);
         }
         return CommonResult.success(null);
@@ -304,18 +306,18 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         MeetingHostPageDTO condition = pageDTOPageParam.getCondition();
 
         LambdaQueryWrapper<MeetingHostUserPO> queryWrapper = Wrappers.lambdaQuery(MeetingHostUserPO.class)
-            .like(ObjectUtil.isNotEmpty(condition.getName()), MeetingHostUserPO::getName, condition.getName())
-            .eq(ObjectUtil.isNotEmpty(condition.getJoyoCode()), MeetingHostUserPO::getJoyoCode, condition.getJoyoCode())
-            .like(ObjectUtil.isNotEmpty(condition.getPhone()), MeetingHostUserPO::getPhone, condition.getPhone())
-            .like(ObjectUtil.isNotEmpty(condition.getEmail()), MeetingHostUserPO::getEmail, condition.getEmail())
-            .orderByDesc(MeetingHostUserPO::getCreateTime);
+                .like(ObjectUtil.isNotEmpty(condition.getName()), MeetingHostUserPO::getName, condition.getName())
+                .eq(ObjectUtil.isNotEmpty(condition.getJoyoCode()), MeetingHostUserPO::getJoyoCode, condition.getJoyoCode())
+                .like(ObjectUtil.isNotEmpty(condition.getPhone()), MeetingHostUserPO::getPhone, condition.getPhone())
+                .like(ObjectUtil.isNotEmpty(condition.getEmail()), MeetingHostUserPO::getEmail, condition.getEmail())
+                .orderByDesc(MeetingHostUserPO::getCreateTime);
         Page<MeetingHostUserPO> pagePoResult = meetingHostUserDaoService.page(page, queryWrapper);
         List<MeetingHostUserPO> records = pagePoResult.getRecords();
         List<MeetingHostUserVO> meetingHostUserVOS = BeanUtil.copyToList(records, MeetingHostUserVO.class);
         if (ObjectUtil.isNotEmpty(meetingHostUserVOS)) {
             meetingHostUserVOS.forEach(meetingHostUserVO -> {
                 MeetingResourceEnum byCode =
-                    MeetingResourceEnum.getByCode(Optional.ofNullable(meetingHostUserVO.getResourceType()).orElse(0));
+                        MeetingResourceEnum.getByCode(Optional.ofNullable(meetingHostUserVO.getResourceType()).orElse(0));
                 meetingHostUserVO.setResourceNum(byCode.getValue());
             });
         }

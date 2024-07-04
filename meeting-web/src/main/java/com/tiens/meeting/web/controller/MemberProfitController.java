@@ -50,7 +50,7 @@ public class MemberProfitController {
     @ResponseBody
     @PostMapping("/getCmsShow")
     public CommonResult<CmsShowVO> getCmsShow(@RequestBody CmsShowGetDTO cmsShowGetDTO) throws Exception {
-        return memberProfitService.getCmsShow();
+        return memberProfitService.getCmsShow(cmsShowGetDTO);
     }
 
     /**

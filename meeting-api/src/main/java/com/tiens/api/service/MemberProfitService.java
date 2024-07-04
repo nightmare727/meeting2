@@ -1,5 +1,6 @@
 package com.tiens.api.service;
 
+import com.tiens.api.dto.CmsShowGetDTO;
 import com.tiens.api.dto.MeetingRoomContextDTO;
 import com.tiens.api.dto.PushOrderDTO;
 import com.tiens.api.vo.CmsShowVO;
@@ -27,7 +28,7 @@ public interface MemberProfitService {
      *
      * @return
      */
-    CommonResult<CmsShowVO> getCmsShow();
+    CommonResult<CmsShowVO> getCmsShow(CmsShowGetDTO cmsShowGetDTO);
 
     /**
      * 推送订单

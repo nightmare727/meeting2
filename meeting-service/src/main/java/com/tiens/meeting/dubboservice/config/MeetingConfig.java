@@ -116,7 +116,24 @@ public class MeetingConfig {
     /**
      * 头图展示
      */
-    private Boolean cmsShowConfig;
+    private CmsShowConfigInner cmsShowConfig;
+
+    @Data
+    public static class CmsShowConfigInner {
+        /**
+         * 是否开启
+         */
+        private Boolean enable;
+        /**
+         * 安卓配置
+         */
+        private String androidBaseConfig;
+        private String iosBaseConfig;
+        private String windowsBaseConfig;
+        private String MacBaseConfig;
+
+    }
+
 
     /**
      * 黑名单规则
