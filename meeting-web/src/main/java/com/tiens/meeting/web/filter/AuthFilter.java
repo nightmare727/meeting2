@@ -1,11 +1,11 @@
 package com.tiens.meeting.web.filter;
 
+import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
-import cn.hutool.crypto.asymmetric.Sign;
-import cn.hutool.crypto.asymmetric.SignAlgorithm;
 import cn.hutool.crypto.digest.DigestAlgorithm;
+import cn.hutool.crypto.digest.MD5;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import static common.exception.enums.GlobalErrorCodeConstants.VERIFICATION;
 
@@ -46,6 +47,7 @@ public class AuthFilter implements Filter {
         throws IOException, ServletException {
         HttpServletRequest httpServletRequest = (HttpServletRequest)request;
         HeaderMapRequestWrapper wrapperRequest = new HeaderMapRequestWrapper(httpServletRequest);
+
         if (!verify(wrapperRequest)) {
             //验证失败，返回异常
             response.getWriter().write(JSON.toJSONString(CommonResult.error(VERIFICATION)));
@@ -59,7 +61,14 @@ public class AuthFilter implements Filter {
         final String requestURI = wrapperRequest.getRequestURI();
         String nonce = wrapperRequest.getHeader("nonce");
         String timeStamp = wrapperRequest.getHeader("timestamp");
+
+        String md5Str = nonce + "&" + timeStamp + "&" + secretKey;
+        String s = MD5.create().digestHex(md5Str);
         String signature = wrapperRequest.getHeader("authorization");
+
+        if (s.equals(signature)) {
+            return true;
+        }
         String json = getJson(wrapperRequest);
         String requestJson = StrUtil.removeAllLineBreaks(json);
 
@@ -86,15 +95,22 @@ public class AuthFilter implements Filter {
 
         String s = RandomUtil.randomString(16);
 
-        String data = "{\"nationId\":\"CN\",\"accId\":\"1123\",\"joyoCode\":\"122\",\"orderNo\":\"order1\"," +
-            "\"skuId\":\"sku1\",\"orderStatus\":\"1\",\"paidVmAmount\":\"100\",\"paidRealAmount\":\"0\"}";
+        String md5Str = "1234567890" + "&" + "1720057260" + "&" + "uz06bl49uhy7kwxq";
+
+        System.out.println(MD5.create().digestHex(md5Str));
+
+        String data = "{\"joyoCode\":\"67893223\",\"nationId\":\"CN\",\"orderNo\":\"20240704093849492856\"," +
+            "\"skuId\":\"11021765\",\"accId\":1123,\"orderStatus\":\"4\",\"paidVmAmount\":\"5\",\"paidRealAmount\":0}";
 
         ImmutableMap<String, String> build =
-            ImmutableMap.<String, String>builder().put("nonce", "123456").put("timestamp", "110")
+            ImmutableMap.<String, String>builder().put("nonce", "1234567890").put("timestamp", "1720057260")
                 .put("uri", "/vmeeting/web/profit/pushOrder").put("data", data).build();
 
         String sign = SecureUtil.signParams(DigestAlgorithm.SHA256, build, "&", "=", true, "uz06bl49uhy7kwxq");
         System.out.println(sign);
+        System.out.println(
+            HexUtil.encodeHexStr("1fe5b3fda3547c95c3589fa418b67ce779482bc5ab231ac64da38d439518db68".getBytes(
+                StandardCharsets.UTF_8)));
         //验证签名
 //        System.out.println(sign1.verify(sign.getBytes(), "1111111111111111".getBytes()));
     }
