@@ -84,16 +84,11 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         String imUserId = meetingRoomContextDTO.getImUserId();
 
-        Integer leadTime = meetingRoomContextDTO.getLeadTime();
-
         String resourceType = meetingRoomContextDTO.getResourceType();
 
         String languageId = meetingRoomContextDTO.getLanguageId();
 
         Integer memberType = meetingRoomContextDTO.getMemberType();
-
-        Integer length = meetingRoomContextDTO.getLength();
-
 
         Boolean isHighestMemberLevel = MemberLevelEnum.BLUE.getState().equals(memberType);
 
@@ -158,21 +153,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             meetingRoomContextDTO.setPaidType(PaidTypeEnum.PAID.getState());
         }
 
-        //校验通过之后，设置使用记录
-//        MeetingUserProfitRecordPO meetingUserProfitRecordPO = new MeetingUserProfitRecordPO();
-//        meetingUserProfitRecordPO.setUserId(imUserId);
-//        meetingUserProfitRecordPO.setJoyoCode();
-//        meetingUserProfitRecordPO.setInitMemberType();
-//        meetingUserProfitRecordPO.setCurrentMemberType();
-//        meetingUserProfitRecordPO.setPaidType();
-//        meetingUserProfitRecordPO.setUseTime();
-//        meetingUserProfitRecordPO.setMeetingId();
-////        meetingUserProfitRecordPO.setRel_duration();
-//        meetingUserProfitRecordPO.setLock_duration(length);
-//        meetingUserProfitRecordPO.setResourceType(Integer.valueOf(resourceType));
-//        meetingUserProfitRecordPO.setStatus(ProfitRecordStateEnum.PRE_LOCK.getState());
-//
-//        meetingUserProfitRecordDaoService.save(meetingUserProfitRecordPO);
+        return CommonResult.success(null);
+
     }
 
     /**

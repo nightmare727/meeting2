@@ -107,11 +107,13 @@ public class MeetingController {
     CommonResult<MeetingRoomDetailDTO> createMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
         @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
         @RequestHeader(value = "language_id", defaultValue = "zh-CN") String languageId,
+        @RequestHeader(value = "joyoCode") String joyoCode,
         @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) throws Exception {
         meetingRoomContextDTO.setImUserId(finalUserId);
         meetingRoomContextDTO.setLevelCode(levelCode);
         meetingRoomContextDTO.setImUserName(userName);
         meetingRoomContextDTO.setLanguageId(languageId);
+        meetingRoomContextDTO.setJoyoCode(joyoCode);
         return rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO);
     }
 
@@ -277,7 +279,7 @@ public class MeetingController {
     @GetMapping("/getMeetingResourceTypeList")
     CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(@RequestHeader("finalUserId") String finalUserId,
         @RequestHeader("levelCode") Integer levelCode, @RequestHeader("nation_id") String nationId) {
-        return rpcMeetingRoomService.getMeetingResourceTypeList(finalUserId, levelCode,nationId);
+        return rpcMeetingRoomService.getMeetingResourceTypeList(finalUserId, levelCode, nationId);
     }
 
     /**

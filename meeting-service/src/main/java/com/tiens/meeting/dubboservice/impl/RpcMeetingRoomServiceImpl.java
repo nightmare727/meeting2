@@ -20,6 +20,7 @@ import com.tiens.api.dto.*;
 import com.tiens.api.dto.hwevent.EventInfo;
 import com.tiens.api.dto.hwevent.HwEventReq;
 import com.tiens.api.dto.hwevent.Payload;
+import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.*;
 import com.tiens.meeting.dubboservice.async.RoomAsyncTaskService;
@@ -100,6 +101,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private final MeetingWhiteUserDaoService meetingWhiteUserDaoService;
 
     private final MeetingBlackUserDaoService meetingBlackUserDaoService;
+
+    private final MemberProfitService memberProfitService;
+
+    private final MeetingUserProfitRecordDaoService meetingUserProfitRecordDaoService;
 
     public static final String privateResourceTypeFormat = "专属会议室（适用于%d人以下）";
 
@@ -482,6 +487,28 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
             // 3、锁定资源，更改资源状态为共有预约
             publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
+            if (NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()) && "zh-CN".equals(
+                meetingRoomContextDTO.getLanguageId())) {
+                //4、设置权益存储
+                //校验通过之后，设置使用记录
+                MeetingUserProfitRecordPO meetingUserProfitRecordPO = new MeetingUserProfitRecordPO();
+                meetingUserProfitRecordPO.setUserId(meetingRoomContextDTO.getImUserId());
+                meetingUserProfitRecordPO.setJoyoCode(meetingRoomContextDTO.getJoyoCode());
+                meetingUserProfitRecordPO.setInitMemberType(meetingRoomContextDTO.getMemberType());
+//                meetingUserProfitRecordPO.setCurrentMemberType(meetingRoomContextDTO.get);
+                meetingUserProfitRecordPO.setPaidType(meetingRoomContextDTO.getPaidType());
+                meetingUserProfitRecordPO.setUseTime(DateUtils.roundToHalfHour(
+                    ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(),
+                        DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_GMT));
+                meetingUserProfitRecordPO.setMeetingId(meetingRoomId);
+//        meetingUserProfitRecordPO.setRel_duration();
+                meetingUserProfitRecordPO.setLock_duration(meetingRoomContextDTO.getLength());
+                meetingUserProfitRecordPO.setResourceType(Integer.valueOf(meetingRoomContextDTO.getResourceType()));
+                meetingUserProfitRecordPO.setStatus(ProfitRecordStateEnum.PRE_LOCK.getState());
+
+                meetingUserProfitRecordDaoService.save(meetingUserProfitRecordPO);
+            }
+
             // 返回创建后得详情
             MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, null);
             result.setResourceExpireTime(meetingResourcePO.getExpireDate());
@@ -660,6 +687,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .size()) {
             // 与会者人数无法超过资源限定人数
             return CommonResult.error(GlobalErrorCodeConstants.MORE_THAN_RESOURCE_SIZE_ERROR);
+        }
+
+        //权益校验
+        CommonResult result = memberProfitService.checkProfit(meetingRoomContextDTO);
+        if (result.isError()) {
+            return result;
         }
 
         Tuple2<MeetingResourcePO, MeetingTimeZoneConfigPO> of = Tuples.of(meetingResourcePO, meetingTimeZoneConfigPO);
