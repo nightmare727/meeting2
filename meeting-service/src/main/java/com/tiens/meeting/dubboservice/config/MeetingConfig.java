@@ -130,7 +130,7 @@ public class MeetingConfig {
         private String androidBaseConfig;
         private String iosBaseConfig;
         private String windowsBaseConfig;
-        private String MacBaseConfig;
+        private String macBaseConfig;
 
     }
 

@@ -77,10 +77,11 @@ public class MemberProfitController {
      */
     @ResponseBody
     @GetMapping("/getUserProfit")
-    public CommonResult<MeetingUserProfitVO> getUserProfit(@RequestHeader("finalUserId") String finalUserId)
-        throws Exception {
+    public CommonResult<MeetingUserProfitVO> getUserProfit(@RequestHeader("finalUserId") String finalUserId,
+        @RequestHeader("memberType") Integer memberType) throws
+        Exception {
 
-        return memberProfitService.getUserProfit(finalUserId);
+        return memberProfitService.getUserProfit(finalUserId,memberType);
     }
 
 }

@@ -4,15 +4,17 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 用户权益使用记录表
+ *
  * @TableName meeting_user_profit_record
  */
-@TableName(value ="meeting_user_profit_record")
+@TableName(value = "meeting_user_profit_record")
 @Data
 public class MeetingUserProfitRecordPO implements Serializable {
     /**
@@ -36,14 +38,14 @@ public class MeetingUserProfitRecordPO implements Serializable {
     /**
      * 初始会员类型 1：普通会员 2：V+ 3：红宝石V+ 4：蓝宝石V+
      */
-    @TableField(value = "init_memeber_type")
-    private Integer initMemeberType;
+    @TableField(value = "init_member_type")
+    private Integer initMemberType;
 
     /**
      * 当前会员类型 1：普通会员 2：V+ 3：红宝石V+ 4：蓝宝石V+
      */
-    @TableField(value = "current_memeber_type")
-    private Integer currentMemeberType;
+    @TableField(value = "current_member_type")
+    private Integer currentMemberType;
 
     /**
      * 付费类型 1：会员权益 2：额外付费
@@ -64,10 +66,15 @@ public class MeetingUserProfitRecordPO implements Serializable {
     private Long meetingId;
 
     /**
-     * 会议时长（分钟数）
+     * 会议真实时长（分钟数）
      */
     @TableField(value = "duration")
-    private Integer duration;
+    private Integer rel_duration;
+    /**
+     * 会议锁定时长（分钟数）
+     */
+    @TableField(value = "duration")
+    private Integer lock_duration;
 
     /**
      * 资源类型 1：10方 2：50方 3：100方  4：200方 5：500方 6：1000方 7：3000方

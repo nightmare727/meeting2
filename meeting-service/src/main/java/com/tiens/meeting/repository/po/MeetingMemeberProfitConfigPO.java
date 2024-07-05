@@ -4,15 +4,17 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 会员权益配置表
+ *
  * @TableName meeting_memeber_profit_config
  */
-@TableName(value ="meeting_memeber_profit_config")
+@TableName(value = "meeting_memeber_profit_config")
 @Data
 public class MeetingMemeberProfitConfigPO implements Serializable {
     /**
@@ -34,7 +36,7 @@ public class MeetingMemeberProfitConfigPO implements Serializable {
     private Integer freeDayAppointCount;
 
     /**
-     * 限制次数
+     * 限制时间
      */
     @TableField(value = "limit_count")
     private Integer limitCount;

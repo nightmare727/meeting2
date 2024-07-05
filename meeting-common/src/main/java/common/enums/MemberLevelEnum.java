@@ -11,14 +11,12 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum PaidTypeEnum {
+public enum MemberLevelEnum {
     /**
-     * 0：免费 1：收费
+     * 1:普通用户 10：V+ 20：红宝 30：蓝宝石
      */
 
-    MEMBER_FREE(0, "免费"),
-    PAID(1, "收费");
-
+    NORMAL(1, "普通用户"), VPLUS(10, "V+"), RED(20, "红宝"), BLUE(30, "蓝宝石");
     private Integer state;
 
     private String desc;

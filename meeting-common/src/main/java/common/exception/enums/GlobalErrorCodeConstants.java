@@ -88,6 +88,12 @@ public interface GlobalErrorCodeConstants {
     ErrorCode NOT_WHITE_USER_LIST =
         new ErrorCode("2000026", "您非白名单人员，无法参会", "moment_meeting_back_039");
 
+    ErrorCode NEED_MEMBER_OR_PAID =
+        new ErrorCode("2000027", "需要开通会员或者购买", "moment_meeting_back_040");
+
+    ErrorCode NEED_PAID =
+        new ErrorCode("2000028", "需要购买", "moment_meeting_back_041");
+
     //词条从moment_meeting_back_039 开始
 
     /**

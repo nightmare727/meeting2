@@ -11,14 +11,14 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum PaidTypeEnum {
+public enum ProfitRecordStateEnum {
     /**
-     * 0：免费 1：收费
+     * 0：无效 1：生效
      */
 
-    MEMBER_FREE(0, "免费"),
-    PAID(1, "收费");
-
+    INVALID(0, "无效"),
+    VALID(1, "有效"),
+    PRE_LOCK(2, "预占用");
     private Integer state;
 
     private String desc;

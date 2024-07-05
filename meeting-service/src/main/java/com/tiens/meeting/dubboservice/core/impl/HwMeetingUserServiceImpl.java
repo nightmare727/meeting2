@@ -75,7 +75,7 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
         MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
         try {
             AddUserResponse response = mgrMeetingClient.addUser(request);
-            hwUserFlagMap.fastPut(vmUserVO.getAccid(), "ok");
+            hwUserFlagMap.put(vmUserVO.getAccid(), JSON.toJSONString(vmUserVO));
             log.info("华为云添加用户结果：{}", JSON.toJSONString(response));
         } catch (ConnectionException e) {
             e.printStackTrace();
@@ -88,7 +88,7 @@ public class HwMeetingUserServiceImpl implements HwMeetingUserService {
                 //更新用户信息
                 this.modHwUser(vmUserVO);
 
-                hwUserFlagMap.fastPut(vmUserVO.getAccid(), "ok");
+                hwUserFlagMap.put(vmUserVO.getAccid(), JSON.toJSONString(vmUserVO));
                 return true;
             }
             log.error("华为云添加用户业务异常", e);

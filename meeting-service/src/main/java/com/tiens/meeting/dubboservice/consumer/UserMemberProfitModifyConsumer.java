@@ -1,28 +1,18 @@
 package com.tiens.meeting.dubboservice.consumer;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
-import com.tiens.meeting.dubboservice.bo.MqCacheCleanBO;
-import com.tiens.meeting.dubboservice.model.UserLevelModEntity;
-import com.tiens.meeting.repository.po.MeetingHostUserPO;
-import com.tiens.meeting.repository.po.MeetingLevelResourceConfigPO;
-import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
-import com.tiens.meeting.repository.service.MeetingLevelResourceConfigDaoService;
-import com.tiens.meeting.util.RedisKeyCleanUtil;
-import common.util.cache.CacheKeyUtil;
+import com.tiens.api.dto.UserMemberProfitModifyEntity;
+import com.tiens.api.service.MemberProfitService;
+import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.redisson.api.RType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Optional;
 
 /**
  * @Author: 蔚文杰
@@ -33,25 +23,27 @@ import java.util.Optional;
  */
 @Component
 @RocketMQMessageListener(consumerGroup = "${rocketmq.consumer.meeting_im_member_profit_group}",
-        topic = "${rocketmq.consumer.im_member_profit_topic}", messageModel = MessageModel.CLUSTERING)
+    topic = "${rocketmq.consumer.im_member_profit_topic}", messageModel = MessageModel.CLUSTERING)
 @Slf4j
 public class UserMemberProfitModifyConsumer implements RocketMQListener<MessageExt> {
 
+    @Autowired
+    MemberProfitService memberProfitService;
 
     @Override
     public void onMessage(MessageExt messageExt) {
-        //        UserLevelModEntity userLevelModEntity = new UserLevelModEntity();
+        UserMemberProfitModifyEntity userMemberProfitModifyEntity = new UserMemberProfitModifyEntity();
         try {
             String s = new String(messageExt.getBody(), "utf-8");
-            //            userLevelModEntity = JSON.parseObject(s, UserLevelModEntity.class);
+            userMemberProfitModifyEntity = JSON.parseObject(s, UserMemberProfitModifyEntity.class);
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
-
+        log.info("监听到会员等级变更，入参：{}", JSON.toJSONString(userMemberProfitModifyEntity));
         //监听权益修改
+        CommonResult result = memberProfitService.modUserMemberProfit(userMemberProfitModifyEntity);
 
 
-        //1、会员升级降级都将用户权益使用记录表中的今日的数据状态置为失效
 
     }
 }
