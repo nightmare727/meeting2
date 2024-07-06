@@ -73,4 +73,14 @@ public interface MemberProfitService {
      * @return
      */
     CommonResult modUserMemberProfit(UserMemberProfitModifyEntity userMemberProfitModifyEntity);
+
+    /**
+     * 结算会员权益
+     *
+     * @param meetingId
+     * @param imUserId
+     * @param betweenMinutes
+     * @return
+     */
+    CommonResult settleMemberProfit(Long meetingId, String imUserId, long betweenMinutes);
 }

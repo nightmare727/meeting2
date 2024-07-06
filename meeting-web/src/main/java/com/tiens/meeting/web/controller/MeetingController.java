@@ -108,12 +108,14 @@ public class MeetingController {
         @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
         @RequestHeader(value = "language_id", defaultValue = "zh-CN") String languageId,
         @RequestHeader(value = "joyoCode") String joyoCode,
+        @RequestHeader(value = "memberType") Integer memberType,
         @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) throws Exception {
         meetingRoomContextDTO.setImUserId(finalUserId);
         meetingRoomContextDTO.setLevelCode(levelCode);
         meetingRoomContextDTO.setImUserName(userName);
         meetingRoomContextDTO.setLanguageId(languageId);
         meetingRoomContextDTO.setJoyoCode(joyoCode);
+        meetingRoomContextDTO.setMemberType(1);
         return rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO);
     }
 

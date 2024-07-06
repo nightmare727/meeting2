@@ -117,7 +117,7 @@ public class MeetingRoomContextDTO implements Serializable {
     private Integer memberType;
 
     /**
-     * 付费类型 1：会员权益 2：额外付费
+     * 付费类型 0：会员权益 1：额外付费
      */
     private Integer paidType;
 

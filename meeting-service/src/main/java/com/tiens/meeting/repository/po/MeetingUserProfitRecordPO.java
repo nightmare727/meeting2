@@ -57,7 +57,7 @@ public class MeetingUserProfitRecordPO implements Serializable {
      * 使用时间
      */
     @TableField(value = "use_time")
-    private Date useTime;
+    private String useTime;
 
     /**
      * 会议id
@@ -68,13 +68,13 @@ public class MeetingUserProfitRecordPO implements Serializable {
     /**
      * 会议真实时长（分钟数）
      */
-    @TableField(value = "duration")
-    private Integer rel_duration;
+    @TableField(value = "rel_duration")
+    private Integer relDuration;
     /**
      * 会议锁定时长（分钟数）
      */
-    @TableField(value = "duration")
-    private Integer lock_duration;
+    @TableField(value = "rel_duration")
+    private Integer lockDuration;
 
     /**
      * 资源类型 1：10方 2：50方 3：100方  4：200方 5：500方 6：1000方 7：3000方

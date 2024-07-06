@@ -72,7 +72,6 @@ class RpcMeetingRoomServiceImplTest {
     @Autowired
     HWUserCleanTask hwUserCleanTask;
 
-
     @Autowired
     InvalidMeetingCleanTask invalidMeetingCleanTask;
 
@@ -111,18 +110,21 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-04-04 09:00:00"));
+        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-07-06 10:30:00"));
         meetingRoomContextDTO.setLength(60);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
         meetingRoomContextDTO.setResourceId(401);
-        meetingRoomContextDTO.setResourceType("7263c164463844039f275c846eca29cc-10-1");
+        meetingRoomContextDTO.setResourceType("5");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
         meetingRoomContextDTO.setGuestPwdFlag(false);
         meetingRoomContextDTO.setLevelCode(9);
-        meetingRoomContextDTO.setImUserId("7263c164463844039f275c846eca29cc");
+        meetingRoomContextDTO.setImUserId("e0e909954bcb48cab8ef0654892a5b87");
         meetingRoomContextDTO.setImUserName("文杰昵称");
         meetingRoomContextDTO.setTimeZoneOffset("GMT+10:30");
+        meetingRoomContextDTO.setJoyoCode("1540886");
+        meetingRoomContextDTO.setMemberType(1);
+        meetingRoomContextDTO.setLanguageId("zh-CN");
 //        List<MeetingAttendeeDTO> meetingAttendeeDTOS = Lists.newArrayList();
 //        MeetingAttendeeDTO meetingAttendeeDTO = new MeetingAttendeeDTO();
 //        meetingAttendeeDTO.setAttendeeUserId("cb4b8cc1be09409eb108baf982d7e196");
@@ -233,7 +235,6 @@ class RpcMeetingRoomServiceImplTest {
         appointMeetingTask.jobHandler();
     }
 
-
     @Test
     @SneakyThrows
     void hwUserCleanTask() {
@@ -290,8 +291,9 @@ class RpcMeetingRoomServiceImplTest {
         roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
 
     }
+
     @Test
-    public void updateMeetingRoomStatus(){
+    public void updateMeetingRoomStatus() {
 
         HwEventReq hwEventReq = new HwEventReq();
         hwEventReq.setAppID("11");
@@ -308,14 +310,9 @@ class RpcMeetingRoomServiceImplTest {
         meetingInfo.setMeetingUUID("3083cfc1bf694f9b8f4a35b34c1d6648");
         meetingInfo.setMeetingCycleSubID("");
 
-
         payload.setMeetingInfo(meetingInfo);
 
-
-
         eventInfo.setPayload(payload);
-
-
 
         hwEventReq.setEventInfo(eventInfo);
 

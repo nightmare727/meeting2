@@ -424,6 +424,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             }
         }
 
+        DateTime showStartTime = DateUtils.roundToHalfHour(
+            ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(),
+                DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_GMT);
+        String showStartTimeStr = DateUtil.format(showStartTime, "yyyy-MM-dd");
+
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
 
@@ -497,9 +502,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 meetingUserProfitRecordPO.setInitMemberType(meetingRoomContextDTO.getMemberType());
 //                meetingUserProfitRecordPO.setCurrentMemberType(meetingRoomContextDTO.get);
                 meetingUserProfitRecordPO.setPaidType(meetingRoomContextDTO.getPaidType());
-                meetingUserProfitRecordPO.setUseTime(DateUtils.roundToHalfHour(
-                    ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(),
-                        DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_GMT));
+                meetingUserProfitRecordPO.setUseTime(showStartTimeStr);
                 meetingUserProfitRecordPO.setMeetingId(meetingRoomId);
 //        meetingUserProfitRecordPO.setRel_duration();
                 meetingUserProfitRecordPO.setLock_duration(meetingRoomContextDTO.getLength());
@@ -1497,8 +1500,18 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                             hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
                                 Collections.singletonList(meetingResourcePO.getVmrId()));
                         }
+                        Date relStartTime = meetingRoomInfoPO.getRelStartTime();
+
+                        long betweenMinutes = DateUtil.between(relStartTime, DateUtil.date(timestamp), DateUnit.MINUTE);
+
+
+                        //结算会议会员权益
+                        memberProfitService.settleMemberProfit(meetingId, meetingRoomInfoPO.getOwnerImUserId(),betweenMinutes);
+
+
                         // 发放多人会议奖励
                         roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
+
 
                         log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
                     } finally {

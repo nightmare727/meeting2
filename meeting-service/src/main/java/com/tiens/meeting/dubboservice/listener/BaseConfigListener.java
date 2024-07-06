@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
@@ -36,7 +37,7 @@ public class BaseConfigListener implements Serializable {
     MeetingMemeberProfitConfigDaoService meetingMemeberProfitConfigDaoService;
 
     @Order
-    @EventListener({WebServerInitializedEvent.class})
+    @EventListener({ApplicationStartedEvent.class})
     public void initConfig() {
         List<MeetingMemeberProfitConfigPO> list = meetingMemeberProfitConfigDaoService.list();
         RMap<Integer, MeetingMemeberProfitConfigPO> map =
