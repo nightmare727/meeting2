@@ -404,13 +404,20 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      *
      * @param meetingId
      * @param imUserId
+     * @param resourceType
+     * @param languageId
      * @param betweenMinutes
      * @return
      */
     @Override
-    public CommonResult settleMemberProfit(Long meetingId, String imUserId, long betweenMinutes) {
+    public CommonResult settleMemberProfit(Long meetingId, String imUserId, String resourceType, String languageId,
+        long betweenMinutes) {
 
         log.info("【会员会议权益结算】入参meetingId：{}.imUserId:{}", meetingId, imUserId);
+        if (!NumberUtil.isNumber(resourceType) || !"zh-CN".equals(languageId)) {
+            //私有会议直接返回
+            return CommonResult.success(null);
+        }
 
         //修改会员收益记录的状态为生效,设置真实结束时间
         boolean update =
@@ -418,7 +425,13 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                 .eq(MeetingUserProfitRecordPO::getUserId, imUserId)
                 .set(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.VALID.getState())
                 .set(MeetingUserProfitRecordPO::getRelDuration, betweenMinutes).update();
-        log.info("【会员会议权益结算】入参meetingId：{}.执行结果:{}", meetingId, update);
+        //如果有付费权益，则修改剩余时间
+
+        UpdateChainWrapper<MeetingUserPaidProfitPO> update1 = meetingUserPaidProfitDaoService.update();
+        boolean update2 = update1.eq("user_id", imUserId).eq("resource_type", resourceType)
+            .setSql("duration=duration-" + betweenMinutes).update();
+
+        log.info("【会员会议权益结算】入参meetingId：{},执行结果1:{}执行结果2:{}", meetingId, update, update2);
         return CommonResult.success(null);
     }
 }

@@ -79,8 +79,10 @@ public interface MemberProfitService {
      *
      * @param meetingId
      * @param imUserId
+     * @param resourceType
+     * @param languageId
      * @param betweenMinutes
      * @return
      */
-    CommonResult settleMemberProfit(Long meetingId, String imUserId, long betweenMinutes);
+    CommonResult settleMemberProfit(Long meetingId, String imUserId, String resourceType, String languageId, long betweenMinutes);
 }

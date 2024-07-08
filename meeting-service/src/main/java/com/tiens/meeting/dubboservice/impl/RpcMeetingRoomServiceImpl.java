@@ -1506,7 +1506,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
                         //结算会议会员权益
                         memberProfitService.settleMemberProfit(meetingId, meetingRoomInfoPO.getOwnerImUserId(),
-                            betweenMinutes);
+                            meetingRoomInfoPO.getResourceType(), meetingRoomInfoPO.getLanguageId(), betweenMinutes);
 
                         // 发放多人会议奖励
                         roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
