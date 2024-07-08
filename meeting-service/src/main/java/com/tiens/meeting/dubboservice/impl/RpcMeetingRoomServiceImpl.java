@@ -1105,6 +1105,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 currentUseImUserId, byId1.getId()));
         // 释放资源
         publicResourceHoldHandle(resourceId, MeetingResourceHandleEnum.HOLD_DOWN);
+
+        //如果权益使用记录里有使用，则将该记录置无效
+        meetingUserProfitRecordDaoService.lambdaUpdate()
+            .eq(MeetingUserProfitRecordPO::getMeetingId, byId.getId())
+            .set(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.INVALID.getState())
+            .update();
+
         // 会议资源已分配，则取消资源占用
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
         Date lockStartTime = byId.getLockStartTime();
