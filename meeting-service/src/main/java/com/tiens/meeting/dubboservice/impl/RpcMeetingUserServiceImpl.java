@@ -133,8 +133,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         vmUserVO.setLevelCode(data.getLevelCode());
         vmUserVO.setCountry(data.getCountry());
         vmUserVO.setJoyoCode(data.getJoyoCode());
+
         //todo 设置会员类型
-        vmUserVO.setMemberType(1);
+        vmUserVO.setMemberType(data.getMember().equals(0) ? 1 : data.getMemberLevel());
         // 设置缓存
         if (StringUtils.isNotBlank(accid)) {
             bucket.set(vmUserVO);

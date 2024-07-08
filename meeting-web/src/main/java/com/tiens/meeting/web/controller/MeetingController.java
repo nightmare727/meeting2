@@ -115,7 +115,7 @@ public class MeetingController {
         meetingRoomContextDTO.setImUserName(userName);
         meetingRoomContextDTO.setLanguageId(languageId);
         meetingRoomContextDTO.setJoyoCode(joyoCode);
-        meetingRoomContextDTO.setMemberType(1);
+        meetingRoomContextDTO.setMemberType(memberType);
         return rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO);
     }
 
