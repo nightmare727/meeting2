@@ -505,7 +505,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 meetingUserProfitRecordPO.setUseTime(showStartTimeStr);
                 meetingUserProfitRecordPO.setMeetingId(meetingRoomId);
 //        meetingUserProfitRecordPO.setRel_duration();
-                meetingUserProfitRecordPO.setLock_duration(meetingRoomContextDTO.getLength());
+                meetingUserProfitRecordPO.setLockDuration(meetingRoomContextDTO.getLength());
                 meetingUserProfitRecordPO.setResourceType(Integer.valueOf(meetingRoomContextDTO.getResourceType()));
                 meetingUserProfitRecordPO.setStatus(ProfitRecordStateEnum.PRE_LOCK.getState());
 
@@ -1504,14 +1504,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
                         long betweenMinutes = DateUtil.between(relStartTime, DateUtil.date(timestamp), DateUnit.MINUTE);
 
-
                         //结算会议会员权益
-                        memberProfitService.settleMemberProfit(meetingId, meetingRoomInfoPO.getOwnerImUserId(),betweenMinutes);
-
+                        memberProfitService.settleMemberProfit(meetingId, meetingRoomInfoPO.getOwnerImUserId(),
+                            betweenMinutes);
 
                         // 发放多人会议奖励
                         roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
-
 
                         log.info("【企业级华为云事件】华为云会议结束修改会议id：{}，结果：{}", meetingID, update);
                     } finally {
