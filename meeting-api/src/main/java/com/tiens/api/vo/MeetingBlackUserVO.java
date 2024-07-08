@@ -39,6 +39,18 @@ public class MeetingBlackUserVO implements Serializable {
     private Date endTime;
 
     /**
+     * 最大次数
+     */
+    private Integer maxTime;
+    /**
+     * 锁定天数
+     */
+    private Integer lockDay;
+
+
+
+
+    /**
      * 创建时间
      */
     private Date createTime;

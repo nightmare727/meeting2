@@ -298,6 +298,10 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             MeetingBlackUserPO meetingBlackUserPO = blackUserPOList.get(0);
             MeetingBlackUserVO meetingBlackUserVO =
                 BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackUserVO.class);
+            MeetingConfig.BlackUserConfigInner blackUserConfig = meetingConfig.getBlackUserConfig();
+
+            meetingBlackUserVO.setMaxTime(blackUserConfig.getMaxTime());
+            meetingBlackUserVO.setLockDay(blackUserConfig.getLockDay());
             return CommonResult.success(meetingBlackUserVO);
 
         }
