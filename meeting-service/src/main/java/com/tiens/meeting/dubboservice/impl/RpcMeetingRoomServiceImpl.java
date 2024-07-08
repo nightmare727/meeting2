@@ -645,7 +645,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             log.info("开始时间小于当前时间,开始时间：{}，当前时间：{}", showStartTime, now);
             return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
         }
-        // 无法创建3个月后的会议
+        // 无法创建7天后的会议
         if (showStartTime.after(DateUtil.offsetDay(now, 7))) {
             log.info("无法创建7天后的会议,开始时间：{}，7天后时间：{}", showStartTime, DateUtil.offsetDay(now, 7));
             return CommonResult.error(GlobalErrorCodeConstants.HW_START_TIME_ERROR);
@@ -673,7 +673,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_USE_PERSONAL_RESOURCE_ERROR);
         }
 
-        Long count = meetingRoomInfoDaoService.lambdaQuery()
+        /*Long count = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getOwnerImUserId, meetingRoomContextDTO.getImUserId())
             .notLike(MeetingRoomInfoPO::getResourceType, "-")
             // 非结束的会议
@@ -683,7 +683,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && count >= 2) {
             // 每个用户只可同时存在2个预约的公用会议室，超出时，则主页创建入口，提示”只可以同时存在2个预约的会议室，不可再次预约“
             return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_MORE_THAN);
-        }
+        }*/
         // 校验与会者人数
         if (ObjectUtil.isNotEmpty(
             meetingRoomContextDTO.getAttendees()) && meetingResourcePO.getSize() - 1 < meetingRoomContextDTO.getAttendees()
