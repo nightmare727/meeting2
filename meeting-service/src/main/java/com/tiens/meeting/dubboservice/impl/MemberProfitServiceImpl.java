@@ -128,6 +128,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         long memberMeetingCount = meetingUserProfitRecordPOList.stream()
             .filter(t -> PaidTypeEnum.MEMBER_FREE.getState().equals(t.getPaidType())).count();
         if (memberMeetingCount < freeDayAppointCount) {
+
+            String str = "[\"15295765073\", \"1320002222\"]";
             //免费次数未用完
             meetingRoomContextDTO.setPaidType(PaidTypeEnum.MEMBER_FREE.getState());
         } else {
@@ -382,19 +384,13 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         //重置当日会员权益,,将当日会员使用记录失效
         Integer getType = userMemberProfitModifyEntity.getGetType();
 
-        if (getType == 4) {
-            //降级 不处理
-        } else {
-            //升级
-            UpdateWrapper<MeetingUserProfitRecordPO> update = Wrappers.update();
-            update.eq("use_time", dateNow);
-            update.eq("user_id", userMemberProfitModifyEntity.getAccId());
-            update.eq("status", ProfitRecordStateEnum.VALID.getState());
-
-            update.set("status", ProfitRecordStateEnum.INVALID.getState());
-            meetingUserProfitRecordDaoService.update(update);
-
-        }
+        //升级
+        UpdateWrapper<MeetingUserProfitRecordPO> update = Wrappers.update();
+        update.eq("use_time", dateNow);
+        update.eq("user_id", userMemberProfitModifyEntity.getAccId());
+//            update.eq("status", ProfitRecordStateEnum.VALID.getState());
+        update.set("status", ProfitRecordStateEnum.INVALID.getState());
+        meetingUserProfitRecordDaoService.update(update);
 
         return CommonResult.success(null);
     }
