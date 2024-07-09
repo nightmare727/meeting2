@@ -113,12 +113,12 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         Result<DubboUserInfoDTO> dtoResult = null;
         try {
             dtoResult = dubboUserAccountService.dubboGetUserInfo(accid, joyoCode);
-
+            log.info("调用VM 查询用户accid：{},joyoCode：{}，返回：{}", accid, joyoCode, JSON.toJSONString(dtoResult));
             if (ObjectUtils.isEmpty(dtoResult.getData())) {
                 return CommonResult.success(null);
             }
         } catch (Exception e) {
-            log.error("调用VM 查询用户异常，异常：{}", e);
+            log.error("调用VM 查询用户异常,查询用户accid：{},joyoCode：{}", accid, joyoCode, e);
             return CommonResult.success(null);
         }
         DubboUserInfoDTO data = dtoResult.getData();
