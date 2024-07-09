@@ -23,6 +23,7 @@ import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
 import common.enums.MeetingResourceHandleEnum;
 import common.enums.MeetingUserJoinSourceEnum;
 import common.pojo.CommonResult;
+import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.SneakyThrows;
 import org.apache.dubbo.config.annotation.Reference;
@@ -83,28 +84,9 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void testRedis() {
-        VMUserVO vmUserVO = new VMUserVO();
-        vmUserVO.setAccid("121");
-        vmUserVO.setMobile("121211");
-        vmUserVO.setEmail("1111");
-        vmUserVO.setNickName("111");
-        vmUserVO.setHeadImg("111");
-        vmUserVO.setState("111");
-        vmUserVO.setSource("111");
-        vmUserVO.setFollowersNum("111");
-        vmUserVO.setFansNum("222");
-        vmUserVO.setSex("33");
-        vmUserVO.setPersonalProfile("11");
-        vmUserVO.setLevelCode(0);
-        vmUserVO.setGiftNumbers(0);
-        vmUserVO.setCountry("11");
-        vmUserVO.setJoyoCode("11");
-        vmUserVO.setMemberType(0);
+        RBucket<String> bucket = redissonClient.getBucket("vmmoment-meeting:im-login-meeting-user:0b7891ab4d17458eb8be41332ff1e120");
 
-        RBucket<VMUserVO> test = redissonClient.getBucket("testUser");
-
-        VMUserVO vmUserVO1 = test.get();
-
+        System.out.println(bucket.get());
 
         System.out.println("完成设置");
     }
