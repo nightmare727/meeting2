@@ -77,7 +77,7 @@
         <tika-core.version>2.6.0</tika-core.version>
         <netty-all.version>4.1.86.Final</netty-all.version>
         <ip2region.version>2.6.6</ip2region.version>
-        <nacos.client.version>1.4.4</nacos.client.version>
+        <nacos.client.version>2.0.1</nacos.client.version>
         <jetcache-starter-redis.version>2.6.5</jetcache-starter-redis.version>
 
         <!-- 三方云服务相关 -->

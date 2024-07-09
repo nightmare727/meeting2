@@ -166,16 +166,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             // 会议已结束
             return CommonResult.error(GlobalErrorCodeConstants.NOT_EXIST_ROOM_INFO);
         }
-        if (PaidTypeEnum.PAID.getState().equals(meetingRoomInfoPO.getPaidType())) {
-            //校验白名单
-            Set<String> whiteUserSet =
-                meetingWhiteUserDaoService.lambdaQuery().eq(MeetingWhiteUserPO::getMeetingId, meetingRoomInfoPO.getId())
-                    .select(MeetingWhiteUserPO::getUserId).list().stream().map(MeetingWhiteUserPO::getUserId)
-                    .collect(Collectors.toSet());
-            if (ObjectUtil.isNotEmpty(whiteUserSet) && !whiteUserSet.contains(imUserId)) {
-                //不是百名单中的人员
-                return CommonResult.error(GlobalErrorCodeConstants.NOT_WHITE_USER_LIST);
-            }
+        //校验白名单
+        Set<String> whiteUserSet =
+            meetingWhiteUserDaoService.lambdaQuery().eq(MeetingWhiteUserPO::getMeetingId, meetingRoomInfoPO.getId())
+                .select(MeetingWhiteUserPO::getUserId).list().stream().map(MeetingWhiteUserPO::getUserId)
+                .collect(Collectors.toSet());
+        if (ObjectUtil.isNotEmpty(whiteUserSet) && !whiteUserSet.contains(imUserId)) {
+            //不是白名单中的人员
+            return CommonResult.error(GlobalErrorCodeConstants.NOT_WHITE_USER_LIST);
         }
 
         // 此资源为共有资源
