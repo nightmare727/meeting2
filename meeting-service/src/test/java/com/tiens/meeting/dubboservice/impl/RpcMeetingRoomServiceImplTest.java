@@ -12,6 +12,7 @@ import com.tiens.api.dto.hwevent.HwEventReq;
 import com.tiens.api.dto.hwevent.MeetingInfo;
 import com.tiens.api.dto.hwevent.Payload;
 import com.tiens.api.service.RpcMeetingRoomService;
+import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.dubboservice.async.RoomAsyncTaskService;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
@@ -28,6 +29,8 @@ import org.apache.dubbo.config.annotation.Reference;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -74,6 +77,37 @@ class RpcMeetingRoomServiceImplTest {
 
     @Autowired
     InvalidMeetingCleanTask invalidMeetingCleanTask;
+
+    @Autowired
+    RedissonClient redissonClient;
+
+    @Test
+    void testRedis() {
+        VMUserVO vmUserVO = new VMUserVO();
+        vmUserVO.setAccid("121");
+        vmUserVO.setMobile("121211");
+        vmUserVO.setEmail("1111");
+        vmUserVO.setNickName("111");
+        vmUserVO.setHeadImg("111");
+        vmUserVO.setState("111");
+        vmUserVO.setSource("111");
+        vmUserVO.setFollowersNum("111");
+        vmUserVO.setFansNum("222");
+        vmUserVO.setSex("33");
+        vmUserVO.setPersonalProfile("11");
+        vmUserVO.setLevelCode(0);
+        vmUserVO.setGiftNumbers(0);
+        vmUserVO.setCountry("11");
+        vmUserVO.setJoyoCode("11");
+        vmUserVO.setMemberType(0);
+
+        RBucket<VMUserVO> test = redissonClient.getBucket("testUser");
+
+        VMUserVO vmUserVO1 = test.get();
+
+
+        System.out.println("完成设置");
+    }
 
     @Test
     void getCredential() {
@@ -257,8 +291,8 @@ class RpcMeetingRoomServiceImplTest {
     @SneakyThrows
     void getMeetingResourceTypeList() {
 
-        System.out.println(rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff", 2,
-            "CN"));
+        System.out.println(
+            rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff", 2, "CN"));
 
     }
 

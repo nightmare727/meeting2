@@ -2,6 +2,7 @@ package com.tiens.meeting.dubboservice.config;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
+import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.config.ClusterServersConfig;
 import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
@@ -46,8 +47,9 @@ public class RedissonConfig {
         SingleServerConfig serverConfig =
             config.useSingleServer().setAddress("redis://" + address + ":" + port).setDatabase(database)
                 .setTimeout(3000).setConnectionPoolSize(200).setConnectionMinimumIdleSize(50)
-                .setSubscriptionsPerConnection(10)
-                .setSubscriptionConnectionPoolSize(500);
+                .setSubscriptionsPerConnection(10).setSubscriptionConnectionPoolSize(500);
+
+        config.setCodec(JsonJacksonCodec.INSTANCE);
         return Redisson.create(config);
     }
 
@@ -69,6 +71,7 @@ public class RedissonConfig {
         for (int i = 0; i < nodeArray.length; i++) {
             redisAddrs[i] = "redis://" + nodeArray[i];
         }
+        config.setCodec(JsonJacksonCodec.INSTANCE);
         ClusterServersConfig clusterServersConfig =
             config.useClusterServers().setScanInterval(2000).addNodeAddress(redisAddrs);
 
@@ -78,7 +81,8 @@ public class RedissonConfig {
             3000);//如果当前连接池里的连接数量超过了最小空闲连接数，而同时有连接空闲时间超过了该数值，那么这些连接将会自动被关闭，并从连接池里去掉。时间单位是毫秒。
         clusterServersConfig.setConnectTimeout(30000);//同任何节点建立连接时的等待超时。时间单位是毫秒。
         clusterServersConfig.setTimeout(3000);//等待节点回复命令的时间。该时间从命令发送成功时开始计时。
-        clusterServersConfig.setSubscriptionConnectionPoolSize(500);//多从节点的环境里，每个从服务节点里用于发布和订阅连接的连接池最大容量。连接池的连接数量自动弹性伸缩。默认50
+        clusterServersConfig.setSubscriptionConnectionPoolSize(
+            500);//多从节点的环境里，每个从服务节点里用于发布和订阅连接的连接池最大容量。连接池的连接数量自动弹性伸缩。默认50
         clusterServersConfig.setSubscriptionsPerConnection(10);//每个连接的最大订阅数量
 
         try {

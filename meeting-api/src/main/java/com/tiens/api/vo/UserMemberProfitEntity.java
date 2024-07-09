@@ -22,7 +22,7 @@ public class UserMemberProfitEntity implements Serializable {
      */
     private Integer memberType;
     /**
-     * 每天每次免费预约次数
+     * 每天每次免费剩余预约次数
      */
     private Integer freeDayAppointCount;
 

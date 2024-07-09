@@ -121,10 +121,6 @@ public class MeetingConfig {
     @Data
     public static class CmsShowConfigInner {
         /**
-         * 是否开启
-         */
-        private Boolean enable;
-        /**
          * 安卓配置
          */
         private String androidBaseConfig;

@@ -131,7 +131,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             .filter(t -> PaidTypeEnum.MEMBER_FREE.getState().equals(t.getPaidType())).count();
         if (memberMeetingCount < freeDayAppointCount) {
 
-            String str = "[\"15295765073\", \"1320002222\"]";
             //免费次数未用完
             meetingRoomContextDTO.setPaidType(PaidTypeEnum.MEMBER_FREE.getState());
         } else {
@@ -223,7 +222,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     @Override
     public CommonResult<CmsShowVO> getCmsShow(CmsShowGetDTO cmsShowGetDTO) {
         MeetingConfig.CmsShowConfigInner cmsShowConfig = meetingConfig.getCmsShowConfig();
-        if (!cmsShowConfig.getEnable()) {
+        if (!memberProfitCacheService.getMemberProfitEnabled()) {
             return CommonResult.success(null);
         }
         Integer deviceType = cmsShowGetDTO.getDeviceType();
@@ -364,7 +363,21 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = map.get(memberType);
 
-        meetingUserProfitVO.setUserMemberProfit(this.packMeetingMemberProfitConfigPO(meetingMemeberProfitConfigPO));
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+
+        String todayStr = DateUtil.format(now, "yyyy-MM-dd");
+
+        Long useCount =
+            meetingUserProfitRecordDaoService.lambdaQuery().eq(MeetingUserProfitRecordPO::getUserId, finalUserId)
+                .apply("use_time = {0}", todayStr)
+                .eq(MeetingUserProfitRecordPO::getPaidType, PaidTypeEnum.MEMBER_FREE.getState())
+                //生效和预占用
+                .in(MeetingUserProfitRecordPO::getStatus, Lists.newArrayList(ProfitRecordStateEnum.VALID.getState(),
+                    ProfitRecordStateEnum.PRE_LOCK.getState())).count();
+
+        meetingUserProfitVO.setUserMemberProfit(
+            this.packMeetingMemberProfitConfigPO(meetingMemeberProfitConfigPO, useCount));
+
         List<UserPaidProfitEntity> userPaidProfits = getUserPaidProfit(finalUserId);
         meetingUserProfitVO.setUserPaidProfits(userPaidProfits);
 
@@ -395,16 +408,20 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             redissonClient.getMap(CacheKeyUtil.getMemberProfitConfigKey());
         Collection<MeetingMemeberProfitConfigPO> values = map.values();
 
-        List<UserMemberProfitEntity> collect = values.stream().map(this::packMeetingMemberProfitConfigPO)
+        List<UserMemberProfitEntity> collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))
             .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType)).collect(Collectors.toList());
 
         return CommonResult.success(collect);
     }
 
-    UserMemberProfitEntity packMeetingMemberProfitConfigPO(MeetingMemeberProfitConfigPO t) {
+    UserMemberProfitEntity packMeetingMemberProfitConfigPO(MeetingMemeberProfitConfigPO t, Long useCount) {
         UserMemberProfitEntity userMemberProfitEntity = new UserMemberProfitEntity();
         userMemberProfitEntity.setMemberType(t.getMemberType());
-        userMemberProfitEntity.setFreeDayAppointCount(t.getFreeDayAppointCount());
+
+        Integer freeDayAppointCount = t.getFreeDayAppointCount();
+
+        userMemberProfitEntity.setFreeDayAppointCount(
+            ObjectUtil.isNotNull(useCount) ? (int)Math.abs(freeDayAppointCount - useCount) : freeDayAppointCount);
         userMemberProfitEntity.setEveryLimitCount(t.getLimitCount());
 
         return userMemberProfitEntity;

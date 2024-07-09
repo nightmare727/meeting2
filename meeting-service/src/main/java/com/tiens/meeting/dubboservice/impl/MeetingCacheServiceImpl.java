@@ -92,8 +92,6 @@ public class MeetingCacheServiceImpl implements MeetingCacheService {
         vmUserVO.setLevelCode(data.getLevelCode());
         vmUserVO.setCountry(data.getCountry());
         vmUserVO.setJoyoCode(data.getJoyoCode());
-
-        //todo 设置会员类型
         vmUserVO.setMemberType(data.getMember().equals(0) ? 1 : data.getMemberLevel());
 
         // 设置缓存
