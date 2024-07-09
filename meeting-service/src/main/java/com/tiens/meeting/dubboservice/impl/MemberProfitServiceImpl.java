@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.google.common.collect.Lists;
 import com.tiens.api.dto.*;
+import com.tiens.api.service.MeetingCacheService;
 import com.tiens.api.service.MemberProfitCacheService;
 import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.service.RpcMeetingUserService;
@@ -70,6 +71,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     private final MemberProfitCacheService memberProfitCacheService;
 
+    private final MeetingCacheService meetingCacheService;
+
     @Autowired
     RpcMeetingUserService rpcMeetingUserService;
 
@@ -92,8 +95,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         Boolean isHighestMemberLevel = MemberLevelEnum.BLUE.getState().equals(memberType);
 
-        if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType) || !"zh-CN".equals(
-            languageId)) {
+        if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType)) {
             //海外用户或者私有会议返回成功
             return CommonResult.success(null);
         }
@@ -435,6 +437,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         update.set("status", ProfitRecordStateEnum.INVALID.getState());
         meetingUserProfitRecordDaoService.update(update);
 
+        //刷新用户缓存
+        meetingCacheService.refreshMeetingUserCache(userMemberProfitModifyEntity.getAccId(), null);
         return CommonResult.success(null);
     }
 
@@ -453,8 +457,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         long betweenMinutes) {
 
         log.info("【会员会议权益结算】入参meetingId：{}.imUserId:{}", meetingId, imUserId);
-        if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType) || !"zh-CN".equals(
-            languageId)) {
+        if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType)) {
             //私有会议直接返回
             return CommonResult.success(null);
         }

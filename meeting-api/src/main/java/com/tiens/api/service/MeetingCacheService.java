@@ -1,5 +1,6 @@
 package com.tiens.api.service;
 
+import com.tiens.china.circle.api.dto.DubboUserInfoDTO;
 import common.pojo.CommonResult;
 
 import java.util.List;
@@ -28,5 +29,14 @@ public interface MeetingCacheService {
      * @return
      */
     public CommonResult deleteMeetingRoomCache(List<Long> meetingRoomIdList);
+
+    /**
+     * 修改用户缓存
+     *
+     * @param accId
+     * @param joyoCode
+     * @return
+     */
+    public CommonResult<DubboUserInfoDTO> refreshMeetingUserCache(String accId, String joyoCode);
 
 }

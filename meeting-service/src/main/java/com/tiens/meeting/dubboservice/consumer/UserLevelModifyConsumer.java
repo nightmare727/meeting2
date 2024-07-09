@@ -1,22 +1,18 @@
 package com.tiens.meeting.dubboservice.consumer;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
-import com.tiens.meeting.dubboservice.bo.MqCacheCleanBO;
+import com.tiens.api.service.MeetingCacheService;
 import com.tiens.meeting.dubboservice.model.UserLevelModEntity;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.po.MeetingLevelResourceConfigPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
 import com.tiens.meeting.repository.service.MeetingLevelResourceConfigDaoService;
-import com.tiens.meeting.util.RedisKeyCleanUtil;
-import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.redisson.api.RType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -49,6 +45,9 @@ public class UserLevelModifyConsumer implements RocketMQListener<MessageExt> {
     @Value("${rocketmq.producer.clean_cache_topic}")
     String cleanCacheTopic;
 
+    @Autowired
+    MeetingCacheService meetingCacheService;
+
     @Override
     public void onMessage(MessageExt messageExt) {
         UserLevelModEntity userLevelModEntity = new UserLevelModEntity();
@@ -59,9 +58,8 @@ public class UserLevelModifyConsumer implements RocketMQListener<MessageExt> {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
-        //移除VM用户缓存
-        SpringUtil.getBean(RedisKeyCleanUtil.class).sendCleanCacheMsg(new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT,
-                CacheKeyUtil.getUserInfoKey(userLevelModEntity.getAccId()), null));
+
+        meetingCacheService.refreshMeetingUserCache(userLevelModEntity.getAccId(), null);
 
         //逻辑校验   是否在表中有记录
         Optional<MeetingHostUserPO> meetingHostUserPO =

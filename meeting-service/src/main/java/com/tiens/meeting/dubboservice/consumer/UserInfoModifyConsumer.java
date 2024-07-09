@@ -1,27 +1,21 @@
 package com.tiens.meeting.dubboservice.consumer;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ObjectUtil;
+import com.tiens.api.service.MeetingCacheService;
 import com.tiens.api.vo.VMUserVO;
-import com.tiens.china.circle.api.bo.HomepageBo;
-import com.tiens.china.circle.api.common.result.Result;
 import com.tiens.china.circle.api.dto.DubboUserInfoDTO;
-import com.tiens.china.circle.api.dubbo.DubboUserAccountService;
 import com.tiens.meeting.dubboservice.async.UserAsyncTaskService;
 import com.tiens.meeting.dubboservice.core.HwMeetingUserService;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
-import common.util.cache.CacheKeyUtil;
+import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.dubbo.config.annotation.Reference;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.redisson.api.RBucket;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -50,9 +44,6 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
     @Autowired
     MeetingResourceDaoService meetingResourceDaoService;
 
-    @Reference(version = "1.0")
-    DubboUserAccountService dubboUserAccountService;
-
     @Autowired
     HwMeetingUserService hwMeetingUserService;
 
@@ -63,7 +54,7 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
     UserAsyncTaskService userAsyncTaskService;
 
     @Autowired
-    RedissonClient redissonClient;
+    MeetingCacheService meetingCacheService;
 
     @Override
     public void onMessage(MessageExt messageExt) {
@@ -76,45 +67,11 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
+        //刷新用户缓存
+        CommonResult<DubboUserInfoDTO> dubboUserInfoDTOCommonResult =
+            meetingCacheService.refreshMeetingUserCache(imUserId, null);
 
-        HomepageBo homepageBo = new HomepageBo();
-        homepageBo.setAccId(imUserId);
-        Result<DubboUserInfoDTO> dubboUserInfoDTOResult = dubboUserAccountService.dubboGetUserInfo(imUserId, null);
-        DubboUserInfoDTO data = dubboUserInfoDTOResult.getData();
-
-        if (ObjectUtil.isEmpty(data)) {
-            log.error("用户修改-查无此用户！,userId：{}", imUserId);
-            return;
-        }
-
-        RBucket<VMUserVO> ImUserIdCache = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(imUserId));
-        RBucket<VMUserVO> joyoCodeCache = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(data.getJoyoCode()));
-        //修改用户缓存
-
-        VMUserVO vmUserVO = new VMUserVO();
-        vmUserVO.setAccid(data.getAccId());
-        vmUserVO.setMobile(data.getMobile());
-        vmUserVO.setEmail(data.getEmail());
-        vmUserVO.setNickName(data.getNickName());
-        vmUserVO.setHeadImg(data.getHeadImg());
-        vmUserVO.setFansNum(String.valueOf(data.getFansNum()));
-        vmUserVO.setLevelCode(data.getLevelCode());
-        vmUserVO.setCountry(data.getCountry());
-        vmUserVO.setJoyoCode(data.getJoyoCode());
-
-        // 设置缓存
-        ImUserIdCache.set(vmUserVO);
-        joyoCodeCache.set(vmUserVO);
-
-//        RedisKeyCleanUtil redisKeyClean = SpringUtil.getBean(RedisKeyCleanUtil.class);
-
-        //移除VM用户缓存
-//        redisKeyClean.sendCleanCacheMsg(
-//            new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(imUserId), null));
-
-//        redisKeyClean.sendCleanCacheMsg(
-//            new MqCacheCleanBO(cleanCacheTopic, RType.OBJECT, CacheKeyUtil.getUserInfoKey(data.getJoyoCode()), null));
-
+        DubboUserInfoDTO data = dubboUserInfoDTOCommonResult.getData();
         //同步修改直播主播数据
         userAsyncTaskService.updateLiveAnchorInfo(data);
 
