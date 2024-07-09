@@ -22,6 +22,14 @@ public interface MemberProfitService {
     CommonResult checkProfit(MeetingRoomContextDTO meetingRoomContextDTO);
 
     /**
+     * 保存权益记录
+     *
+     * @param meetingRoomContextDTO
+     * @return
+     */
+    CommonResult saveUserProfitRecord(MeetingRoomContextDTO meetingRoomContextDTO, Long meetingId);
+
+    /**
      * 查询首页头图展示
      *
      * @return

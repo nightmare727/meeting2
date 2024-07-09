@@ -92,7 +92,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         Boolean isHighestMemberLevel = MemberLevelEnum.BLUE.getState().equals(memberType);
 
-        if (!NumberUtil.isNumber(resourceType) || !"zh-CN".equals(languageId)) {
+        if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType) || !"zh-CN".equals(
+            languageId)) {
             //海外用户或者私有会议返回成功
             return CommonResult.success(null);
         }
@@ -171,6 +172,45 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         return CommonResult.success(null);
 
+    }
+
+    /**
+     * 保存权益记录
+     *
+     * @param meetingRoomContextDTO
+     * @param meetingId
+     * @return
+     */
+    @Override
+    public CommonResult saveUserProfitRecord(MeetingRoomContextDTO meetingRoomContextDTO, Long meetingId) {
+        if (memberProfitCacheService.getMemberProfitEnabled() && NumberUtil.isNumber(
+            meetingRoomContextDTO.getResourceType()) && "zh-CN".equals(meetingRoomContextDTO.getLanguageId())) {
+            log.info("保存权益记录入参：meetingRoomContextDTO：{}，meetingId：{}", JSON.toJSONString(meetingRoomContextDTO),
+                meetingId);
+            DateTime showStartTime = DateUtils.roundToHalfHour(
+                ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(),
+                    DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_GMT);
+            String showStartTimeStr = DateUtil.format(showStartTime, "yyyy-MM-dd");
+            //4、设置权益存储
+            //校验通过之后，设置使用记录
+            MeetingUserProfitRecordPO meetingUserProfitRecordPO = new MeetingUserProfitRecordPO();
+            meetingUserProfitRecordPO.setUserId(meetingRoomContextDTO.getImUserId());
+            meetingUserProfitRecordPO.setJoyoCode(meetingRoomContextDTO.getJoyoCode());
+            meetingUserProfitRecordPO.setInitMemberType(meetingRoomContextDTO.getMemberType());
+//                meetingUserProfitRecordPO.setCurrentMemberType(meetingRoomContextDTO.get);
+            meetingUserProfitRecordPO.setPaidType(meetingRoomContextDTO.getPaidType());
+            meetingUserProfitRecordPO.setUseTime(showStartTimeStr);
+            meetingUserProfitRecordPO.setMeetingId(meetingId);
+//        meetingUserProfitRecordPO.setRel_duration();
+            meetingUserProfitRecordPO.setLockDuration(meetingRoomContextDTO.getLength());
+            meetingUserProfitRecordPO.setResourceType(Integer.valueOf(meetingRoomContextDTO.getResourceType()));
+            meetingUserProfitRecordPO.setStatus(ProfitRecordStateEnum.PRE_LOCK.getState());
+
+            boolean save = meetingUserProfitRecordDaoService.save(meetingUserProfitRecordPO);
+
+            return CommonResult.success(save);
+        }
+        return CommonResult.success(false);
     }
 
     /**
@@ -353,9 +393,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             redissonClient.getMap(CacheKeyUtil.getMemberProfitConfigKey());
         Collection<MeetingMemeberProfitConfigPO> values = map.values();
 
-        List<UserMemberProfitEntity> collect =
-            values.stream().map(this::packMeetingMemberProfitConfigPO)
-                .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType)).collect(Collectors.toList());
+        List<UserMemberProfitEntity> collect = values.stream().map(this::packMeetingMemberProfitConfigPO)
+            .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType)).collect(Collectors.toList());
 
         return CommonResult.success(collect);
     }
@@ -414,7 +453,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         long betweenMinutes) {
 
         log.info("【会员会议权益结算】入参meetingId：{}.imUserId:{}", meetingId, imUserId);
-        if (!NumberUtil.isNumber(resourceType) || !"zh-CN".equals(languageId)) {
+        if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType) || !"zh-CN".equals(
+            languageId)) {
             //私有会议直接返回
             return CommonResult.success(null);
         }
@@ -461,7 +501,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             public void afterCommit() {
                 //刷新缓存
                 log.info("执行刷新缓存逻辑");
-
+                memberProfitCacheService.refreshMemberProfitCache();
             }
         });
         return CommonResult.success(null);

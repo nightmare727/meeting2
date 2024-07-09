@@ -7,4 +7,23 @@ package com.tiens.api.service;
  * @Company: tiens
  */
 public interface MemberProfitCacheService {
+    /**
+     * 刷新会员权益缓存
+     */
+    void refreshMemberProfitCache();
+
+    /**
+     * 查询首页cms配置
+     *
+     * @return
+     */
+    Boolean getCmsShowEnabled();
+
+    /**
+     * 查询会员权益是否生效
+     *
+     * @return
+     */
+    Boolean getMemberProfitEnabled();
+
 }

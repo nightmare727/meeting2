@@ -422,11 +422,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             }
         }
 
-        DateTime showStartTime = DateUtils.roundToHalfHour(
-            ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(),
-                DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_GMT);
-        String showStartTimeStr = DateUtil.format(showStartTime, "yyyy-MM-dd");
-
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
 
@@ -490,25 +485,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
             // 3、锁定资源，更改资源状态为共有预约
             publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
-            if (NumberUtil.isNumber(meetingRoomContextDTO.getResourceType()) && "zh-CN".equals(
-                meetingRoomContextDTO.getLanguageId())) {
-                //4、设置权益存储
-                //校验通过之后，设置使用记录
-                MeetingUserProfitRecordPO meetingUserProfitRecordPO = new MeetingUserProfitRecordPO();
-                meetingUserProfitRecordPO.setUserId(meetingRoomContextDTO.getImUserId());
-                meetingUserProfitRecordPO.setJoyoCode(meetingRoomContextDTO.getJoyoCode());
-                meetingUserProfitRecordPO.setInitMemberType(meetingRoomContextDTO.getMemberType());
-//                meetingUserProfitRecordPO.setCurrentMemberType(meetingRoomContextDTO.get);
-                meetingUserProfitRecordPO.setPaidType(meetingRoomContextDTO.getPaidType());
-                meetingUserProfitRecordPO.setUseTime(showStartTimeStr);
-                meetingUserProfitRecordPO.setMeetingId(meetingRoomId);
-//        meetingUserProfitRecordPO.setRel_duration();
-                meetingUserProfitRecordPO.setLockDuration(meetingRoomContextDTO.getLength());
-                meetingUserProfitRecordPO.setResourceType(Integer.valueOf(meetingRoomContextDTO.getResourceType()));
-                meetingUserProfitRecordPO.setStatus(ProfitRecordStateEnum.PRE_LOCK.getState());
 
-                meetingUserProfitRecordDaoService.save(meetingUserProfitRecordPO);
-            }
+            //4、设置权益记录
+            memberProfitService.saveUserProfitRecord(meetingRoomContextDTO, meetingRoomId);
 
             // 返回创建后得详情
             MeetingRoomDetailDTO result = packBaseMeetingRoomDetailDTO(meetingRoomInfoPO, null);
@@ -1105,10 +1084,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         publicResourceHoldHandle(resourceId, MeetingResourceHandleEnum.HOLD_DOWN);
 
         //如果权益使用记录里有使用，则将该记录置无效
-        meetingUserProfitRecordDaoService.lambdaUpdate()
-            .eq(MeetingUserProfitRecordPO::getMeetingId, byId.getId())
-            .set(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.INVALID.getState())
-            .update();
+        meetingUserProfitRecordDaoService.lambdaUpdate().eq(MeetingUserProfitRecordPO::getMeetingId, byId.getId())
+            .set(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.INVALID.getState()).update();
 
         // 会议资源已分配，则取消资源占用
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));

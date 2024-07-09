@@ -16,6 +16,8 @@ public class CacheKeyUtil {
     private static final String IM_NEW_COMER_USER_KEY_PREFIX = "im-meeting-new_comer_user:";
     private static final String HW_USER_KEY_PREFIX = "im-hw-user-flag";
 
+    private static final String PROFIT_COMMON_CONFIG = "profit-common-config";
+
     private static final String MEETING_KEY_PREFIX = "meetingCache";
     private static final String HW_ROOM_EVENT_SYNC_PREFIX = "hw_room_event_count:";
     private static final String LANGUAGE_ID_PREFIX = "language-word:";
@@ -50,6 +52,10 @@ public class CacheKeyUtil {
      */
     public static String getHwUserSyncKey() {
         return new StringBuilder(BASE_CACHE_PREFIX).append(HW_USER_KEY_PREFIX).toString();
+    }
+
+    public static String getProfitCommonConfigKey() {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(PROFIT_COMMON_CONFIG).toString();
     }
 
     /**
