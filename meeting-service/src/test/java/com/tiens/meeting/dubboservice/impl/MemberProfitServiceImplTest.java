@@ -1,9 +1,11 @@
 package com.tiens.meeting.dubboservice.impl;
 
 import com.tiens.api.dto.CmsShowGetDTO;
+import com.tiens.api.dto.CommonProfitConfigSaveDTO;
 import com.tiens.api.dto.PushOrderDTO;
 import com.tiens.api.dto.UserMemberProfitModifyEntity;
 import com.tiens.api.service.MemberProfitService;
+import com.tiens.api.vo.CommonProfitConfigQueryVO;
 import com.tiens.api.vo.MeetingUserProfitVO;
 import com.tiens.meeting.ServiceApplication;
 import common.pojo.CommonResult;
@@ -89,5 +91,23 @@ class MemberProfitServiceImplTest {
 
         memberProfitService.modUserMemberProfit(userMemberProfitModifyEntity);
 
+    }
+
+    @Test
+    void saveCommonProfitConfig() {
+
+        CommonProfitConfigSaveDTO commonProfitConfigSaveDTO = new CommonProfitConfigSaveDTO();
+        commonProfitConfigSaveDTO.setCmsShowFlag("0");
+        commonProfitConfigSaveDTO.setMemberProfitFlag("0");
+
+        System.out.println(memberProfitService.saveCommonProfitConfig(commonProfitConfigSaveDTO));
+    }
+
+    @Test
+    void queryCommonProfitConfig() {
+        CommonResult<CommonProfitConfigQueryVO> commonProfitConfigQueryVOCommonResult =
+            memberProfitService.queryCommonProfitConfig();
+
+        System.out.println(commonProfitConfigQueryVOCommonResult);
     }
 }

@@ -10,19 +10,15 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.google.common.collect.Lists;
-import com.tiens.api.dto.CmsShowGetDTO;
-import com.tiens.api.dto.MeetingRoomContextDTO;
-import com.tiens.api.dto.PushOrderDTO;
-import com.tiens.api.dto.UserMemberProfitModifyEntity;
+import com.tiens.api.dto.*;
+import com.tiens.api.service.MemberProfitCacheService;
 import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.*;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.repository.po.*;
-import com.tiens.meeting.repository.service.MeetingBlackUserDaoService;
-import com.tiens.meeting.repository.service.MeetingUserPaidProfitDaoService;
-import com.tiens.meeting.repository.service.MeetingUserProfitOrderDaoService;
-import com.tiens.meeting.repository.service.MeetingUserProfitRecordDaoService;
+import com.tiens.meeting.repository.service.*;
+import common.constants.CommonProfitConfigConstants;
 import common.enums.MemberLevelEnum;
 import common.enums.PaidTypeEnum;
 import common.enums.ProfitRecordStateEnum;
@@ -39,12 +35,11 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -70,6 +65,10 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     private final MeetingUserPaidProfitDaoService meetingUserPaidProfitDaoService;
 
     private final MeetingUserProfitRecordDaoService meetingUserProfitRecordDaoService;
+
+    private final MeetingProfitCommonConfigDaoService meetingProfitCommonConfigDaoService;
+
+    private final MemberProfitCacheService memberProfitCacheService;
 
     @Autowired
     RpcMeetingUserService rpcMeetingUserService;
@@ -355,7 +354,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         Collection<MeetingMemeberProfitConfigPO> values = map.values();
 
         List<UserMemberProfitEntity> collect =
-            values.stream().map(this::packMeetingMemberProfitConfigPO).collect(Collectors.toList());
+            values.stream().map(this::packMeetingMemberProfitConfigPO)
+                .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType)).collect(Collectors.toList());
 
         return CommonResult.success(collect);
     }
@@ -433,5 +433,59 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         log.info("【会员会议权益结算】入参meetingId：{},执行结果1:{}执行结果2:{}", meetingId, update, update2);
         return CommonResult.success(null);
+    }
+
+    /**
+     * 保存通用权益配置
+     *
+     * @param commonProfitConfigSaveDTO
+     * @return
+     */
+    @Override
+    @Transactional
+    public CommonResult saveCommonProfitConfig(CommonProfitConfigSaveDTO commonProfitConfigSaveDTO) {
+        MeetingProfitCommonConfigPO cmsConfig = new MeetingProfitCommonConfigPO();
+        cmsConfig.setConfigKey(CommonProfitConfigConstants.CMS_SHOW_FLAG);
+        cmsConfig.setConfigValue(commonProfitConfigSaveDTO.getCmsShowFlag());
+
+        MeetingProfitCommonConfigPO memberProfitFlag = new MeetingProfitCommonConfigPO();
+        memberProfitFlag.setConfigKey(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG);
+        memberProfitFlag.setConfigValue(commonProfitConfigSaveDTO.getMemberProfitFlag());
+
+        ArrayList<MeetingProfitCommonConfigPO> meetingProfitCommonConfigPOS =
+            Lists.newArrayList(cmsConfig, memberProfitFlag);
+
+        meetingProfitCommonConfigDaoService.saveOrUpdateBatch(meetingProfitCommonConfigPOS);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+            @Override
+            public void afterCommit() {
+                //刷新缓存
+                log.info("执行刷新缓存逻辑");
+
+            }
+        });
+        return CommonResult.success(null);
+    }
+
+    /**
+     * 查询权益公共配置
+     *
+     * @return
+     */
+    @Override
+    public CommonResult<CommonProfitConfigQueryVO> queryCommonProfitConfig() {
+        List<UserMemberProfitEntity> userMemberProfitList = queryUserProfitConfig().getData();
+        List<MeetingProfitCommonConfigPO> list = meetingProfitCommonConfigDaoService.lambdaQuery().list();
+
+        CommonProfitConfigQueryVO commonProfitConfigQueryVO = new CommonProfitConfigQueryVO();
+        commonProfitConfigQueryVO.setUserMemberProfitList(userMemberProfitList);
+        commonProfitConfigQueryVO.setCmsShowFlag(
+            list.stream().filter(t -> CommonProfitConfigConstants.CMS_SHOW_FLAG.equals(t.getConfigKey())).findAny()
+                .get().getConfigValue());
+        commonProfitConfigQueryVO.setMemberProfitFlag(
+            list.stream().filter(t -> CommonProfitConfigConstants.MEMBER_PROFIT_FLAG.equals(t.getConfigKey())).findAny()
+                .get().getConfigValue());
+
+        return CommonResult.success(commonProfitConfigQueryVO);
     }
 }

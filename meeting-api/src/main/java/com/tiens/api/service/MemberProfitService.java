@@ -1,13 +1,7 @@
 package com.tiens.api.service;
 
-import com.tiens.api.dto.CmsShowGetDTO;
-import com.tiens.api.dto.MeetingRoomContextDTO;
-import com.tiens.api.dto.PushOrderDTO;
-import com.tiens.api.dto.UserMemberProfitModifyEntity;
-import com.tiens.api.vo.CmsShowVO;
-import com.tiens.api.vo.MeetingBlackUserVO;
-import com.tiens.api.vo.MeetingUserProfitVO;
-import com.tiens.api.vo.UserMemberProfitEntity;
+import com.tiens.api.dto.*;
+import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
 
 import java.util.List;
@@ -84,5 +78,21 @@ public interface MemberProfitService {
      * @param betweenMinutes
      * @return
      */
-    CommonResult settleMemberProfit(Long meetingId, String imUserId, String resourceType, String languageId, long betweenMinutes);
+    CommonResult settleMemberProfit(Long meetingId, String imUserId, String resourceType, String languageId,
+        long betweenMinutes);
+
+    /**
+     * 保存通用权益配置
+     *
+     * @param commonProfitConfigSaveDTO
+     * @return
+     */
+    CommonResult saveCommonProfitConfig(CommonProfitConfigSaveDTO commonProfitConfigSaveDTO);
+
+    /**
+     * 查询权益公共配置
+     *
+     * @return
+     */
+    CommonResult<CommonProfitConfigQueryVO> queryCommonProfitConfig();
 }
