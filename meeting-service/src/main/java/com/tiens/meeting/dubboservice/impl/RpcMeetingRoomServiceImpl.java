@@ -46,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RLock;
 import org.redisson.api.RLongAdder;
+import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
@@ -364,33 +365,24 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     /**
-     * 获取最大会议用户等级
+     * 获取最大资源等级
      *
      * @param levelCode
      * @param imUserId
      * @param nationId
+     * @param memberType
      * @return
      */
-    public Integer getMaxLevel(Integer levelCode, String imUserId, String nationId) {
-        if ("CN".equals(nationId)) {
-            Optional<MeetingLevelResourceConfigPO> meetingLevelResourceConfigPO =
-                meetingLevelResourceConfigDaoService.lambdaQuery().select(MeetingLevelResourceConfigPO::getResourceType)
-                    .orderByDesc(MeetingLevelResourceConfigPO::getResourceNum).last(" limit 1").oneOpt();
-            if (meetingLevelResourceConfigPO.isPresent()) {
-                return meetingLevelResourceConfigPO.get().getResourceType();
-            } else {
-                //默认
-                int defaultMax = 9;
-                return defaultMax;
-            }
+    public Integer getMaxLevel(Integer levelCode, String imUserId, String nationId, Integer memberType) {
 
-        }
+        //查询会员等级对应最大资源等级配置
 
-        // 根据等级查询资源
-        MeetingLevelResourceConfigPO one =
-            meetingLevelResourceConfigDaoService.lambdaQuery().select(MeetingLevelResourceConfigPO::getResourceType)
-                .eq(MeetingLevelResourceConfigPO::getVmUserLevel, levelCode).one();
-        Integer maxResourceType = one.getResourceType();
+        RMap<Integer, MeetingMemeberProfitConfigPO> map =
+            redissonClient.getMap(CacheKeyUtil.getMemberProfitConfigKey());
+
+        MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = map.get(memberType);
+        Integer maxResourceType = meetingMemeberProfitConfigPO.getResourceType();
+
         // 查询该用户的主持人等级
         Optional<MeetingHostUserPO> meetingHostUserPOOptional =
             meetingHostUserDaoService.lambdaQuery().eq(MeetingHostUserPO::getAccId, imUserId)
@@ -1542,8 +1534,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Override
     public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode,
         String nationId, Integer memberType) {
-        // 获取最大会议用户等级
-        Integer maxResourceType = getMaxLevel(levelCode, imUserId, nationId);
+        // 获取最大资源类型
+        Integer maxResourceType = getMaxLevel(levelCode, imUserId, nationId, memberType);
         // 根据资源等级过滤资源类型
         List<ResourceTypeVO> levelResourceTypeVOList =
             Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
