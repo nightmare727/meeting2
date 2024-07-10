@@ -1536,11 +1536,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      *
      * @param imUserId
      * @param levelCode
+     * @param memberType
      * @return
      */
     @Override
     public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode,
-        String nationId) {
+        String nationId, Integer memberType) {
         // 获取最大会议用户等级
         Integer maxResourceType = getMaxLevel(levelCode, imUserId, nationId);
         // 根据资源等级过滤资源类型

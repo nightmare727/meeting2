@@ -70,6 +70,10 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
         //刷新用户缓存
         CommonResult<DubboUserInfoDTO> dubboUserInfoDTOCommonResult =
             meetingCacheService.refreshMeetingUserCache(imUserId, null);
+        if (dubboUserInfoDTOCommonResult.isError()) {
+            log.error("查询用户服务异常");
+            return;
+        }
 
         DubboUserInfoDTO data = dubboUserInfoDTOCommonResult.getData();
         //同步修改直播主播数据
@@ -84,9 +88,6 @@ public class UserInfoModifyConsumer implements RocketMQListener<MessageExt> {
             .set(MeetingHostUserPO::getPhone, mobile).set(MeetingHostUserPO::getName, nickName)
             .set(MeetingHostUserPO::getEmail, email).update();
         log.info("修改主持人结果：{}", update);
-
-//        meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getOwnerImUserId, accid)
-//            .set(MeetingResourcePO::getOwnerImUserName, nickName).update();
 
         Boolean aBoolean = hwMeetingUserService.modHwUser(BeanUtil.copyProperties(data, VMUserVO.class));
         log.info("修改华为云用户信息结果：{}", aBoolean);

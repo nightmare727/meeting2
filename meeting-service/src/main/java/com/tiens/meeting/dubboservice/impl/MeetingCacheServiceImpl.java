@@ -7,6 +7,7 @@ import com.tiens.api.vo.VMUserVO;
 import com.tiens.china.circle.api.common.result.Result;
 import com.tiens.china.circle.api.dto.DubboUserInfoDTO;
 import com.tiens.china.circle.api.dubbo.DubboUserAccountService;
+import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
 import common.util.cache.CacheKeyUtil;
 import lombok.RequiredArgsConstructor;
@@ -68,36 +69,44 @@ public class MeetingCacheServiceImpl implements MeetingCacheService {
     @Override
     public CommonResult<DubboUserInfoDTO> refreshMeetingUserCache(String imUserId, String joyoCode) {
         log.info("修改用户缓存入参imUserId：{},joyoCode：{}", imUserId, joyoCode);
-        Result<DubboUserInfoDTO> dubboUserInfoDTOResult = dubboUserAccountService.dubboGetUserInfo(imUserId, joyoCode);
-        log.info("用户ES数据返回：{}", JSON.toJSONString(dubboUserInfoDTOResult));
+        try {
+            Result<DubboUserInfoDTO> dubboUserInfoDTOResult =
+                dubboUserAccountService.dubboGetUserInfo(imUserId, joyoCode);
+            log.info("用户ES数据返回：{}", JSON.toJSONString(dubboUserInfoDTOResult));
 
-        DubboUserInfoDTO data = dubboUserInfoDTOResult.getData();
+            DubboUserInfoDTO data = dubboUserInfoDTOResult.getData();
 
-        if (ObjectUtil.isEmpty(data)) {
-            log.error("用户修改-查无此用户！,userId：{}", imUserId);
-            return CommonResult.errorMsg("用户修改-查无此用户");
+            if (ObjectUtil.isEmpty(data)) {
+                log.error("用户修改-查无此用户！,userId：{}", imUserId);
+                return CommonResult.errorMsg("用户修改-查无此用户");
+            }
+
+            RBucket<VMUserVO> ImUserIdCache = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(imUserId));
+            RBucket<VMUserVO> joyoCodeCache = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(data.getJoyoCode()));
+            //修改用户缓存
+
+            VMUserVO vmUserVO = new VMUserVO();
+            vmUserVO.setAccid(data.getAccId());
+            vmUserVO.setMobile(data.getMobile());
+            vmUserVO.setEmail(data.getEmail());
+            vmUserVO.setNickName(data.getNickName());
+            vmUserVO.setHeadImg(data.getHeadImg());
+            vmUserVO.setFansNum(String.valueOf(data.getFansNum()));
+            vmUserVO.setLevelCode(data.getLevelCode());
+            vmUserVO.setCountry(data.getCountry());
+            vmUserVO.setJoyoCode(data.getJoyoCode());
+            vmUserVO.setMemberType(data.getMember().equals(0) ? 1 : data.getMemberLevel());
+
+            // 设置缓存
+            ImUserIdCache.set(vmUserVO);
+            joyoCodeCache.set(vmUserVO);
+
+            return CommonResult.success(data);
+
+        } catch (Exception e) {
+            log.error("刷新用户缓存异常，imUserId：{},joyoCode：{}", imUserId, joyoCode, e);
+            return CommonResult.error(GlobalErrorCodeConstants.QUERY_SECOND_SERVICE_ERROR);
         }
 
-        RBucket<VMUserVO> ImUserIdCache = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(imUserId));
-        RBucket<VMUserVO> joyoCodeCache = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(data.getJoyoCode()));
-        //修改用户缓存
-
-        VMUserVO vmUserVO = new VMUserVO();
-        vmUserVO.setAccid(data.getAccId());
-        vmUserVO.setMobile(data.getMobile());
-        vmUserVO.setEmail(data.getEmail());
-        vmUserVO.setNickName(data.getNickName());
-        vmUserVO.setHeadImg(data.getHeadImg());
-        vmUserVO.setFansNum(String.valueOf(data.getFansNum()));
-        vmUserVO.setLevelCode(data.getLevelCode());
-        vmUserVO.setCountry(data.getCountry());
-        vmUserVO.setJoyoCode(data.getJoyoCode());
-        vmUserVO.setMemberType(data.getMember().equals(0) ? 1 : data.getMemberLevel());
-
-        // 设置缓存
-        ImUserIdCache.set(vmUserVO);
-        joyoCodeCache.set(vmUserVO);
-
-        return CommonResult.success(data);
     }
 }

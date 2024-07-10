@@ -2,11 +2,13 @@ package com.tiens.meeting.dubboservice.consumer;
 
 import com.alibaba.fastjson.JSON;
 import com.tiens.api.service.MeetingCacheService;
+import com.tiens.china.circle.api.dto.DubboUserInfoDTO;
 import com.tiens.meeting.dubboservice.model.UserLevelModEntity;
 import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.po.MeetingLevelResourceConfigPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
 import com.tiens.meeting.repository.service.MeetingLevelResourceConfigDaoService;
+import common.pojo.CommonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
@@ -59,7 +61,13 @@ public class UserLevelModifyConsumer implements RocketMQListener<MessageExt> {
             throw new RuntimeException(e);
         }
 
-        meetingCacheService.refreshMeetingUserCache(userLevelModEntity.getAccId(), null);
+        CommonResult<DubboUserInfoDTO> dubboUserInfoDTOCommonResult =
+            meetingCacheService.refreshMeetingUserCache(userLevelModEntity.getAccId(), null);
+        if(dubboUserInfoDTOCommonResult.isError()){
+            return;
+        }
+
+
 
         //逻辑校验   是否在表中有记录
         Optional<MeetingHostUserPO> meetingHostUserPO =

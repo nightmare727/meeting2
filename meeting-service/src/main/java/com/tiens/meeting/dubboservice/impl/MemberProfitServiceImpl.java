@@ -24,6 +24,7 @@ import common.enums.MemberLevelEnum;
 import common.enums.PaidTypeEnum;
 import common.enums.ProfitRecordStateEnum;
 import common.enums.TerminalEnum;
+import common.exception.ErrorCode;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
 import common.util.cache.CacheKeyUtil;
@@ -89,11 +90,11 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         String resourceType = meetingRoomContextDTO.getResourceType();
 
-        String languageId = meetingRoomContextDTO.getLanguageId();
-
         Integer memberType = meetingRoomContextDTO.getMemberType();
 
         Boolean isHighestMemberLevel = MemberLevelEnum.BLUE.getState().equals(memberType);
+
+        Boolean isCN = "zh-CN".equals(meetingRoomContextDTO.getLanguageId());
 
         if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType)) {
             //海外用户或者私有会议返回成功
@@ -143,8 +144,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                     .eq(MeetingUserPaidProfitPO::getResourceType, meetingRoomContextDTO.getResourceType()).oneOpt();
             if (!meetingUserPaidProfitOpt.isPresent()) {
                 //无资源
-                return CommonResult.error(isHighestMemberLevel ? GlobalErrorCodeConstants.NEED_PAID
-                    : GlobalErrorCodeConstants.NEED_MEMBER_OR_PAID);
+
+                return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel, isCN));
             }
 
             //查询当前预占用和实际消耗时间
@@ -164,8 +165,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
             if (duration - calDuration.get() - meetingRoomContextDTO.getLength() <= 0) {
                 //无资源
-                return CommonResult.error(isHighestMemberLevel ? GlobalErrorCodeConstants.NEED_PAID
-                    : GlobalErrorCodeConstants.NEED_MEMBER_OR_PAID);
+                return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel, isCN));
             }
             //有剩余资源时长
             meetingRoomContextDTO.setPaidType(PaidTypeEnum.PAID.getState());
@@ -173,6 +173,24 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         return CommonResult.success(null);
 
+    }
+
+    ErrorCode getMemberProfitErrorCode(Boolean isHighestMemberLevel, Boolean isCN) {
+        ErrorCode errorCode;
+        if (isHighestMemberLevel) {
+            if (isCN) {
+                errorCode = GlobalErrorCodeConstants.NEED_PAID;
+            } else {
+                errorCode = GlobalErrorCodeConstants.RESOURCE_MORE_THAN;
+            }
+        } else {
+            if (isCN) {
+                errorCode = GlobalErrorCodeConstants.NEED_MEMBER_OR_PAID;
+            } else {
+                errorCode = GlobalErrorCodeConstants.NEED_MEMBER;
+            }
+        }
+        return errorCode;
     }
 
     /**

@@ -44,7 +44,7 @@ public class MeetingBlackRecordPO implements Serializable {
     /**
      * 0：无效 1：有效
      */
-    @TableField(value = "user_id")
+    @TableField(value = "status")
     private Integer status;
 
     /**

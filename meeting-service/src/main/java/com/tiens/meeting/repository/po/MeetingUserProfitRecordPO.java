@@ -73,7 +73,7 @@ public class MeetingUserProfitRecordPO implements Serializable {
     /**
      * 会议锁定时长（分钟数）
      */
-    @TableField(value = "rel_duration")
+    @TableField(value = "lock_duration")
     private Integer lockDuration;
 
     /**

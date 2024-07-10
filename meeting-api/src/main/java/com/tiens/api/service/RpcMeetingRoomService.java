@@ -85,7 +85,8 @@ public interface RpcMeetingRoomService {
      *
      * @return
      */
-    CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(HistoryMeetingRoomListGetDTO historyMeetingRoomListGetDTO);
+    CommonResult<List<MeetingRoomDetailDTO>> getHistoryMeetingRoomList(
+        HistoryMeetingRoomListGetDTO historyMeetingRoomListGetDTO);
 
     /**
      * 查询资源可用的时间段
@@ -117,7 +118,8 @@ public interface RpcMeetingRoomService {
      *
      * @return
      */
-    CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode, String nationId);
+    CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode, String nationId,
+        Integer memberType);
 
     /**
      * 获取某会议类型下所有会议列表

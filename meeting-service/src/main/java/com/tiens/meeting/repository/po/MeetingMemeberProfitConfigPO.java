@@ -46,6 +46,11 @@ public class MeetingMemeberProfitConfigPO implements Serializable {
      */
     @TableField(value = "rule_type")
     private Integer ruleType;
+    /**
+     * 资源上限类型 1：10方 2：50方 3：100方  4：200方 5：500方 6：1000方 7：3000方
+     */
+    @TableField(value = "resource_type")
+    private Integer resourceType;
 
     /**
      * 创建时间

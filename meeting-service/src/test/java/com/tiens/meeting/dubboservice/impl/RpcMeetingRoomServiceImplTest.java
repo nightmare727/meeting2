@@ -12,7 +12,6 @@ import com.tiens.api.dto.hwevent.HwEventReq;
 import com.tiens.api.dto.hwevent.MeetingInfo;
 import com.tiens.api.dto.hwevent.Payload;
 import com.tiens.api.service.RpcMeetingRoomService;
-import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.ServiceApplication;
 import com.tiens.meeting.dubboservice.async.RoomAsyncTaskService;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
@@ -23,7 +22,6 @@ import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
 import common.enums.MeetingResourceHandleEnum;
 import common.enums.MeetingUserJoinSourceEnum;
 import common.pojo.CommonResult;
-import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.SneakyThrows;
 import org.apache.dubbo.config.annotation.Reference;
@@ -84,7 +82,8 @@ class RpcMeetingRoomServiceImplTest {
 
     @Test
     void testRedis() {
-        RBucket<String> bucket = redissonClient.getBucket("vmmoment-meeting:im-login-meeting-user:0b7891ab4d17458eb8be41332ff1e120");
+        RBucket<String> bucket =
+            redissonClient.getBucket("vmmoment-meeting:im-login-meeting-user:0b7891ab4d17458eb8be41332ff1e120");
 
         System.out.println(bucket.get());
 
@@ -126,16 +125,16 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-07-06 10:30:00"));
+        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-07-10 17:00:00"));
         meetingRoomContextDTO.setLength(60);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setResourceId(401);
+        meetingRoomContextDTO.setResourceId(398);
         meetingRoomContextDTO.setResourceType("5");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
         meetingRoomContextDTO.setGuestPwdFlag(false);
         meetingRoomContextDTO.setLevelCode(9);
-        meetingRoomContextDTO.setImUserId("e0e909954bcb48cab8ef0654892a5b87");
+        meetingRoomContextDTO.setImUserId("a6afdeaaa1ca4100a3f089a0e46a87b7");
         meetingRoomContextDTO.setImUserName("文杰昵称");
         meetingRoomContextDTO.setTimeZoneOffset("GMT+10:30");
         meetingRoomContextDTO.setJoyoCode("1540886");
@@ -274,7 +273,7 @@ class RpcMeetingRoomServiceImplTest {
     void getMeetingResourceTypeList() {
 
         System.out.println(
-            rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff", 2, "CN"));
+            rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff", 2, "CN", 1));
 
     }
 
