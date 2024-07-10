@@ -163,7 +163,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
             Integer duration = meetingUserPaidProfitPO.getDuration();
 
-            if (duration - calDuration.get() - meetingRoomContextDTO.getLength() <= 0) {
+            if (duration - calDuration.get() <= 0) {
                 //无资源
                 return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel, isCN));
             }
