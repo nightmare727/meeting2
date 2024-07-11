@@ -177,7 +177,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     ErrorCode getMemberProfitErrorCode(Boolean isHighestMemberLevel, Boolean isCN) {
         ErrorCode errorCode;
-        if (isHighestMemberLevel) {
+      /*  if (isHighestMemberLevel) {
             if (isCN) {
                 errorCode = GlobalErrorCodeConstants.NEED_PAID;
             } else {
@@ -189,6 +189,12 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             } else {
                 errorCode = GlobalErrorCodeConstants.NEED_MEMBER;
             }
+        }*/
+
+        if (isHighestMemberLevel) {
+            errorCode = GlobalErrorCodeConstants.RESOURCE_MORE_THAN;
+        } else {
+            errorCode = GlobalErrorCodeConstants.NEED_MEMBER;
         }
         return errorCode;
     }
@@ -277,7 +283,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             case MAC:
                 if (isCn) {
                     deviceSuggestion = cmsShowConfig.getMacBaseConfigCn();
-
                 } else {
                     deviceSuggestion = cmsShowConfig.getMacBaseConfigEn();
                 }
