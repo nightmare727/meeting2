@@ -103,4 +103,19 @@ public interface MemberProfitService {
      * @return
      */
     CommonResult<CommonProfitConfigQueryVO> queryCommonProfitConfig();
+
+    /**
+     * 查询权益商品列表
+     *
+     * @return
+     */
+    CommonResult<List<MeetingProfitProductListVO>> queryMeetingProfitProductList();
+
+    /**
+     * 购买权益
+     *
+     * @param buyMeetingProfitDTO
+     * @return
+     */
+    CommonResult buyMeetingProfit(BuyMeetingProfitDTO buyMeetingProfitDTO);
 }

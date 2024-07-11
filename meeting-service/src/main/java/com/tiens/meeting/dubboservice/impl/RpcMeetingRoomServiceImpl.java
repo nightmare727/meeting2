@@ -1075,9 +1075,11 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         // 释放资源
         publicResourceHoldHandle(resourceId, MeetingResourceHandleEnum.HOLD_DOWN);
 
-        //如果权益使用记录里有使用，则将该记录置无效
-        meetingUserProfitRecordDaoService.lambdaUpdate().eq(MeetingUserProfitRecordPO::getMeetingId, byId.getId())
-            .set(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.INVALID.getState()).update();
+        if (cancelMeetingRoomDTO.getReturnProfitFlag()) {
+            //如果权益使用记录里有使用，则将该记录置无效
+            meetingUserProfitRecordDaoService.lambdaUpdate().eq(MeetingUserProfitRecordPO::getMeetingId, byId.getId())
+                .set(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.INVALID.getState()).update();
+        }
 
         // 会议资源已分配，则取消资源占用
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
@@ -1536,12 +1538,17 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String nationId, Integer memberType) {
         // 获取最大资源类型
         Integer maxResourceType = getMaxLevel(levelCode, imUserId, nationId, memberType);
+
+        //获取付费资源缓存
+        RMap<Integer, MeetingProfitProductListPO> map = redissonClient.getMap(CacheKeyUtil.getProfitProductListKey());
+
         // 根据资源等级过滤资源类型
         List<ResourceTypeVO> levelResourceTypeVOList =
             Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
                 .collect(Collectors.toList()).stream().map(
                     t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc())
-                        .size(t.getValue()).wordKey(t.getWordKey()).build()).collect(Collectors.toList());
+                        .size(t.getValue()).wordKey(t.getWordKey()).coins(map.get(t.getCode()).getVmCoins()).build())
+                .collect(Collectors.toList());
         // 查询私池
         List<MeetingResourcePO> privateResourceList =
             meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getOwnerImUserId, imUserId)

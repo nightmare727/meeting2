@@ -39,4 +39,9 @@ public class ResourceTypeVO implements Serializable {
      * 人数
      */
     private Integer size;
+
+    /**
+     * VM币单价
+     */
+    private Integer coins;
 }

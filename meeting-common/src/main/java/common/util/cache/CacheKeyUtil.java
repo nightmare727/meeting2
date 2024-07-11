@@ -27,6 +27,7 @@ public class CacheKeyUtil {
     private static final String HW_ROOM_STOP_LOCK_PREFIX = "room_stop_lock:";
 
     private static final String MEMBER_PROFIT_CONFIG = "memberProfitConfig";
+    private static final String PROFIT_PRODUCT_LIST = "profitProductList";
 
     public static String getUserInfoKey(String imUserId) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(IM_USER_KEY_PREFIX).append(imUserId).toString();
@@ -113,5 +114,9 @@ public class CacheKeyUtil {
 
     public static String getMemberProfitConfigKey() {
         return new StringBuilder(BASE_CACHE_PREFIX).append(MEMBER_PROFIT_CONFIG).toString();
+    }
+
+    public static String getProfitProductListKey() {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(PROFIT_PRODUCT_LIST).toString();
     }
 }

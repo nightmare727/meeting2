@@ -91,9 +91,12 @@ public interface GlobalErrorCodeConstants {
 
     ErrorCode NEED_PAID = new ErrorCode("2000028", "需要购买", "moment_meeting_back_041");
 
-
     ErrorCode NEED_MEMBER = new ErrorCode("2000030", "需要开通会员", "moment_meeting_back_043");
     ErrorCode QUERY_SECOND_SERVICE_ERROR = new ErrorCode("2000029", "查询二方服务异常", "moment_meeting_back_042");
+
+    ErrorCode NOT_FOUND_PROFIT_PRODUCT = new ErrorCode("2000031", "无法查找到权益商品", "moment_meeting_back_044");
+
+    ErrorCode ERROR_BUY_PROFIT = new ErrorCode("2000032", "购买权益失败", "moment_meeting_back_045");
 
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段

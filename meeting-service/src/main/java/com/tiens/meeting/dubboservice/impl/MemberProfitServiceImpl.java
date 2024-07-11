@@ -5,20 +5,24 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.nacos.common.http.param.MediaType;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.google.common.collect.Lists;
 import com.tiens.api.dto.*;
-import com.tiens.api.service.MeetingCacheService;
-import com.tiens.api.service.MemberProfitCacheService;
-import com.tiens.api.service.MemberProfitService;
-import com.tiens.api.service.RpcMeetingUserService;
+import com.tiens.api.service.*;
 import com.tiens.api.vo.*;
+import com.tiens.meeting.dubboservice.common.entity.SyncCommonResult;
+import com.tiens.meeting.dubboservice.common.entity.VMCoinsOperateModel;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.repository.po.*;
 import com.tiens.meeting.repository.service.*;
+import com.tiens.meeting.util.VmUserUtil;
 import common.constants.CommonProfitConfigConstants;
 import common.enums.MemberLevelEnum;
 import common.enums.PaidTypeEnum;
@@ -40,6 +44,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -73,6 +79,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     private final MemberProfitCacheService memberProfitCacheService;
 
     private final MeetingCacheService meetingCacheService;
+
+    private final RpcMeetingRoomService rpcMeetingRoomService;
 
     @Autowired
     RpcMeetingUserService rpcMeetingUserService;
@@ -566,4 +574,138 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         return CommonResult.success(commonProfitConfigQueryVO);
     }
+
+    /**
+     * 查询权益商品列表
+     *
+     * @return
+     */
+    @Override
+    public CommonResult<List<MeetingProfitProductListVO>> queryMeetingProfitProductList() {
+        RMap<Integer, MeetingProfitProductListPO> map = redissonClient.getMap(CacheKeyUtil.getProfitProductListKey());
+        Collection<MeetingProfitProductListPO> values = map.values();
+        List<MeetingProfitProductListVO> meetingProfitProductListVOS =
+            BeanUtil.copyToList(values, MeetingProfitProductListVO.class);
+        return CommonResult.success(meetingProfitProductListVOS);
+    }
+
+    /**
+     * 购买权益
+     *
+     * @param buyMeetingProfitDTO
+     * @return
+     */
+    @Override
+    @Transactional
+    public CommonResult buyMeetingProfit(BuyMeetingProfitDTO buyMeetingProfitDTO) {
+
+        log.info("【购买权益】入参：{}", JSON.toJSONString(buyMeetingProfitDTO));
+
+        //1、查询商品信息
+        String resourceType = buyMeetingProfitDTO.getResourceType();
+        String nationId = buyMeetingProfitDTO.getNationId();
+        String finalUserId = buyMeetingProfitDTO.getFinalUserId();
+        String joyoCode = buyMeetingProfitDTO.getJoyoCode();
+
+        MeetingProfitProductListPO meetingProfitProductListPO = queryMeetingProfitProductByCode(resourceType);
+        if (ObjectUtil.isNull(meetingProfitProductListPO)) {
+            return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_PROFIT_PRODUCT);
+        }
+        FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
+        freeResourceListDTO.setStartTime(buyMeetingProfitDTO.getStartTime());
+        freeResourceListDTO.setLength(buyMeetingProfitDTO.getLength());
+        freeResourceListDTO.setResourceType(buyMeetingProfitDTO.getResourceType());
+        freeResourceListDTO.setTimeZoneOffset(buyMeetingProfitDTO.getTimeZoneOffset());
+        //2、校验资源是否可用
+        CommonResult<List<MeetingResourceVO>> freeResourceList =
+            rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO);
+
+        if (freeResourceList.isError() || ObjectUtil.isEmpty(freeResourceList.getData())) {
+            return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
+        }
+
+        //3、存储订单和计算权益
+        PushOrderDTO pushOrderDTO = new PushOrderDTO();
+        pushOrderDTO.setNationId(nationId);
+        pushOrderDTO.setAccId(finalUserId);
+        pushOrderDTO.setJoyoCode(joyoCode);
+        pushOrderDTO.setOrderNo(getProfitOrderNewNo());
+        pushOrderDTO.setSkuId(meetingProfitProductListPO.getProfitCode());
+        pushOrderDTO.setOrderStatus(1);
+        pushOrderDTO.setPaidVmAmount(new BigDecimal(meetingProfitProductListPO.getVmCoins()));
+        pushOrderDTO.setPaidRealAmount(new BigDecimal(meetingProfitProductListPO.getVmCoins()));
+        pushOrderDTO.setResourceType(meetingProfitProductListPO.getResourceType());
+        pushOrderDTO.setDuration(meetingProfitProductListPO.getDuration());
+
+        CommonResult result = pushOrder(pushOrderDTO);
+        if (result.isError()) {
+            return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
+        }
+
+        //3、扣减vm币
+        CommonResult result1 =
+            doCountDownMemberProfitCoins(joyoCode, nationId, meetingProfitProductListPO.getVmCoins());
+        if (result1.isError()) {
+            return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
+        }
+
+        return CommonResult.success(null);
+    }
+
+    CommonResult doCountDownMemberProfitCoins(String joyoCode, String country, Integer amount) {
+        log.info("【权益付费购买】入参joyoCode：{}， country：{}，amount：{}", joyoCode, country, amount);
+        Integer memberProfitCoinsSource = meetingConfig.getMemberProfitCoinsSource();
+
+        //https://yapi.tiens.com/project/575/interface/api/38207
+        Map<String, String> authHeadByJoyoCode = VmUserUtil.getAuthHeadByJoyoCode(joyoCode);
+        VMCoinsOperateModel vmCoinsOperateModel = new VMCoinsOperateModel();
+        vmCoinsOperateModel.setCountry(country);
+        vmCoinsOperateModel.setSource(1);
+        vmCoinsOperateModel.setAmount(amount);
+        vmCoinsOperateModel.setOperateType(2);
+        vmCoinsOperateModel.setCoinSource(memberProfitCoinsSource);
+
+        HttpResponse execute =
+            HttpUtil.createPost(meetingConfig.getCountDownVMCoinsUrl()).addHeaders(authHeadByJoyoCode)
+                .body(JSON.toJSONString(vmCoinsOperateModel), MediaType.APPLICATION_JSON).execute();
+        String result = execute.body();
+        log.info("【权益付费购买】 返回结果：{}", result);
+        SyncCommonResult syncCommonResult = JSON.parseObject(result, SyncCommonResult.class);
+        if (!syncCommonResult.getSuccess()) {
+            return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
+        } else {
+            return CommonResult.success(null);
+
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(getProfitOrderNewNo());
+    }
+
+    static String getProfitOrderNewNo() {
+        //MT202407110932+6位随机
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+        String orderNo = "MT" + now.toString(new SimpleDateFormat("yyyyMMddHHmmss")) + RandomUtil.randomNumbers(6);
+
+        return orderNo;
+    }
+
+    /**
+     * 通过资源类型查询商品信息
+     *
+     * @param resourceType
+     * @return
+     */
+    private MeetingProfitProductListPO queryMeetingProfitProductByCode(String resourceType) {
+        if (!NumberUtil.isNumber(resourceType)) {
+            return null;
+        }
+        RMap<Integer, MeetingProfitProductListPO> map = redissonClient.getMap(CacheKeyUtil.getProfitProductListKey());
+
+        MeetingProfitProductListPO meetingProfitProductListPO = map.get(Integer.parseInt(resourceType));
+
+        return meetingProfitProductListPO;
+    }
+
 }

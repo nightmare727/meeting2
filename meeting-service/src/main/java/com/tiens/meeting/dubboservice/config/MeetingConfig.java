@@ -117,6 +117,14 @@ public class MeetingConfig {
      * 头图展示
      */
     private CmsShowConfigInner cmsShowConfig;
+    /**
+     * 扣减vm币
+     */
+    private String countDownVMCoinsUrl;
+    /**
+     * 会员权益扣减
+     */
+    private Integer memberProfitCoinsSource;
 
     @Data
     public static class CmsShowConfigInner {
@@ -129,7 +137,6 @@ public class MeetingConfig {
         private String macBaseConfig;
 
     }
-
 
     /**
      * 黑名单规则

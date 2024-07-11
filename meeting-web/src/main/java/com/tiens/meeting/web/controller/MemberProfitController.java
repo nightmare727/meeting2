@@ -1,16 +1,19 @@
 package com.tiens.meeting.web.controller;
 
+import com.tiens.api.dto.BuyMeetingProfitDTO;
 import com.tiens.api.dto.CmsShowGetDTO;
-import com.tiens.api.dto.PushOrderDTO;
 import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.vo.CmsShowVO;
 import com.tiens.api.vo.MeetingBlackUserVO;
+import com.tiens.api.vo.MeetingProfitProductListVO;
 import com.tiens.api.vo.MeetingUserProfitVO;
 import common.pojo.CommonResult;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -34,12 +37,12 @@ public class MemberProfitController {
      * @return
      * @throws Exception
      */
-    @ResponseBody
+   /* @ResponseBody
     @PostMapping("/pushOrder")
     public CommonResult pushOrder(@RequestBody PushOrderDTO pushOrderDTO) throws Exception {
 
         return memberProfitService.pushOrder(pushOrderDTO);
-    }
+    }*/
 
     /**
      * 获取首页CMS图片展示
@@ -78,10 +81,39 @@ public class MemberProfitController {
     @ResponseBody
     @GetMapping("/getUserProfit")
     public CommonResult<MeetingUserProfitVO> getUserProfit(@RequestHeader("finalUserId") String finalUserId,
-        @RequestHeader("memberType") Integer memberType) throws
-        Exception {
+        @RequestHeader("memberType") Integer memberType) throws Exception {
 
-        return memberProfitService.getUserProfit(finalUserId,memberType);
+        return memberProfitService.getUserProfit(finalUserId, memberType);
+    }
+
+    /**
+     * 查询权益商品列表
+     *
+     * @param
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/queryMeetingProfitProductList")
+    public CommonResult<List<MeetingProfitProductListVO>> queryMeetingProfitProductList() {
+        return memberProfitService.queryMeetingProfitProductList();
+    }
+
+    /**
+     * 购买权益
+     *
+     * @param
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/buyMeetingProfit")
+    public CommonResult buyMeetingProfit(@RequestHeader("finalUserId") String finalUserId,
+        @RequestHeader("joyoCode") String joyoCode, @RequestHeader("nation_id") String nationId,
+        @RequestBody BuyMeetingProfitDTO buyMeetingProfitDTO) {
+        buyMeetingProfitDTO.setFinalUserId(finalUserId);
+        buyMeetingProfitDTO.setJoyoCode(joyoCode);
+        buyMeetingProfitDTO.setNationId(nationId);
+
+        return memberProfitService.buyMeetingProfit(buyMeetingProfitDTO);
     }
 
 }

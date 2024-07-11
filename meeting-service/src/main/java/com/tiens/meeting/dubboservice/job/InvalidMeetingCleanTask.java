@@ -138,6 +138,7 @@ public class InvalidMeetingCleanTask {
                             CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
                             cancelMeetingRoomDTO.setMeetingRoomId(meetingRoomInfoPO.getId());
                             cancelMeetingRoomDTO.setImUserId(meetingRoomInfoPO.getOwnerImUserId());
+                            cancelMeetingRoomDTO.setReturnProfitFlag(false);
                             log.info("【定时任务：清理无效会议】,预约中的会议-取消,会议信息：{}",
                                 meetingRoomInfoPO.getConferenceId());
 
