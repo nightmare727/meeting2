@@ -49,7 +49,9 @@ public class MemberProfitController {
      */
     @ResponseBody
     @PostMapping("/getCmsShow")
-    public CommonResult<CmsShowVO> getCmsShow(@RequestBody CmsShowGetDTO cmsShowGetDTO) throws Exception {
+    public CommonResult<CmsShowVO> getCmsShow(@RequestHeader("nation_id") String nationId,
+        @RequestBody CmsShowGetDTO cmsShowGetDTO) throws Exception {
+        cmsShowGetDTO.setNationId(nationId);
         return memberProfitService.getCmsShow(cmsShowGetDTO);
     }
 
@@ -81,7 +83,7 @@ public class MemberProfitController {
         @RequestHeader("memberType") Integer memberType) throws
         Exception {
 
-        return memberProfitService.getUserProfit(finalUserId,memberType);
+        return memberProfitService.getUserProfit(finalUserId, memberType);
     }
 
 }

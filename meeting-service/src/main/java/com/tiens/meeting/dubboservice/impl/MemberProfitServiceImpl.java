@@ -245,22 +245,42 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         }
         Integer deviceType = cmsShowGetDTO.getDeviceType();
         TerminalEnum byTerminal = TerminalEnum.getByTerminal(deviceType);
-
+        Boolean isCn = "CN".equals(cmsShowGetDTO.getNationId());
         String deviceSuggestion = null;
         CmsShowVO cmsShowVO = new CmsShowVO();
 
         switch (byTerminal) {
             case ANDROID:
-                deviceSuggestion = cmsShowConfig.getAndroidBaseConfig();
+                if (isCn) {
+                    deviceSuggestion = cmsShowConfig.getAndroidBaseConfigCn();
+
+                } else {
+                    deviceSuggestion = cmsShowConfig.getAndroidBaseConfigEn();
+                }
                 break;
             case IOS:
-                deviceSuggestion = cmsShowConfig.getIosBaseConfig();
+                if (isCn) {
+                    deviceSuggestion = cmsShowConfig.getIosBaseConfigCn();
+
+                } else {
+                    deviceSuggestion = cmsShowConfig.getIosBaseConfigEn();
+                }
                 break;
             case WINDOWS:
-                deviceSuggestion = cmsShowConfig.getWindowsBaseConfig();
+                if (isCn) {
+                    deviceSuggestion = cmsShowConfig.getWindowsBaseConfigCn();
+
+                } else {
+                    deviceSuggestion = cmsShowConfig.getWindowsBaseConfigEn();
+                }
                 break;
             case MAC:
-                deviceSuggestion = cmsShowConfig.getMacBaseConfig();
+                if (isCn) {
+                    deviceSuggestion = cmsShowConfig.getMacBaseConfigCn();
+
+                } else {
+                    deviceSuggestion = cmsShowConfig.getMacBaseConfigEn();
+                }
                 break;
             default:
         }

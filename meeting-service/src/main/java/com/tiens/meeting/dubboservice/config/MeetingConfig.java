@@ -123,13 +123,16 @@ public class MeetingConfig {
         /**
          * 安卓配置
          */
-        private String androidBaseConfig;
-        private String iosBaseConfig;
-        private String windowsBaseConfig;
-        private String macBaseConfig;
+        private String androidBaseConfigCn;
+        private String androidBaseConfigEn;
+        private String iosBaseConfigCn;
+        private String iosBaseConfigEn;
+        private String windowsBaseConfigCn;
+        private String windowsBaseConfigEn;
+        private String macBaseConfigCn;
+        private String macBaseConfigEn;
 
     }
-
 
     /**
      * 黑名单规则
