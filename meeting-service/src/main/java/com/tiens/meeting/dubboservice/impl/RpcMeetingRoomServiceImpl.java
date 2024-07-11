@@ -642,7 +642,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_USE_PERSONAL_RESOURCE_ERROR);
         }
 
-        Long count = meetingRoomInfoDaoService.lambdaQuery()
+       /* Long count = meetingRoomInfoDaoService.lambdaQuery()
             .eq(MeetingRoomInfoPO::getOwnerImUserId, meetingRoomContextDTO.getImUserId())
             .notLike(MeetingRoomInfoPO::getResourceType, "-")
             // 非结束的会议
@@ -652,7 +652,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (!meetingResourcePO.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState()) && count >= 2) {
             // 每个用户只可同时存在2个预约的公用会议室，超出时，则主页创建入口，提示”只可以同时存在2个预约的会议室，不可再次预约“
             return CommonResult.error(GlobalErrorCodeConstants.RESOURCE_MORE_THAN);
-        }
+        }*/
         // 校验与会者人数
         if (ObjectUtil.isNotEmpty(
             meetingRoomContextDTO.getAttendees()) && meetingResourcePO.getSize() - 1 < meetingRoomContextDTO.getAttendees()
