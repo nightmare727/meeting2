@@ -40,7 +40,7 @@ class MemberProfitServiceImplTest {
     void getCmsShow() {
         CmsShowGetDTO cmsShowGetDTO = new CmsShowGetDTO();
         cmsShowGetDTO.setDeviceType(1);
-
+        cmsShowGetDTO.setNationId("CN");
         System.out.println(memberProfitService.getCmsShow(cmsShowGetDTO));
     }
 

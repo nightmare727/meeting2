@@ -94,8 +94,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         Boolean isHighestMemberLevel = MemberLevelEnum.BLUE.getState().equals(memberType);
 
-        Boolean isCN = "zh-CN".equals(meetingRoomContextDTO.getLanguageId());
-
         if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType)) {
             //海外用户或者私有会议返回成功
             return CommonResult.success(null);
@@ -145,7 +143,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             if (!meetingUserPaidProfitOpt.isPresent()) {
                 //无资源
 
-                return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel, isCN));
+                return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel));
             }
 
             //查询当前预占用和实际消耗时间
@@ -165,7 +163,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
             if (duration - calDuration.get() <= 0) {
                 //无资源
-                return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel, isCN));
+                return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel));
             }
             //有剩余资源时长
             meetingRoomContextDTO.setPaidType(PaidTypeEnum.PAID.getState());
@@ -175,7 +173,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     }
 
-    ErrorCode getMemberProfitErrorCode(Boolean isHighestMemberLevel, Boolean isCN) {
+    ErrorCode getMemberProfitErrorCode(Boolean isHighestMemberLevel) {
         ErrorCode errorCode;
       /*  if (isHighestMemberLevel) {
             if (isCN) {
@@ -209,7 +207,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     @Override
     public CommonResult saveUserProfitRecord(MeetingRoomContextDTO meetingRoomContextDTO, Long meetingId) {
         if (memberProfitCacheService.getMemberProfitEnabled() && NumberUtil.isNumber(
-            meetingRoomContextDTO.getResourceType()) && "zh-CN".equals(meetingRoomContextDTO.getLanguageId())) {
+            meetingRoomContextDTO.getResourceType())) {
             log.info("保存权益记录入参：meetingRoomContextDTO：{}，meetingId：{}", JSON.toJSONString(meetingRoomContextDTO),
                 meetingId);
             DateTime showStartTime = DateUtils.roundToHalfHour(
