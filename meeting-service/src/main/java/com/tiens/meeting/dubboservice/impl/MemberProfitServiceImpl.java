@@ -245,49 +245,21 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<CmsShowVO> getCmsShow(CmsShowGetDTO cmsShowGetDTO) {
-        MeetingConfig.CmsShowConfigInner cmsShowConfig = meetingConfig.getCmsShowConfig();
-        if (!memberProfitCacheService.getMemberProfitEnabled()) {
+        if (!memberProfitCacheService.getCmsShowEnabled()) {
             return CommonResult.success(null);
         }
         Integer deviceType = cmsShowGetDTO.getDeviceType();
         TerminalEnum byTerminal = TerminalEnum.getByTerminal(deviceType);
         Boolean isCn = "CN".equals(cmsShowGetDTO.getNationId());
+        String defaultHwNation = "EN";
         String deviceSuggestion = null;
         CmsShowVO cmsShowVO = new CmsShowVO();
+        RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
 
-        switch (byTerminal) {
-            case ANDROID:
-                if (isCn) {
-                    deviceSuggestion = cmsShowConfig.getAndroidBaseConfigCn();
-
-                } else {
-                    deviceSuggestion = cmsShowConfig.getAndroidBaseConfigEn();
-                }
-                break;
-            case IOS:
-                if (isCn) {
-                    deviceSuggestion = cmsShowConfig.getIosBaseConfigCn();
-
-                } else {
-                    deviceSuggestion = cmsShowConfig.getIosBaseConfigEn();
-                }
-                break;
-            case WINDOWS:
-                if (isCn) {
-                    deviceSuggestion = cmsShowConfig.getWindowsBaseConfigCn();
-
-                } else {
-                    deviceSuggestion = cmsShowConfig.getWindowsBaseConfigEn();
-                }
-                break;
-            case MAC:
-                if (isCn) {
-                    deviceSuggestion = cmsShowConfig.getMacBaseConfigCn();
-                } else {
-                    deviceSuggestion = cmsShowConfig.getMacBaseConfigEn();
-                }
-                break;
-            default:
+        if (!isCn) {
+            deviceSuggestion = map.get(byTerminal.name() + "_" + defaultHwNation);
+        } else {
+            deviceSuggestion = map.get(byTerminal.name() + "_" + cmsShowGetDTO.getNationId());
         }
 
         CommonResult<List<UserMemberProfitEntity>> listCommonResult = queryUserProfitConfig();

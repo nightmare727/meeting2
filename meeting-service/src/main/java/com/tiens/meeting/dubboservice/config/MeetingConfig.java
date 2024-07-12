@@ -113,26 +113,6 @@ public class MeetingConfig {
      * 最小华为用户阈值百分比
      */
     private String minHwUserThresholdPe;
-    /**
-     * 头图展示
-     */
-    private CmsShowConfigInner cmsShowConfig;
-
-    @Data
-    public static class CmsShowConfigInner {
-        /**
-         * 安卓配置
-         */
-        private String androidBaseConfigCn;
-        private String androidBaseConfigEn;
-        private String iosBaseConfigCn;
-        private String iosBaseConfigEn;
-        private String windowsBaseConfigCn;
-        private String windowsBaseConfigEn;
-        private String macBaseConfigCn;
-        private String macBaseConfigEn;
-
-    }
 
     /**
      * 黑名单规则
