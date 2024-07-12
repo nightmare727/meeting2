@@ -92,6 +92,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         Integer memberType = meetingRoomContextDTO.getMemberType();
 
+        String timeZoneOffset = meetingRoomContextDTO.getTimeZoneOffset();
+
         Boolean isHighestMemberLevel = MemberLevelEnum.BLUE.getState().equals(memberType);
 
         if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType)) {
@@ -102,7 +104,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
         Date showStartTime =
             DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(), now),
-                DateUtils.TIME_ZONE_GMT);
+                DateUtils.TIME_ZONE_DEFAULT);
 
         String showStartTimeStr = DateUtil.format(showStartTime, "yyyy-MM-dd");
 
@@ -212,7 +214,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                 meetingId);
             DateTime showStartTime = DateUtils.roundToHalfHour(
                 ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(),
-                    DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_GMT);
+                    DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_DEFAULT);
             String showStartTimeStr = DateUtil.format(showStartTime, "yyyy-MM-dd");
             //4、设置权益存储
             //校验通过之后，设置使用记录
@@ -376,7 +378,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = map.get(memberType);
 
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_DEFAULT);
 
         String todayStr = DateUtil.format(now, "yyyy-MM-dd");
 
