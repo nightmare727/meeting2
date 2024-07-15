@@ -77,15 +77,6 @@ public interface GlobalErrorCodeConstants {
     ErrorCode MORE_THAN_RESOURCE_SIZE_ERROR =
         new ErrorCode("2000022", "与会者人数超出资源最大限制", "moment_meeting_156");
 
-    ErrorCode OPERATE_AUTH_ERROR =
-        new ErrorCode("2000023", "无权限进行此操作，如需使用请联系管理员", "moment_meeting_037");
-
-    ErrorCode TIME_OFFSET_ERROR = new ErrorCode("2000024", "无效的时区配置", "moment_meeting_back_032");
-
-    ErrorCode TOO_MANY_APPLYING_APPROVE =
-        new ErrorCode("2000025", "大型会议申请已超限，请等待后台人员操作", "moment_meeting_back_033");
-
-    ErrorCode NOT_WHITE_USER_LIST = new ErrorCode("2000026", "您非白名单人员，无法参会", "moment_meeting_back_039");
 
     ErrorCode NEED_MEMBER_OR_PAID = new ErrorCode("2000027", "需要开通会员或者购买", "moment_meeting_back_040");
 
@@ -95,6 +86,15 @@ public interface GlobalErrorCodeConstants {
     ErrorCode NEED_MEMBER = new ErrorCode("2000030", "需要开通会员", "moment_meeting_back_043");
     ErrorCode QUERY_SECOND_SERVICE_ERROR = new ErrorCode("2000029", "查询二方服务异常", "moment_meeting_back_042");
 
+    ErrorCode NOT_WHITE_USER_LIST = new ErrorCode("2000026", "您非白名单人员，无法参会", "moment_meeting_back_044");
+
+
+    ErrorCode TIME_OFFSET_ERROR = new ErrorCode("2000024", "无效的时区配置", "moment_meeting_back_045");
+
+    ErrorCode TOO_MANY_APPLYING_APPROVE =
+        new ErrorCode("2000025", "大型会议申请已超限，请等待后台人员操作", "moment_meeting_back_046");
+    ErrorCode OPERATE_AUTH_ERROR =
+        new ErrorCode("2000023", "无权限进行此操作，如需使用请联系管理员", "moment_meeting_047");
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段
      *
