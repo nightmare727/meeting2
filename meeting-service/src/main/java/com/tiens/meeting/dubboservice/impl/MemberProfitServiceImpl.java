@@ -100,9 +100,9 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         Integer memberType = meetingRoomContextDTO.getMemberType();
 
-        Boolean isHighestMemberLevel = MemberLevelEnum.BLUE.getState().equals(memberType);
+        String timeZoneOffset = meetingRoomContextDTO.getTimeZoneOffset();
 
-        Boolean isCN = "zh-CN".equals(meetingRoomContextDTO.getLanguageId());
+        Boolean isHighestMemberLevel = MemberLevelEnum.BLUE.getState().equals(memberType);
 
         if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType)) {
             //海外用户或者私有会议返回成功
@@ -112,7 +112,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
         Date showStartTime =
             DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(), now),
-                DateUtils.TIME_ZONE_GMT);
+                DateUtils.TIME_ZONE_DEFAULT);
 
         String showStartTimeStr = DateUtil.format(showStartTime, "yyyy-MM-dd");
 
@@ -153,7 +153,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             if (!meetingUserPaidProfitOpt.isPresent()) {
                 //无资源
 
-                return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel, isCN));
+                return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel));
             }
 
             //查询当前预占用和实际消耗时间
@@ -173,7 +173,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
             if (duration - calDuration.get() <= 0) {
                 //无资源
-                return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel, isCN));
+                return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel));
             }
             //有剩余资源时长
             meetingRoomContextDTO.setPaidType(PaidTypeEnum.PAID.getState());
@@ -183,9 +183,9 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     }
 
-    ErrorCode getMemberProfitErrorCode(Boolean isHighestMemberLevel, Boolean isCN) {
+    ErrorCode getMemberProfitErrorCode(Boolean isHighestMemberLevel) {
         ErrorCode errorCode;
-        if (isHighestMemberLevel) {
+      /*  if (isHighestMemberLevel) {
             if (isCN) {
                 errorCode = GlobalErrorCodeConstants.NEED_PAID;
             } else {
@@ -197,6 +197,12 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             } else {
                 errorCode = GlobalErrorCodeConstants.NEED_MEMBER;
             }
+        }*/
+
+        if (isHighestMemberLevel) {
+            errorCode = GlobalErrorCodeConstants.RESOURCE_MORE_THAN;
+        } else {
+            errorCode = GlobalErrorCodeConstants.NEED_MEMBER;
         }
         return errorCode;
     }
@@ -211,12 +217,12 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     @Override
     public CommonResult saveUserProfitRecord(MeetingRoomContextDTO meetingRoomContextDTO, Long meetingId) {
         if (memberProfitCacheService.getMemberProfitEnabled() && NumberUtil.isNumber(
-            meetingRoomContextDTO.getResourceType()) && "zh-CN".equals(meetingRoomContextDTO.getLanguageId())) {
+            meetingRoomContextDTO.getResourceType())) {
             log.info("保存权益记录入参：meetingRoomContextDTO：{}，meetingId：{}", JSON.toJSONString(meetingRoomContextDTO),
                 meetingId);
             DateTime showStartTime = DateUtils.roundToHalfHour(
                 ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(),
-                    DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_GMT);
+                    DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT)), DateUtils.TIME_ZONE_DEFAULT);
             String showStartTimeStr = DateUtil.format(showStartTime, "yyyy-MM-dd");
             //4、设置权益存储
             //校验通过之后，设置使用记录
@@ -247,30 +253,22 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<CmsShowVO> getCmsShow(CmsShowGetDTO cmsShowGetDTO) {
-        MeetingConfig.CmsShowConfigInner cmsShowConfig = meetingConfig.getCmsShowConfig();
-        if (!memberProfitCacheService.getMemberProfitEnabled()) {
+        if (!memberProfitCacheService.getCmsShowEnabled()) {
             return CommonResult.success(null);
         }
         Integer deviceType = cmsShowGetDTO.getDeviceType();
         TerminalEnum byTerminal = TerminalEnum.getByTerminal(deviceType);
-
+        Boolean isCn = "zh-CN".equals(cmsShowGetDTO.getLanguageId());
+        String defaultHwNation = "EN";
+        String defaultZhNation = "CN";
         String deviceSuggestion = null;
         CmsShowVO cmsShowVO = new CmsShowVO();
+        RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
 
-        switch (byTerminal) {
-            case ANDROID:
-                deviceSuggestion = cmsShowConfig.getAndroidBaseConfig();
-                break;
-            case IOS:
-                deviceSuggestion = cmsShowConfig.getIosBaseConfig();
-                break;
-            case WINDOWS:
-                deviceSuggestion = cmsShowConfig.getWindowsBaseConfig();
-                break;
-            case MAC:
-                deviceSuggestion = cmsShowConfig.getMacBaseConfig();
-                break;
-            default:
+        if (!isCn) {
+            deviceSuggestion = map.get(byTerminal.name() + "_" + defaultHwNation);
+        } else {
+            deviceSuggestion = map.get(byTerminal.name() + "_" + defaultZhNation);
         }
 
         CommonResult<List<UserMemberProfitEntity>> listCommonResult = queryUserProfitConfig();
@@ -389,7 +387,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = map.get(memberType);
 
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_DEFAULT);
 
         String todayStr = DateUtil.format(now, "yyyy-MM-dd");
 

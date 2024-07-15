@@ -16,6 +16,7 @@ public class CancelMeetingRoomDTO implements Serializable {
     private Long meetingRoomId;
 
     private String imUserId;
+
     /**
      * 是否返回退回权益
      */

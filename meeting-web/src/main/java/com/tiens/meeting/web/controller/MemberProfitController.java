@@ -2,6 +2,7 @@ package com.tiens.meeting.web.controller;
 
 import com.tiens.api.dto.BuyMeetingProfitDTO;
 import com.tiens.api.dto.CmsShowGetDTO;
+import com.tiens.api.dto.PushOrderDTO;
 import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.vo.CmsShowVO;
 import com.tiens.api.vo.MeetingBlackUserVO;
@@ -52,7 +53,11 @@ public class MemberProfitController {
      */
     @ResponseBody
     @PostMapping("/getCmsShow")
-    public CommonResult<CmsShowVO> getCmsShow(@RequestBody CmsShowGetDTO cmsShowGetDTO) throws Exception {
+    public CommonResult<CmsShowVO> getCmsShow(@RequestHeader("nation_id") String nationId,
+        @RequestHeader(value = "language_id", defaultValue = "zh-CN") String languageId,
+        @RequestBody CmsShowGetDTO cmsShowGetDTO) throws Exception {
+        cmsShowGetDTO.setNationId(nationId);
+        cmsShowGetDTO.setLanguageId(languageId);
         return memberProfitService.getCmsShow(cmsShowGetDTO);
     }
 

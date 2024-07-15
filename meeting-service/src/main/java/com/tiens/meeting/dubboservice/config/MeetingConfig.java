@@ -114,10 +114,6 @@ public class MeetingConfig {
      */
     private String minHwUserThresholdPe;
     /**
-     * 头图展示
-     */
-    private CmsShowConfigInner cmsShowConfig;
-    /**
      * 扣减vm币
      */
     private String countDownVMCoinsUrl;
@@ -126,17 +122,6 @@ public class MeetingConfig {
      */
     private Integer memberProfitCoinsSource;
 
-    @Data
-    public static class CmsShowConfigInner {
-        /**
-         * 安卓配置
-         */
-        private String androidBaseConfig;
-        private String iosBaseConfig;
-        private String windowsBaseConfig;
-        private String macBaseConfig;
-
-    }
 
     /**
      * 黑名单规则

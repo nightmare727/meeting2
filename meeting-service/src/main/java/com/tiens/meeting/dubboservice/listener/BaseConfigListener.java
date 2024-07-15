@@ -1,5 +1,6 @@
 package com.tiens.meeting.dubboservice.listener;
 
+import com.tiens.api.service.MemberProfitCacheService;
 import com.tiens.meeting.repository.po.MeetingMemeberProfitConfigPO;
 import com.tiens.meeting.repository.po.MeetingProfitProductListPO;
 import com.tiens.meeting.repository.service.MeetingMemeberProfitConfigDaoService;
@@ -11,6 +12,7 @@ import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -38,7 +40,7 @@ public class BaseConfigListener implements Serializable {
     MeetingMemeberProfitConfigDaoService meetingMemeberProfitConfigDaoService;
 
     @Autowired
-    MeetingProfitProductListDaoService meetingProfitProductListDaoService;
+    private MemberProfitCacheService memberProfitCacheService;
 
     @Order
     @EventListener({ApplicationStartedEvent.class})
@@ -47,6 +49,8 @@ public class BaseConfigListener implements Serializable {
         initMeetingMemberProfitConfig();
         //2、初始化权益商品配置
         initMemberProfitProduct();
+        //
+        memberProfitCacheService.refreshMemberProfitCache();
         log.info("完成数据初始化");
     }
 
@@ -66,5 +70,8 @@ public class BaseConfigListener implements Serializable {
         Map<Integer, MeetingProfitProductListPO> collect =
             list.stream().collect(Collectors.toMap(MeetingProfitProductListPO::getResourceType, Function.identity()));
         map.putAll(collect);
+        memberProfitCacheService.refreshMemberProfitCache();
+        log.info("完成数据初始化");
     }
+
 }

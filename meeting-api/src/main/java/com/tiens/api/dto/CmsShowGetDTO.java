@@ -19,4 +19,8 @@ public class CmsShowGetDTO implements Serializable {
      * @see TerminalEnum
      */
     private Integer deviceType;
+
+    private String nationId;
+
+    private String languageId;
 }
