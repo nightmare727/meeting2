@@ -252,6 +252,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         TerminalEnum byTerminal = TerminalEnum.getByTerminal(deviceType);
         Boolean isCn = "zh-CN".equals(cmsShowGetDTO.getLanguageId());
         String defaultHwNation = "EN";
+        String defaultZhNation = "CN";
         String deviceSuggestion = null;
         CmsShowVO cmsShowVO = new CmsShowVO();
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
@@ -259,7 +260,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         if (!isCn) {
             deviceSuggestion = map.get(byTerminal.name() + "_" + defaultHwNation);
         } else {
-            deviceSuggestion = map.get(byTerminal.name() + "_" + cmsShowGetDTO.getNationId());
+            deviceSuggestion = map.get(byTerminal.name() + "_" + defaultZhNation);
         }
 
         CommonResult<List<UserMemberProfitEntity>> listCommonResult = queryUserProfitConfig();
