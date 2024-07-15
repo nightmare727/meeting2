@@ -50,8 +50,10 @@ public class MemberProfitController {
     @ResponseBody
     @PostMapping("/getCmsShow")
     public CommonResult<CmsShowVO> getCmsShow(@RequestHeader("nation_id") String nationId,
+        @RequestHeader(value = "language_id", defaultValue = "zh-CN") String languageId,
         @RequestBody CmsShowGetDTO cmsShowGetDTO) throws Exception {
         cmsShowGetDTO.setNationId(nationId);
+        cmsShowGetDTO.setLanguageId(languageId);
         return memberProfitService.getCmsShow(cmsShowGetDTO);
     }
 

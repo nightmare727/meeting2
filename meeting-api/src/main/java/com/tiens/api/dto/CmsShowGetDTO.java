@@ -20,6 +20,7 @@ public class CmsShowGetDTO implements Serializable {
      */
     private Integer deviceType;
 
-
     private String nationId;
+
+    private String languageId;
 }

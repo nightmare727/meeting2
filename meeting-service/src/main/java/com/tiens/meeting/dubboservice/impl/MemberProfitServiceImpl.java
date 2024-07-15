@@ -250,7 +250,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         }
         Integer deviceType = cmsShowGetDTO.getDeviceType();
         TerminalEnum byTerminal = TerminalEnum.getByTerminal(deviceType);
-        Boolean isCn = "CN".equals(cmsShowGetDTO.getNationId());
+        Boolean isCn = "zh-CN".equals(cmsShowGetDTO.getLanguageId());
         String defaultHwNation = "EN";
         String deviceSuggestion = null;
         CmsShowVO cmsShowVO = new CmsShowVO();
