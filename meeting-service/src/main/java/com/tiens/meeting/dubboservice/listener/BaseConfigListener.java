@@ -12,7 +12,6 @@ import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -41,6 +40,9 @@ public class BaseConfigListener implements Serializable {
 
     @Autowired
     private MemberProfitCacheService memberProfitCacheService;
+
+    @Autowired
+    MeetingProfitProductListDaoService meetingProfitProductListDaoService;
 
     @Order
     @EventListener({ApplicationStartedEvent.class})
