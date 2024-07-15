@@ -74,4 +74,10 @@ public class VMUserVO implements Serializable {
     private String country;
 
     private String joyoCode;
+
+    /**
+     * 会员等级
+     */
+    private Integer memberType;
+
 }

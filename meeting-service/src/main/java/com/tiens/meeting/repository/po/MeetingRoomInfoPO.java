@@ -224,4 +224,12 @@ public class MeetingRoomInfoPO implements Serializable {
      */
     @TableField(value = "general_pwd")
     private String generalPwd;
+
+
+    /**
+     * 会议结束通知状态 0：未通知 1：已通知
+     */
+    @TableField(value = "paid_type")
+    private Integer paidType;
+
 }

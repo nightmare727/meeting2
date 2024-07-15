@@ -6,6 +6,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.tiens.imchatapi.api.message.MessageService;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.dubboservice.impl.RpcMeetingRoomServiceImpl;
@@ -85,7 +86,8 @@ public class MeetingStopTask {
             DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
 
             List<MeetingRoomInfoPO> list = meetingRoomInfoDaoService.lambdaQuery()
-                .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState())
+                .in(MeetingRoomInfoPO::getState, Lists.newArrayList(MeetingRoomStateEnum.Schedule.getState(),
+                    MeetingRoomStateEnum.Created.getState()))
                 .le(MeetingRoomInfoPO::getLockEndTime, now).list();
 
             //排除掉私人专属会议

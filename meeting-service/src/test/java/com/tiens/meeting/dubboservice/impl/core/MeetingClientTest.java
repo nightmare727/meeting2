@@ -68,7 +68,6 @@ public class MeetingClientTest {
 //            .withTenantScene()
 
         userClient = MeetingClient.newBuilder().withCredential(auth1).withEndpoints(endpoints).build();
-
     }
 
     @Test
@@ -281,6 +280,13 @@ public class MeetingClientTest {
         request.withXLoginType(1);
         CreateConfTokenResponse response = managerClient.createConfToken(request);
         return response;
+    }
+
+    @Test
+    @DisplayName("CreateAppIdToken")
+    public void createAppIdToken() {
+
+
     }
 
     @Data

@@ -12,13 +12,19 @@ import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingAttendeePO;
+import com.tiens.meeting.repository.po.MeetingBlackRecordPO;
+import com.tiens.meeting.repository.po.MeetingBlackUserPO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
+import com.tiens.meeting.repository.service.MeetingBlackRecordDaoService;
+import com.tiens.meeting.repository.service.MeetingBlackUserDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import common.enums.CommonStateEnum;
 import common.enums.MeetingRoomStateEnum;
 import common.util.cache.CacheKeyUtil;
+import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -62,6 +68,11 @@ public class InvalidMeetingCleanTask {
 
     @Autowired
     RpcMeetingRoomService rpcMeetingRoomService;
+    @Autowired
+    MeetingBlackRecordDaoService meetingBlackRecordDaoService;
+
+    @Autowired
+    MeetingBlackUserDaoService meetingBlackUserDaoService;
 
     ThreadPoolExecutor executorService =
         new ThreadPoolExecutor(16, 32, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(10000),
@@ -127,13 +138,19 @@ public class InvalidMeetingCleanTask {
                             CancelMeetingRoomDTO cancelMeetingRoomDTO = new CancelMeetingRoomDTO();
                             cancelMeetingRoomDTO.setMeetingRoomId(meetingRoomInfoPO.getId());
                             cancelMeetingRoomDTO.setImUserId(meetingRoomInfoPO.getOwnerImUserId());
+                            cancelMeetingRoomDTO.setReturnProfitFlag(Boolean.FALSE);
                             log.info("【定时任务：清理无效会议】,预约中的会议-取消,会议信息：{}",
                                 meetingRoomInfoPO.getConferenceId());
 
                             rpcMeetingRoomService.cancelMeetingRoom(cancelMeetingRoomDTO);
 
                         }
+
+                        //黑名单业务处理
+                        judgeBlackUser(meetingRoomInfoPO);
+
                     }
+
                 }
             }
 
@@ -144,6 +161,62 @@ public class InvalidMeetingCleanTask {
                 lock.unlock();
             }
         }
+    }
+
+    private void judgeBlackUser(MeetingRoomInfoPO meetingRoomInfoPO) {
+
+        MeetingConfig.BlackUserConfigInner blackUserConfig = meetingConfig.getBlackUserConfig();
+
+        //查询当前黑名单记录
+        List<MeetingBlackRecordPO> list = meetingBlackRecordDaoService.lambdaQuery()
+            .eq(MeetingBlackRecordPO::getUserId, meetingRoomInfoPO.getOwnerImUserId())
+            .eq(MeetingBlackRecordPO::getStatus, CommonStateEnum.VALID.getState()).list();
+
+        int count = list.size();
+
+        log.info("【黑名单业务处理】，用户：{},会议号：{},当前异常次数为：{}", meetingRoomInfoPO.getOwnerImUserId(),
+            meetingRoomInfoPO.getConferenceId(), count);
+
+        MeetingBlackRecordPO meetingBlackRecordPO = new MeetingBlackRecordPO();
+        meetingBlackRecordPO.setMeetingCode(meetingRoomInfoPO.getHwMeetingCode());
+        meetingBlackRecordPO.setMeetingId(meetingRoomInfoPO.getId());
+        meetingBlackRecordPO.setUserId(meetingRoomInfoPO.getOwnerImUserId());
+
+        if (count + 1 >= blackUserConfig.getMaxTime()) {
+            //达到最大黑名单次数
+
+            //本次处理成无效
+            meetingBlackRecordPO.setStatus(CommonStateEnum.INVALID.getState());
+            //旧数据处理成无效
+            list.stream().forEach(t -> t.setStatus(CommonStateEnum.INVALID.getState()));
+
+            list.add(meetingBlackRecordPO);
+            boolean b = meetingBlackRecordDaoService.saveOrUpdateBatch(list);
+
+            log.info("【黑名单业务处理】，用户：{},会议号：{},当前异常次数为：{}，达到最大次数限制：{},执行结果：{}",
+                meetingRoomInfoPO.getOwnerImUserId(), meetingRoomInfoPO.getConferenceId(), count,
+                blackUserConfig.getMaxTime(), b);
+
+            // 当前UTC时间
+            DateTime startTime = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+
+            DateTime endTime = DateUtil.offsetDay(startTime, 3);
+
+            //用户成为黑名单一员
+            MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
+            meetingBlackUserPO.setUserId(meetingRoomInfoPO.getOwnerImUserId());
+//            meetingBlackUserPO.setJoyoCode();
+            meetingBlackUserPO.setLastMeetingCode(meetingRoomInfoPO.getConferenceId());
+            meetingBlackUserPO.setStartTime(startTime);
+            meetingBlackUserPO.setEndTime(endTime);
+
+            meetingBlackUserDaoService.save(meetingBlackUserPO);
+        } else {
+            //未达到最大限制
+            meetingBlackRecordPO.setStatus(CommonStateEnum.VALID.getState());
+            meetingBlackRecordDaoService.save(meetingBlackRecordPO);
+        }
+
     }
 
 }

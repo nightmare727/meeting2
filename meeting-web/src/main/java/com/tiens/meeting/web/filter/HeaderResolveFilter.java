@@ -58,6 +58,7 @@ public class HeaderResolveFilter implements Filter {
         whiteListSet.add("/vmeeting/web/mtuser/batchQueryLiveVMUser");
         whiteListSet.add("/vmeeting/web/ping");
         whiteListSet.add("/vmeeting/web/mtuser/addMeetingHostUser");
+        whiteListSet.add("/vmeeting/web/profit/pushOrder");
         whiteListSet.add("/vmeeting/web/version/queryList");
 
         //临时增加白名单，注意后期删除
@@ -107,11 +108,14 @@ public class HeaderResolveFilter implements Filter {
         String nickName = vmUserVO.getNickName();
         String mobile = vmUserVO.getMobile();
         String email = vmUserVO.getEmail();
+        Integer memberType = vmUserVO.getMemberType();
+
         wrapperRequest.addHeader("levelCode", String.valueOf(levelCode));
         wrapperRequest.addHeader("joyoCode", joyoCode);
         wrapperRequest.addHeader("userName", nickName);
         wrapperRequest.addHeader("phone", mobile);
         wrapperRequest.addHeader("email", email);
+        wrapperRequest.addHeader("memberType", String.valueOf(memberType));
 
         //异步同步华为用户-必定成功
         ThreadUtil.execute(() -> {

@@ -22,6 +22,7 @@ import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
 import common.util.date.DateUtils;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping(value = "/room")
+@Tag(name = "会议管理接口")
 public class MeetingController {
 
     @Reference(version = "1.0", timeout = 20000)
@@ -105,11 +107,14 @@ public class MeetingController {
     CommonResult<MeetingRoomDetailDTO> createMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
         @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
         @RequestHeader(value = "language_id", defaultValue = "zh-CN") String languageId,
+        @RequestHeader(value = "joyoCode") String joyoCode, @RequestHeader(value = "memberType") Integer memberType,
         @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) throws Exception {
         meetingRoomContextDTO.setImUserId(finalUserId);
         meetingRoomContextDTO.setLevelCode(levelCode);
         meetingRoomContextDTO.setImUserName(userName);
         meetingRoomContextDTO.setLanguageId(languageId);
+        meetingRoomContextDTO.setJoyoCode(joyoCode);
+        meetingRoomContextDTO.setMemberType(memberType);
         return rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO);
     }
 
@@ -274,8 +279,9 @@ public class MeetingController {
     @ResponseBody
     @GetMapping("/getMeetingResourceTypeList")
     CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(@RequestHeader("finalUserId") String finalUserId,
-        @RequestHeader("levelCode") Integer levelCode, @RequestHeader("nation_id") String nationId) {
-        return rpcMeetingRoomService.getMeetingResourceTypeList(finalUserId, levelCode,nationId);
+        @RequestHeader("levelCode") Integer levelCode, @RequestHeader("nation_id") String nationId,
+        @RequestHeader("memberType") Integer memberType) {
+        return rpcMeetingRoomService.getMeetingResourceTypeList(finalUserId, levelCode, nationId,memberType);
     }
 
     /**

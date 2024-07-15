@@ -28,6 +28,8 @@ import org.apache.dubbo.config.annotation.Reference;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -72,9 +74,21 @@ class RpcMeetingRoomServiceImplTest {
     @Autowired
     HWUserCleanTask hwUserCleanTask;
 
-
     @Autowired
     InvalidMeetingCleanTask invalidMeetingCleanTask;
+
+    @Autowired
+    RedissonClient redissonClient;
+
+    @Test
+    void testRedis() {
+        RBucket<String> bucket =
+            redissonClient.getBucket("vmmoment-meeting:im-login-meeting-user:0b7891ab4d17458eb8be41332ff1e120");
+
+        System.out.println(bucket.get());
+
+        System.out.println("完成设置");
+    }
 
     @Test
     void getCredential() {
@@ -111,18 +125,21 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-04-04 09:00:00"));
+        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-07-10 15:00:00"));
         meetingRoomContextDTO.setLength(60);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
-        meetingRoomContextDTO.setResourceId(401);
-        meetingRoomContextDTO.setResourceType("7263c164463844039f275c846eca29cc-10-1");
+        meetingRoomContextDTO.setResourceId(398);
+        meetingRoomContextDTO.setResourceType("1");
 //        meetingRoomContextDTO.setVmrId();
 //        meetingRoomContextDTO.setVmrMode();
         meetingRoomContextDTO.setGuestPwdFlag(false);
         meetingRoomContextDTO.setLevelCode(9);
-        meetingRoomContextDTO.setImUserId("7263c164463844039f275c846eca29cc");
+        meetingRoomContextDTO.setImUserId("a6afdeaaa1ca4100a3f089a0e46a87b7");
         meetingRoomContextDTO.setImUserName("文杰昵称");
         meetingRoomContextDTO.setTimeZoneOffset("GMT+10:30");
+        meetingRoomContextDTO.setJoyoCode("1540886");
+        meetingRoomContextDTO.setMemberType(1);
+        meetingRoomContextDTO.setLanguageId("zh-CN");
 //        List<MeetingAttendeeDTO> meetingAttendeeDTOS = Lists.newArrayList();
 //        MeetingAttendeeDTO meetingAttendeeDTO = new MeetingAttendeeDTO();
 //        meetingAttendeeDTO.setAttendeeUserId("cb4b8cc1be09409eb108baf982d7e196");
@@ -233,7 +250,6 @@ class RpcMeetingRoomServiceImplTest {
         appointMeetingTask.jobHandler();
     }
 
-
     @Test
     @SneakyThrows
     void hwUserCleanTask() {
@@ -256,8 +272,8 @@ class RpcMeetingRoomServiceImplTest {
     @SneakyThrows
     void getMeetingResourceTypeList() {
 
-        System.out.println(rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff", 2,
-            "CN"));
+        System.out.println(
+            rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff", 2, "CN", 1));
 
     }
 
@@ -290,8 +306,9 @@ class RpcMeetingRoomServiceImplTest {
         roomAsyncTaskService.doSendMultiPersonsAward(meetingRoomInfoPO);
 
     }
+
     @Test
-    public void updateMeetingRoomStatus(){
+    public void updateMeetingRoomStatus() {
 
         HwEventReq hwEventReq = new HwEventReq();
         hwEventReq.setAppID("11");
@@ -308,14 +325,9 @@ class RpcMeetingRoomServiceImplTest {
         meetingInfo.setMeetingUUID("3083cfc1bf694f9b8f4a35b34c1d6648");
         meetingInfo.setMeetingCycleSubID("");
 
-
         payload.setMeetingInfo(meetingInfo);
 
-
-
         eventInfo.setPayload(payload);
-
-
 
         hwEventReq.setEventInfo(eventInfo);
 

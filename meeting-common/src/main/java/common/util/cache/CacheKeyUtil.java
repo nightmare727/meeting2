@@ -16,6 +16,8 @@ public class CacheKeyUtil {
     private static final String IM_NEW_COMER_USER_KEY_PREFIX = "im-meeting-new_comer_user:";
     private static final String HW_USER_KEY_PREFIX = "im-hw-user-flag";
 
+    private static final String PROFIT_COMMON_CONFIG = "profit-common-config";
+
     private static final String MEETING_KEY_PREFIX = "meetingCache";
     private static final String HW_ROOM_EVENT_SYNC_PREFIX = "hw_room_event_count:";
     private static final String LANGUAGE_ID_PREFIX = "language-word:";
@@ -23,6 +25,8 @@ public class CacheKeyUtil {
     private static final String HW_ROOM_RESOURCE_LOCK_PREFIX = "room_resource_lock:";
 
     private static final String HW_ROOM_STOP_LOCK_PREFIX = "room_stop_lock:";
+
+    private static final String MEMBER_PROFIT_CONFIG = "memberProfitConfig";
 
     public static String getUserInfoKey(String imUserId) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(IM_USER_KEY_PREFIX).append(imUserId).toString();
@@ -49,6 +53,11 @@ public class CacheKeyUtil {
     public static String getHwUserSyncKey() {
         return new StringBuilder(BASE_CACHE_PREFIX).append(HW_USER_KEY_PREFIX).toString();
     }
+
+    public static String getProfitCommonConfigKey() {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(PROFIT_COMMON_CONFIG).toString();
+    }
+
     /**
      * 会议缓存
      *
@@ -58,6 +67,7 @@ public class CacheKeyUtil {
     public static String getMeetingCacheKey() {
         return new StringBuilder(BASE_CACHE_PREFIX).append(MEETING_KEY_PREFIX).toString();
     }
+
     /**
      * 资源分布式锁
      *
@@ -101,4 +111,7 @@ public class CacheKeyUtil {
             .append(languageKey).toString();
     }
 
+    public static String getMemberProfitConfigKey() {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(MEMBER_PROFIT_CONFIG).toString();
+    }
 }

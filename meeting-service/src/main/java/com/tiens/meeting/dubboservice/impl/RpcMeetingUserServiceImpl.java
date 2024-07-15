@@ -93,6 +93,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(accid));
             VMUserVO vmUserCacheVO = bucket.get();
             if (ObjectUtil.isNotNull(vmUserCacheVO)) {
+                log.info("缓存命中用户数据，accid:{}", accid);
                 return CommonResult.success(vmUserCacheVO);
             }
         }
@@ -101,6 +102,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(joyoCode));
             VMUserVO vmUserCacheVO = bucket.get();
             if (ObjectUtil.isNotNull(vmUserCacheVO)) {
+                log.info("缓存命中用户数据，joyoCode:{}", joyoCode);
                 return CommonResult.success(vmUserCacheVO);
             }
         }
@@ -111,12 +113,12 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         Result<DubboUserInfoDTO> dtoResult = null;
         try {
             dtoResult = dubboUserAccountService.dubboGetUserInfo(accid, joyoCode);
-
+            log.info("调用VM 查询用户accid：{},joyoCode：{}，返回：{}", accid, joyoCode, JSON.toJSONString(dtoResult));
             if (ObjectUtils.isEmpty(dtoResult.getData())) {
                 return CommonResult.success(null);
             }
         } catch (Exception e) {
-            log.error("调用VM 查询用户异常，异常：{}", e);
+            log.error("调用VM 查询用户异常,查询用户accid：{},joyoCode：{}", accid, joyoCode, e);
             return CommonResult.success(null);
         }
         DubboUserInfoDTO data = dtoResult.getData();
@@ -132,6 +134,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         vmUserVO.setCountry(data.getCountry());
         vmUserVO.setJoyoCode(data.getJoyoCode());
 
+        //todo 设置会员类型
+        vmUserVO.setMemberType(data.getMember().equals(0) ? 1 : data.getMemberLevel());
+//        vmUserVO.setMemberType(1);
         // 设置缓存
         if (StringUtils.isNotBlank(accid)) {
             bucket.set(vmUserVO);

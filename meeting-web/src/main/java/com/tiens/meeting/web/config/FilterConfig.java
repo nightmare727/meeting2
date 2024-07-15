@@ -30,7 +30,7 @@ public class FilterConfig {
     public FilterRegistrationBean<AuthFilter> filterRegistrationBeanAuthFilter() {
         FilterRegistrationBean<AuthFilter> filter = new FilterRegistrationBean();
         filter.setFilter(authFilter());
-        filter.addUrlPatterns("/mtuser/addMeetingHostUser");
+        filter.addUrlPatterns("/mtuser/addMeetingHostUser", "/profit/pushOrder");
         filter.setName("authFilter");
         filter.setOrder(1);
         return filter;
@@ -38,6 +38,7 @@ public class FilterConfig {
 
     /**
      * 权限过滤器
+     *
      * @return
      */
     @Bean("authFilter")
@@ -47,6 +48,7 @@ public class FilterConfig {
 
     /**
      * 通用请求头过滤器
+     *
      * @return
      */
     @Bean("headerResolveFilter")

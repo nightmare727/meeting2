@@ -2,6 +2,7 @@ package com.tiens.meeting.web.config;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
+import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.config.ClusterServersConfig;
 import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
@@ -49,6 +50,7 @@ public class RedissonConfig {
                 .setTimeout(3000)
                 .setConnectionPoolSize(200)
                 .setConnectionMinimumIdleSize(50);
+        config.setCodec(JsonJacksonCodec.INSTANCE);
         return Redisson.create(config);
     }
 
@@ -67,6 +69,7 @@ public class RedissonConfig {
             log.error("redisson 初始化失败，无法获取redis集群节点");
             return null;
         }
+        config.setCodec(JsonJacksonCodec.INSTANCE);
         String[] nodeArray = nodes.split(",");
         String[] redisAddrs = new String[nodeArray.length];
         for(int i=0;i<nodeArray.length;i++){

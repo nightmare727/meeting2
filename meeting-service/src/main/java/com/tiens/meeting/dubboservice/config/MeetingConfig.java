@@ -108,11 +108,29 @@ public class MeetingConfig {
     /**
      * 最大华为用户阈值百分比
      */
-    private String  maxHwUserThresholdPe;
+    private String maxHwUserThresholdPe;
     /**
      * 最小华为用户阈值百分比
      */
-    private String  minHwUserThresholdPe;
+    private String minHwUserThresholdPe;
+
+    /**
+     * 黑名单规则
+     */
+    private BlackUserConfigInner blackUserConfig;
+
+    @Data
+    public static class BlackUserConfigInner {
+        /**
+         * 最大次数
+         */
+        private Integer maxTime;
+        /**
+         * 锁定天数
+         */
+        private Integer lockDay;
+
+    }
 
     @Data
     public static class MultiPersonsAwardInner {

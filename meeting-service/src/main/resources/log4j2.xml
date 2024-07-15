@@ -2,7 +2,7 @@
 <Configuration status="off" monitorInterval="10" packages="org.apache.logging.log4j.core,io.sentry.log4j2">
     <properties>
         <property name="LOG_HOME">/data/logs/meeting-service</property>
-<!--        <property name="LOG_HOME">D:\log\meeting-service</property>-->
+        <!--        <property name="LOG_HOME">D:\log\meeting-service</property>-->
         <property name="COMMON_FILE_NAME">meeting-service</property>
         <property name="MAX_FILE_SIZE">1MB</property>
         <property name="MAX_FILE_COUNT">5</property>
@@ -20,14 +20,14 @@
                              onMismatch="DENY"/>
         </Console>
         <!-- 2、配置日志级别、文件名、文件格式、文件路径 -->
-        <!--<RollingRandomAccessFile name="FILE-INFO" fileName="${LOG_HOME}/${COMMON_FILE_NAME}-info.log"
+        <RollingRandomAccessFile name="FILE-INFO" fileName="${LOG_HOME}/${COMMON_FILE_NAME}-info.log"
                                  filePattern="${LOG_HOME}/%d{yyyy-MM-dd}/${COMMON_FILE_NAME}-info.log">
             <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="${FILE_LOG_PATTERN}" charset="UTF-8"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
             </Policies>
-            &lt;!&ndash;保存日志文件个数&ndash;&gt;
+            <!--保存日志文件个数-->
             <DefaultRolloverStrategy max="${MAX_FILE_COUNT}">
                 <Delete basePath="${LOG_HOME}" maxDepth="1">
                     <IfFileName glob="*-info.log"/>
@@ -43,7 +43,7 @@
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
             </Policies>
-            &lt;!&ndash;保存日志文件个数&ndash;&gt;
+            <!--保存日志文件个数-->
             <DefaultRolloverStrategy max="${MAX_FILE_COUNT}">
                 <Delete basePath="${LOG_HOME}" maxDepth="1">
                     <IfLastModified age="1d"/>
@@ -51,7 +51,7 @@
             </DefaultRolloverStrategy>
 
 
-        </RollingRandomAccessFile>-->
+        </RollingRandomAccessFile>
     </Appenders>
     <Loggers>
         <logger name="org.apache" level="WARN"/>
@@ -60,9 +60,8 @@
         <Logger name="com.alibaba.nacos.client.naming" level="WARN"/>
         <AsyncRoot level="INFO" includeLocation="true">
             <AppenderRef ref="Console"/>
-         <!--   <AppenderRef ref="FILE-INFO"/>
-            <AppenderRef ref="FILE-ERROR"/>-->
-            <!--            <AppenderRef ref="Sentry" level="WARN"/>-->
+            <AppenderRef ref="FILE-INFO"/>
+            <AppenderRef ref="FILE-ERROR"/>
         </AsyncRoot>
     </Loggers>
 </Configuration>

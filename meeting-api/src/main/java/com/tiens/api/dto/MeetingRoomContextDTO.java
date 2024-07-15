@@ -111,4 +111,18 @@ public class MeetingRoomContextDTO implements Serializable {
      */
     private String currentResourceUserId;
 
+    /**
+     * 会员类型
+     */
+    private Integer memberType;
+
+    /**
+     * 付费类型 0：会员权益 1：额外付费
+     */
+    private Integer paidType;
+
+    /**
+     * 卓越卡号
+     */
+    private String joyoCode;
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiens.meeting.repository.mapper.MeetingBlackUserMapper">
+
+    <resultMap id="BaseResultMap" type="com.tiens.meeting.repository.po.MeetingBlackUserPO">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="userId" column="user_id" jdbcType="VARCHAR"/>
+            <result property="joyoCode" column="joyo_code" jdbcType="VARCHAR"/>
+            <result property="lastMeetingCode" column="last_meeting_code" jdbcType="VARCHAR"/>
+            <result property="startTime" column="start_time" jdbcType="TIMESTAMP"/>
+            <result property="endTime" column="end_time" jdbcType="TIMESTAMP"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,joyo_code,
+        last_meeting_code,start_time,end_time,
+        create_time
+    </sql>
+</mapper>
