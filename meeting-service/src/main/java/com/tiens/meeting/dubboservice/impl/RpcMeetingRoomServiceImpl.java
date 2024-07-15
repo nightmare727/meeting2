@@ -48,6 +48,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RLongAdder;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.util.function.Tuple2;
@@ -103,7 +104,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     private final MeetingBlackUserDaoService meetingBlackUserDaoService;
 
-    private final MemberProfitService memberProfitService;
+    @Autowired
+    MemberProfitService memberProfitService;
 
     private final MeetingUserProfitRecordDaoService meetingUserProfitRecordDaoService;
 
@@ -1381,7 +1383,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         // 最大6小时切割
 
         List<FreeTimeCalculatorUtil.TimeRange> rangeList =
-            FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 1,  3, date, byId.getExpireDate(), userZoneId,
+            FreeTimeCalculatorUtil.calculateFreeTimeRanges(timeRanges, 1, 3, date, byId.getExpireDate(), userZoneId,
                 availableResourcePeriodGetDTO.getLeadTime());
         List<AvailableResourcePeriodVO> result =
             rangeList.stream().map(t -> new AvailableResourcePeriodVO(t.getStart().toString(), t.getEnd().toString()))
@@ -1546,7 +1548,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
                 .collect(Collectors.toList()).stream().map(
                     t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc())
-                        .size(t.getValue()).wordKey(t.getWordKey()).coins(map.get(t.getCode()).getVmCoins()).build())
+                        .size(t.getValue()).wordKey(t.getWordKey())
+                        .coins(map.get(t.getCode()).getVmCoins())
+                        .duration(map.get(t.getCode()).getDuration())
+                        .build())
                 .collect(Collectors.toList());
         // 查询私池
         List<MeetingResourcePO> privateResourceList =

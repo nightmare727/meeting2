@@ -1,9 +1,7 @@
 package com.tiens.meeting.dubboservice.impl;
 
-import com.tiens.api.dto.CmsShowGetDTO;
-import com.tiens.api.dto.CommonProfitConfigSaveDTO;
-import com.tiens.api.dto.PushOrderDTO;
-import com.tiens.api.dto.UserMemberProfitModifyEntity;
+import cn.hutool.core.date.DateUtil;
+import com.tiens.api.dto.*;
 import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.vo.CommonProfitConfigQueryVO;
 import com.tiens.api.vo.MeetingUserProfitVO;
@@ -110,5 +108,20 @@ class MemberProfitServiceImplTest {
             memberProfitService.queryCommonProfitConfig();
 
         System.out.println(commonProfitConfigQueryVOCommonResult);
+    }
+
+    @Test
+    void buyMeetingProfit() {
+        BuyMeetingProfitDTO buyMeetingProfitDTO = new BuyMeetingProfitDTO();
+        buyMeetingProfitDTO.setResourceType("1");
+        buyMeetingProfitDTO.setFinalUserId("caf3db70e08b496abf51e857f4211fff");
+        buyMeetingProfitDTO.setJoyoCode("123456");
+        buyMeetingProfitDTO.setNationId("CN");
+        buyMeetingProfitDTO.setStartTime(DateUtil.parse("2024-07-15 10:00:00"));
+        buyMeetingProfitDTO.setTimeZoneOffset("GMT+08:00");
+        buyMeetingProfitDTO.setLength(60);
+        buyMeetingProfitDTO.setLeadTime(30);
+
+        memberProfitService.buyMeetingProfit(buyMeetingProfitDTO);
     }
 }

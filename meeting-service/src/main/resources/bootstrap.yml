@@ -3,6 +3,8 @@ spring:
     active: local
   application:
     name: meeting-service
+  main:
+    allow-circular-references: true
 
 # 日志配置
 logging:

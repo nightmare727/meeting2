@@ -44,4 +44,8 @@ public class ResourceTypeVO implements Serializable {
      * VM币单价
      */
     private Integer coins;
+    /**
+     * 购买时长
+     */
+    private Integer duration;
 }

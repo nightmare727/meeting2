@@ -79,8 +79,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     private final MemberProfitCacheService memberProfitCacheService;
 
     private final MeetingCacheService meetingCacheService;
-
-    private final RpcMeetingRoomService rpcMeetingRoomService;
+    @Autowired
+    RpcMeetingRoomService rpcMeetingRoomService;
 
     @Autowired
     RpcMeetingUserService rpcMeetingUserService;
