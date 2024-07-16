@@ -185,25 +185,17 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     ErrorCode getMemberProfitErrorCode(Boolean isHighestMemberLevel) {
         ErrorCode errorCode;
-      /*  if (isHighestMemberLevel) {
-            if (isCN) {
-                errorCode = GlobalErrorCodeConstants.NEED_PAID;
-            } else {
-                errorCode = GlobalErrorCodeConstants.RESOURCE_MORE_THAN;
-            }
-        } else {
-            if (isCN) {
-                errorCode = GlobalErrorCodeConstants.NEED_MEMBER_OR_PAID;
-            } else {
-                errorCode = GlobalErrorCodeConstants.NEED_MEMBER;
-            }
-        }*/
-
         if (isHighestMemberLevel) {
+            errorCode = GlobalErrorCodeConstants.NEED_PAID;
+        } else {
+            errorCode = GlobalErrorCodeConstants.NEED_MEMBER_OR_PAID;
+        }
+
+      /*  if (isHighestMemberLevel) {
             errorCode = GlobalErrorCodeConstants.RESOURCE_MORE_THAN;
         } else {
             errorCode = GlobalErrorCodeConstants.NEED_MEMBER;
-        }
+        }*/
         return errorCode;
     }
 
