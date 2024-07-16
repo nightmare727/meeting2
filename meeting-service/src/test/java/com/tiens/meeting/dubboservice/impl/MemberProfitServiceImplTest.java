@@ -113,11 +113,11 @@ class MemberProfitServiceImplTest {
     @Test
     void buyMeetingProfit() {
         BuyMeetingProfitDTO buyMeetingProfitDTO = new BuyMeetingProfitDTO();
-        buyMeetingProfitDTO.setResourceType("1");
-        buyMeetingProfitDTO.setFinalUserId("caf3db70e08b496abf51e857f4211fff");
-        buyMeetingProfitDTO.setJoyoCode("123456");
+        buyMeetingProfitDTO.setResourceType("2");
+        buyMeetingProfitDTO.setFinalUserId("74762bd1739c44dba971ba848ed2bacd");
+        buyMeetingProfitDTO.setJoyoCode("67892185");
         buyMeetingProfitDTO.setNationId("CN");
-        buyMeetingProfitDTO.setStartTime(DateUtil.parse("2024-07-15 10:00:00"));
+        buyMeetingProfitDTO.setStartTime(DateUtil.parse("2024-07-16 09:30:00"));
         buyMeetingProfitDTO.setTimeZoneOffset("GMT+08:00");
         buyMeetingProfitDTO.setLength(60);
         buyMeetingProfitDTO.setLeadTime(30);

@@ -281,7 +281,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     @Transactional
     public CommonResult pushOrder(PushOrderDTO pushOrderDTO) {
 
-        log.error("订单推送入参，订单数据：{}", JSON.toJSONString(pushOrderDTO));
+        log.info("订单推送入参，订单数据：{}", JSON.toJSONString(pushOrderDTO));
         CommonResult<VMUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryVMUser(pushOrderDTO.getJoyoCode(), "");
         VMUserVO data = vmUserVOCommonResult.getData();
         if (ObjectUtil.isNull(data)) {
@@ -611,10 +611,19 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO);
 
         if (freeResourceList.isError() || ObjectUtil.isEmpty(freeResourceList.getData())) {
+            log.error("校验资源是否可用失败，数据为空，查询参数：{}", JSON.toJSONString(freeResourceList));
             return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
         }
 
-        //3、存储订单和计算权益
+        //3、扣减vm币
+        CommonResult result1 =
+            doCountDownMemberProfitCoins(joyoCode, nationId, meetingProfitProductListPO.getVmCoins());
+        if (result1.isError()) {
+            log.error("扣减VM币失败，错误信息：{}", result1.getMsg());
+            return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
+        }
+
+        //4、存储订单和计算权益
         PushOrderDTO pushOrderDTO = new PushOrderDTO();
         pushOrderDTO.setNationId(nationId);
         pushOrderDTO.setAccId(finalUserId);
@@ -629,13 +638,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         CommonResult result = pushOrder(pushOrderDTO);
         if (result.isError()) {
-            return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
-        }
-
-        //3、扣减vm币
-        CommonResult result1 =
-            doCountDownMemberProfitCoins(joyoCode, nationId, meetingProfitProductListPO.getVmCoins());
-        if (result1.isError()) {
+            log.error("存储订单和计算权益失败，错误信息：{}", result.getMsg());
             return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
         }
 
