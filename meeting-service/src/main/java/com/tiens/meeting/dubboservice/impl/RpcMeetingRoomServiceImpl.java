@@ -377,7 +377,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     public Integer getMaxLevel(Integer levelCode, String imUserId, String nationId, Integer memberType) {
 
-        //查询会员等级对应最大资源等级配置
+        return 9;
+       /* //查询会员等级对应最大资源等级配置
 
         RMap<Integer, MeetingMemeberProfitConfigPO> map =
             redissonClient.getMap(CacheKeyUtil.getMemberProfitConfigKey());
@@ -393,7 +394,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             // 比较和等级关联的资源类型大小
             maxResourceType = NumberUtil.max(meetingHostUserPOOptional.get().getResourceType(), maxResourceType);
         }
-        return maxResourceType;
+        return maxResourceType;*/
     }
 
     /**
