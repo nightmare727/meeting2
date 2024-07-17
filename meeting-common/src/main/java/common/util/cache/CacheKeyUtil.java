@@ -29,6 +29,8 @@ public class CacheKeyUtil {
     private static final String MEMBER_PROFIT_CONFIG = "memberProfitConfig";
     private static final String PROFIT_PRODUCT_LIST = "profitProductList";
 
+    private static final String SETTLE_PROFIT_PREFIX = "settle_profit:";
+
     public static String getUserInfoKey(String imUserId) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(IM_USER_KEY_PREFIX).append(imUserId).toString();
     }
@@ -118,5 +120,9 @@ public class CacheKeyUtil {
 
     public static String getProfitProductListKey() {
         return new StringBuilder(BASE_CACHE_PREFIX).append(PROFIT_PRODUCT_LIST).toString();
+    }
+
+    public static String getSettleProfitKey(Long meetingId) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(SETTLE_PROFIT_PREFIX).append(meetingId).toString();
     }
 }

@@ -125,7 +125,7 @@ class RpcMeetingRoomServiceImplTest {
         MeetingRoomContextDTO meetingRoomContextDTO = new MeetingRoomContextDTO();
 //        meetingRoomContextDTO.setMeetingRoomId();
 //        meetingRoomContextDTO.setMeetingCode();
-        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-07-10 15:00:00"));
+        meetingRoomContextDTO.setStartTime(DateUtil.parse("2024-07-20 15:00:00"));
         meetingRoomContextDTO.setLength(60);
         meetingRoomContextDTO.setSubject("云会议-文杰测试会议" + RandomUtil.randomInt(100));
         meetingRoomContextDTO.setResourceId(398);
@@ -134,10 +134,10 @@ class RpcMeetingRoomServiceImplTest {
 //        meetingRoomContextDTO.setVmrMode();
         meetingRoomContextDTO.setGuestPwdFlag(false);
         meetingRoomContextDTO.setLevelCode(9);
-        meetingRoomContextDTO.setImUserId("a6afdeaaa1ca4100a3f089a0e46a87b7");
+        meetingRoomContextDTO.setImUserId("05a134724c91467c9ed280a717bb964a");
         meetingRoomContextDTO.setImUserName("文杰昵称");
         meetingRoomContextDTO.setTimeZoneOffset("GMT+10:30");
-        meetingRoomContextDTO.setJoyoCode("1540886");
+        meetingRoomContextDTO.setJoyoCode("67892187");
         meetingRoomContextDTO.setMemberType(1);
         meetingRoomContextDTO.setLanguageId("zh-CN");
 //        List<MeetingAttendeeDTO> meetingAttendeeDTOS = Lists.newArrayList();

@@ -36,6 +36,7 @@ import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
+import org.redisson.api.RLock;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,7 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -131,6 +133,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         List<MeetingUserProfitRecordPO> meetingUserProfitRecordPOList =
             meetingUserProfitRecordDaoService.lambdaQuery().eq(MeetingUserProfitRecordPO::getUserId, imUserId)
+                .eq(MeetingUserProfitRecordPO::getPaidType, PaidTypeEnum.MEMBER_FREE.getState())
                 .apply("use_time = {0}", showStartTimeStr)
                 //生效和预占用
                 .in(MeetingUserProfitRecordPO::getStatus, Lists.newArrayList(ProfitRecordStateEnum.VALID.getState(),
@@ -150,22 +153,24 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             Optional<MeetingUserPaidProfitPO> meetingUserPaidProfitOpt =
                 meetingUserPaidProfitDaoService.lambdaQuery().eq(MeetingUserPaidProfitPO::getUserId, imUserId)
                     .eq(MeetingUserPaidProfitPO::getResourceType, meetingRoomContextDTO.getResourceType()).oneOpt();
+
             if (!meetingUserPaidProfitOpt.isPresent()) {
                 //无资源
-
                 return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel));
             }
 
-            //查询当前预占用和实际消耗时间
-            AtomicReference<Integer> calDuration = new AtomicReference<>(0);
-            meetingUserProfitRecordPOList.stream().filter(t -> PaidTypeEnum.PAID.getState().equals(t.getPaidType()))
-                .forEach(b -> {
-                    Integer lockDuration = b.getLockDuration();
-                    Integer relDuration = b.getRelDuration();
-                    Integer finalCalDuration = (ObjectUtil.isNotNull(relDuration) ? relDuration : lockDuration);
+            List<MeetingUserProfitRecordPO> meetingUserProfitPaidRecordPOList =
+                meetingUserProfitRecordDaoService.lambdaQuery().eq(MeetingUserProfitRecordPO::getUserId, imUserId)
+                    .eq(MeetingUserProfitRecordPO::getPaidType, PaidTypeEnum.PAID.getState())
+                    //预占用
+                    .eq(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.PRE_LOCK.getState()).list();
 
-                    calDuration.updateAndGet(v -> v + finalCalDuration);
-                });
+            //查询当前预占用
+            AtomicReference<Integer> calDuration = new AtomicReference<>(0);
+            meetingUserProfitPaidRecordPOList.stream().forEach(b -> {
+                Integer lockDuration = b.getLockDuration();
+                calDuration.updateAndGet(v -> v + lockDuration);
+            });
 
             MeetingUserPaidProfitPO meetingUserPaidProfitPO = meetingUserPaidProfitOpt.get();
 
@@ -402,7 +407,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     private List<UserPaidProfitEntity> getUserPaidProfit(String finalUserId) {
         List<MeetingUserPaidProfitPO> list =
-            meetingUserPaidProfitDaoService.lambdaQuery().eq(MeetingUserPaidProfitPO::getUserId, finalUserId).list();
+            meetingUserPaidProfitDaoService.lambdaQuery().eq(MeetingUserPaidProfitPO::getUserId, finalUserId)
+                .ne(MeetingUserPaidProfitPO::getDuration, 0).list();
         List<UserPaidProfitEntity> collect = list.stream().map(t -> {
             UserPaidProfitEntity userPaidProfitEntity = new UserPaidProfitEntity();
             userPaidProfitEntity.setResourceType(t.getResourceType());
@@ -486,6 +492,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      * @return
      */
     @Override
+    @Transactional
     public CommonResult settleMemberProfit(Long meetingId, String imUserId, String resourceType, String languageId,
         long betweenMinutes) {
 
@@ -494,20 +501,52 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             //私有会议直接返回
             return CommonResult.success(null);
         }
+        RLock lock = redissonClient.getLock(CacheKeyUtil.getSettleProfitKey(meetingId));
+        try {
+            lock.lock(5, TimeUnit.SECONDS);
+            Optional<MeetingUserProfitRecordPO> meetingUserProfitRecordOpt =
+                meetingUserProfitRecordDaoService.lambdaQuery().eq(MeetingUserProfitRecordPO::getMeetingId, meetingId)
+                    .oneOpt();
 
-        //修改会员收益记录的状态为生效,设置真实结束时间
-        boolean update =
-            meetingUserProfitRecordDaoService.lambdaUpdate().eq(MeetingUserProfitRecordPO::getMeetingId, meetingId)
-                .eq(MeetingUserProfitRecordPO::getUserId, imUserId)
-                .set(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.VALID.getState())
-                .set(MeetingUserProfitRecordPO::getRelDuration, betweenMinutes).update();
-        //如果有付费权益，则修改剩余时间
+            if (meetingUserProfitRecordOpt.isPresent() && ObjectUtil.isNotNull(
+                meetingUserProfitRecordOpt.get().getRelDuration())) {
+                //已经设置过，无需设置
+                log.info("【会员会议权益结算】入参meetingId：{}.imUserId:{},重复设置", meetingId, imUserId);
+                return CommonResult.success(null);
+            }
 
-        UpdateChainWrapper<MeetingUserPaidProfitPO> update1 = meetingUserPaidProfitDaoService.update();
-        boolean update2 = update1.eq("user_id", imUserId).eq("resource_type", resourceType)
-            .setSql("duration=duration-" + betweenMinutes).update();
+            //修改会员收益记录的状态为生效,设置真实结束时间
+            boolean update =
+                meetingUserProfitRecordDaoService.lambdaUpdate().eq(MeetingUserProfitRecordPO::getMeetingId, meetingId)
+                    .eq(MeetingUserProfitRecordPO::getUserId, imUserId)
+                    .set(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.VALID.getState())
+                    .set(MeetingUserProfitRecordPO::getRelDuration, betweenMinutes).update();
 
-        log.info("【会员会议权益结算】入参meetingId：{},执行结果1:{}执行结果2:{}", meetingId, update, update2);
+            Optional<MeetingUserPaidProfitPO> meetingUserPaidProfitOpt =
+                meetingUserPaidProfitDaoService.lambdaQuery().eq(MeetingUserPaidProfitPO::getUserId, imUserId)
+                    .eq(MeetingUserPaidProfitPO::getResourceType, resourceType).oneOpt();
+            boolean update2 = false;
+            if (meetingUserPaidProfitOpt.isPresent()) {
+                //扣减付费权益
+                MeetingUserPaidProfitPO meetingUserPaidProfitPO = meetingUserPaidProfitOpt.get();
+                Integer duration = meetingUserPaidProfitPO.getDuration();
+                long min = Math.min(duration, betweenMinutes);
+                //如果有付费权益，则修改剩余时间
+                UpdateChainWrapper<MeetingUserPaidProfitPO> update1 = meetingUserPaidProfitDaoService.update();
+                update2 =
+                    update1.eq("user_id", imUserId).eq("resource_type", resourceType).setSql("duration=duration-" + min)
+                        .update();
+            }
+
+            log.info("【会员会议权益结算】入参meetingId：{},执行结果1:{}执行结果2:{}", meetingId, update, update2);
+            return CommonResult.success(null);
+        } catch (Exception e) {
+            log.error("【会员会议权益结算】 结算异常，入参meetingId：{}.imUserId:{}", meetingId, imUserId, e);
+        } finally {
+            if (lock.isLocked()) {
+                lock.unlock();
+            }
+        }
         return CommonResult.success(null);
     }
 

@@ -124,4 +124,10 @@ class MemberProfitServiceImplTest {
 
         memberProfitService.buyMeetingProfit(buyMeetingProfitDTO);
     }
+
+    @Test
+    void settle() {
+
+        memberProfitService.settleMemberProfit(1813506850217353218L, "672971edd0ce488b9af27b900cdb3f46", "6", "", 11);
+    }
 }
