@@ -162,6 +162,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             List<MeetingUserProfitRecordPO> meetingUserProfitPaidRecordPOList =
                 meetingUserProfitRecordDaoService.lambdaQuery().eq(MeetingUserProfitRecordPO::getUserId, imUserId)
                     .eq(MeetingUserProfitRecordPO::getPaidType, PaidTypeEnum.PAID.getState())
+                    .eq(MeetingUserProfitRecordPO::getResourceType, resourceType)
                     //预占用
                     .eq(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.PRE_LOCK.getState()).list();
 
