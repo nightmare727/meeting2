@@ -813,6 +813,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             // 非主持人本人，无法编辑
             return CommonResult.error(GlobalErrorCodeConstants.OPERATE_AUTH_ERROR);
         }
+        String ownerId = getNowOwnerByResourceId(resourceId);
+
+        meetingResourcePO.setCurrentUseImUserId(ownerId);
 
         Tuple3<MeetingRoomInfoPO, MeetingResourcePO, MeetingTimeZoneConfigPO> of =
             Tuples.of(byId, meetingResourcePO, meetingTimeZoneConfigPO);

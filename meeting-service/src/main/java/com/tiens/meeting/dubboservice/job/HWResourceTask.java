@@ -68,8 +68,10 @@ public class HWResourceTask {
         }
         //已过期或者不存在的资源
         List<MeetingResourcePO> invalidResources = CollectionUtil.subtractToList(oldResourceList, hwResourceList);
-        if (CollectionUtil.isNotEmpty(newResources)) {
-            //TODO 处理已过期或者不存在的资源
+        if (CollectionUtil.isNotEmpty(invalidResources)) {
+            List<Integer> deleteResourceIds =
+                invalidResources.stream().map(MeetingResourcePO::getId).collect(Collectors.toList());
+            meetingResourceDaoService.removeBatchByIds(deleteResourceIds);
         }
         Collection<MeetingResourcePO> intersection = CollectionUtil.intersection(oldResourceList, hwResourceList);
         //处理更新资源更新时间
