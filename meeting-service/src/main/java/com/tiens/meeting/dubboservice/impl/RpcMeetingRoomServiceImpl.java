@@ -449,6 +449,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
             // 查询是否该资源已分配，
             currentUseImUserId = meetingResourcePO.getCurrentUseImUserId();
+
+            //查询资源正在被使用人
             meetingRoomContextDTO.setCurrentResourceUserId(currentUseImUserId);
             // 创建会议
             vmrMode = meetingResourcePO.getVmrMode();
@@ -669,9 +671,35 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         if (result.isError()) {
             return result;
         }
+        String ownerId = getNowOwnerByResourceId(resourceId);
 
+        meetingResourcePO.setCurrentUseImUserId(ownerId);
         Tuple2<MeetingResourcePO, MeetingTimeZoneConfigPO> of = Tuples.of(meetingResourcePO, meetingTimeZoneConfigPO);
         return CommonResult.success(of);
+    }
+
+    /**
+     * 查询当前资源使用人
+     *
+     * @param resourceId
+     * @return
+     */
+    private String getNowOwnerByResourceId(Integer resourceId) {
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+
+        Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional = meetingRoomInfoDaoService.lambdaQuery()
+            .select(MeetingRoomInfoPO::getOwnerImUserId)
+            .eq(MeetingRoomInfoPO::getResourceId, resourceId)
+            .in(MeetingRoomInfoPO::getState, Lists.newArrayList(MeetingRoomStateEnum.Schedule.getState(),
+                MeetingRoomStateEnum.Created.getState()))
+            .le(MeetingRoomInfoPO::getLockStartTime, now)
+            .ge(MeetingRoomInfoPO::getLockEndTime, now)
+            .orderByDesc(MeetingRoomInfoPO::getId)
+            .last(" limit 1").oneOpt();
+        if (meetingRoomInfoPOOptional.isPresent()) {
+            return meetingRoomInfoPOOptional.get().getOwnerImUserId();
+        }
+        return null;
     }
 
     private FreeResourceListDTO wrapperFreeResourceListDTO(MeetingRoomContextDTO meetingRoomContextDTO) {
@@ -1549,11 +1577,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
                 .collect(Collectors.toList()).stream().map(
                     t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc())
-                        .size(t.getValue()).wordKey(t.getWordKey())
-                        .coins(map.get(t.getCode()).getVmCoins())
-                        .duration(map.get(t.getCode()).getDuration())
-                        .build())
-                .collect(Collectors.toList());
+                        .size(t.getValue()).wordKey(t.getWordKey()).coins(map.get(t.getCode()).getVmCoins())
+                        .duration(map.get(t.getCode()).getDuration()).build()).collect(Collectors.toList());
         // 查询私池
         List<MeetingResourcePO> privateResourceList =
             meetingResourceDaoService.lambdaQuery().eq(MeetingResourcePO::getOwnerImUserId, imUserId)
