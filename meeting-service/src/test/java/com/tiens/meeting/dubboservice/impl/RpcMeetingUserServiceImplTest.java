@@ -8,17 +8,20 @@ import com.tiens.api.vo.MeetingHostUserVO;
 import com.tiens.api.vo.MeetingResourceTypeVO;
 import com.tiens.api.vo.VMUserVO;
 import com.tiens.china.circle.api.dubbo.DubboCommonUserService;
+import com.tiens.meeting.ServiceApplication;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
+import common.util.cache.CacheKeyUtil;
 import org.apache.dubbo.config.annotation.Reference;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+import org.redisson.api.RScoredSortedSet;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import com.tiens.meeting.ServiceApplication;
 
 import java.util.List;
 
@@ -30,7 +33,7 @@ import java.util.List;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ServiceApplication.class)
-@ActiveProfiles("dev2-server")
+@ActiveProfiles("local")
 class RpcMeetingUserServiceImplTest {
 
     @Autowired
@@ -39,8 +42,11 @@ class RpcMeetingUserServiceImplTest {
     @Reference(version = "1.0")
     DubboCommonUserService dubboCommonUserService;
 
+    @Autowired
+    RedissonClient redissonClient;
+
     @Test
-    void meetingClient(){
+    void meetingClient() {
         MeetingClient bean = SpringUtil.getBean(MeetingClient.class);
         MeetingClient bean1 = SpringUtil.getBean(MeetingClient.class);
         MeetingClient bean2 = SpringUtil.getBean(MeetingClient.class);
@@ -51,7 +57,8 @@ class RpcMeetingUserServiceImplTest {
 
     @Test
     void queryVMUser() {
-        CommonResult<VMUserVO> vmUserVOCommonResult = rpcMeetingUserService.queryVMUser("","7ed71cdb710f4414b6f494c64b473906");
+        CommonResult<VMUserVO> vmUserVOCommonResult =
+            rpcMeetingUserService.queryVMUser("", "7ed71cdb710f4414b6f494c64b473906");
         System.out.println(vmUserVOCommonResult);
     }
 
@@ -70,7 +77,6 @@ class RpcMeetingUserServiceImplTest {
     void queryMeetingHostUser() {
         System.out.println(rpcMeetingUserService.queryMeetingHostUser("h5v4qv8wl6916xld599q2vwkyrnncb9lfkj7kmh1"));
 
-
     }
 
     @Test
@@ -87,6 +93,7 @@ class RpcMeetingUserServiceImplTest {
             System.out.println(meetingHostUserVO);
         });
     }
+
     @Test
     void queryResourceTypes() {
         CommonResult<List<MeetingResourceTypeVO>> listCommonResult = rpcMeetingUserService.queryResourceTypes(1);
@@ -95,4 +102,14 @@ class RpcMeetingUserServiceImplTest {
             System.out.println(meetingResourceTypeVO);
         });
     }
+
+    @Test
+    void loginUser() {
+        RScoredSortedSet<String> loginUser =
+            redissonClient.getScoredSortedSet(CacheKeyUtil.getBaseLoginUserInfoKey());
+        String key = "testId1";
+        loginUser.add(100, key);
+        System.out.println(loginUser.getScore(key));
+    }
+
 }
