@@ -95,7 +95,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult checkProfit(MeetingRoomContextDTO meetingRoomContextDTO) {
-
+        log.info("【校验用户权益】入参：{}", JSON.toJSONString(meetingRoomContextDTO));
         String imUserId = meetingRoomContextDTO.getImUserId();
 
         String resourceType = meetingRoomContextDTO.getResourceType();
@@ -142,7 +142,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         long memberMeetingCount = meetingUserProfitRecordPOList.stream()
             .filter(t -> PaidTypeEnum.MEMBER_FREE.getState().equals(t.getPaidType())).count();
         if (memberMeetingCount < freeDayAppointCount) {
-
+            log.info("【校验用户权益】会员免费权益可用：会员权益次数：{},当前已用权益次数：{}", freeDayAppointCount,
+                memberMeetingCount);
             //免费次数未用完
             meetingRoomContextDTO.setPaidType(PaidTypeEnum.MEMBER_FREE.getState());
         } else {
@@ -156,6 +157,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
             if (!meetingUserPaidProfitOpt.isPresent()) {
                 //无资源
+                log.info("【校验用户权益】付费权益尚未购买：资源类型：{}", meetingRoomContextDTO.getResourceType());
                 return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel));
             }
 
@@ -179,6 +181,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
             if (duration - calDuration.get() <= 0) {
                 //无资源
+                log.info("【校验用户权益】付费权益不足，无法预约会议：已购买付费时长：{}，当前占用时长：{}", duration,
+                    calDuration.get());
                 return CommonResult.error(getMemberProfitErrorCode(isHighestMemberLevel));
             }
             //有剩余资源时长
