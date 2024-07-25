@@ -687,15 +687,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private String getNowOwnerByResourceId(Integer resourceId) {
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
 
-        Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional = meetingRoomInfoDaoService.lambdaQuery()
-            .select(MeetingRoomInfoPO::getOwnerImUserId)
-            .eq(MeetingRoomInfoPO::getResourceId, resourceId)
-            .in(MeetingRoomInfoPO::getState, Lists.newArrayList(MeetingRoomStateEnum.Schedule.getState(),
-                MeetingRoomStateEnum.Created.getState()))
-            .le(MeetingRoomInfoPO::getLockStartTime, now)
-            .ge(MeetingRoomInfoPO::getLockEndTime, now)
-            .orderByDesc(MeetingRoomInfoPO::getId)
-            .last(" limit 1").oneOpt();
+        Optional<MeetingRoomInfoPO> meetingRoomInfoPOOptional =
+            meetingRoomInfoDaoService.lambdaQuery().select(MeetingRoomInfoPO::getOwnerImUserId)
+                .eq(MeetingRoomInfoPO::getResourceId, resourceId).in(MeetingRoomInfoPO::getState,
+                    Lists.newArrayList(MeetingRoomStateEnum.Schedule.getState(),
+                        MeetingRoomStateEnum.Created.getState()))
+                .le(MeetingRoomInfoPO::getLockStartTime, now).ge(MeetingRoomInfoPO::getLockEndTime, now)
+                .orderByDesc(MeetingRoomInfoPO::getId).last(" limit 1").oneOpt();
         if (meetingRoomInfoPOOptional.isPresent()) {
             return meetingRoomInfoPOOptional.get().getOwnerImUserId();
         }
@@ -1112,6 +1110,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             //如果权益使用记录里有使用，则将该记录置无效
             meetingUserProfitRecordDaoService.lambdaUpdate().eq(MeetingUserProfitRecordPO::getMeetingId, byId.getId())
                 .set(MeetingUserProfitRecordPO::getStatus, ProfitRecordStateEnum.INVALID.getState()).update();
+        } else {
+            //结算会议会员权益
+            DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
+            Date showStartTime = byId.getShowStartTime();
+            long betweenMinutes = DateUtil.between(showStartTime, now, DateUnit.MINUTE);
+            log.info("【取消会议】结算会议会员权益 结算时间为：{}", betweenMinutes);
+            memberProfitService.settleMemberProfit(meetingRoomId, imUserId, String.valueOf(byId1.getResourceType()),
+                byId.getLanguageId(), betweenMinutes);
         }
 
         // 会议资源已分配，则取消资源占用
