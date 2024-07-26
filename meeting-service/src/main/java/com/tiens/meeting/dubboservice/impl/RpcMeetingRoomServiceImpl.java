@@ -905,12 +905,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             // 2、修改本地会议
             meetingRoomInfoDaoService.updateById(meetingRoomInfoPO);
             // 3、锁定资源，更改资源状态为共有预约
-            publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
+       /*     publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
             // 4、更换资源
             if (!oldMeetingRoomInfoPO.getResourceId().equals(meetingRoomContextDTO.getResourceId())) {
                 // 1、变更旧资源状态
                 publicResourceHoldHandle(oldMeetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_DOWN);
-            }
+            }*/
             // 5、处理与会者相关
             updateMeetingRoomAttendee(meetingRoomInfoPO, meetingRoomContextDTO.getAttendees());
 
