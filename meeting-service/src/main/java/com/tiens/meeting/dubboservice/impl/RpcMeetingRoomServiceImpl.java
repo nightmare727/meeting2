@@ -1115,6 +1115,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             DateTime now = DateUtil.convertTimeZone(DateUtil.date(), ZoneId.of("GMT"));
             Date showStartTime = byId.getShowStartTime();
             long betweenMinutes = DateUtil.between(showStartTime, now, DateUnit.MINUTE);
+            if (betweenMinutes % 2 != 0) {
+                betweenMinutes++;
+            }
             log.info("【取消会议】结算会议会员权益 起始时间：{}，结束时间：{}，结算时间为：{}", showStartTime, now,
                 betweenMinutes);
             memberProfitService.settleMemberProfit(meetingRoomId, imUserId, String.valueOf(byId1.getResourceType()),
