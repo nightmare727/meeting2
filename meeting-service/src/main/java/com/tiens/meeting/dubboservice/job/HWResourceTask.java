@@ -73,7 +73,7 @@ public class HWResourceTask {
             log.info("【定时执行华为资源同步】 删除过期资源 ，data:{}", JSON.toJSONString(invalidResources));
             List<Integer> deleteResourceIds =
                 invalidResources.stream().map(MeetingResourcePO::getId).collect(Collectors.toList());
-            meetingResourceDaoService.removeBatchByIds(deleteResourceIds);
+//            meetingResourceDaoService.removeBatchByIds(deleteResourceIds);
         }
         Collection<MeetingResourcePO> intersection = CollectionUtil.intersection(oldResourceList, hwResourceList);
         //处理更新资源更新时间
