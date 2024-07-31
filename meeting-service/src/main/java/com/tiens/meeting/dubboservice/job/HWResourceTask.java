@@ -6,6 +6,7 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.QueryOrgVmrResultDTO;
 import com.huaweicloud.sdk.meeting.v1.model.SearchCorpVmrRequest;
@@ -53,13 +54,13 @@ public class HWResourceTask {
     public void jobHandler() throws Exception {
         List<MeetingResourcePO> hwResourceList = getHwResourceList();
         Map<String, MeetingResourcePO> hwResourceMap =
-            hwResourceList.stream().collect(Collectors.toMap(MeetingResourcePO::getVmrId, Function.identity()));
+                hwResourceList.stream().collect(Collectors.toMap(MeetingResourcePO::getVmrId, Function.identity()));
 
         List<MeetingResourcePO> oldResourceList =
-            meetingResourceDaoService.lambdaQuery().orderByAsc(MeetingResourcePO::getSize).list();
+                meetingResourceDaoService.lambdaQuery().orderByAsc(MeetingResourcePO::getSize).list();
 
         Map<String, MeetingResourcePO> oldResourceMap =
-            oldResourceList.stream().collect(Collectors.toMap(MeetingResourcePO::getVmrId, Function.identity()));
+                oldResourceList.stream().collect(Collectors.toMap(MeetingResourcePO::getVmrId, Function.identity()));
 
         //新资源列表
         List<MeetingResourcePO> newResources = CollectionUtil.subtractToList(hwResourceList, oldResourceList);
@@ -72,8 +73,8 @@ public class HWResourceTask {
         if (CollectionUtil.isNotEmpty(invalidResources)) {
             log.info("【定时执行华为资源同步】 删除过期资源 ，data:{}", JSON.toJSONString(invalidResources));
             List<Integer> deleteResourceIds =
-                invalidResources.stream().map(MeetingResourcePO::getId).collect(Collectors.toList());
-//            meetingResourceDaoService.removeBatchByIds(deleteResourceIds);
+                    invalidResources.stream().map(MeetingResourcePO::getId).collect(Collectors.toList());
+            //            meetingResourceDaoService.removeBatchByIds(deleteResourceIds);
         }
         Collection<MeetingResourcePO> intersection = CollectionUtil.intersection(oldResourceList, hwResourceList);
         //处理更新资源更新时间
@@ -85,9 +86,9 @@ public class HWResourceTask {
                 if (!hwExpireDate.equals(oldExpireDate)) {
                     //更新过期时间
                     boolean update = meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getVmrId, vmrId)
-                        .set(MeetingResourcePO::getExpireDate, hwExpireDate).update();
+                            .set(MeetingResourcePO::getExpireDate, hwExpireDate).update();
                     log.info("【定时执行华为资源同步】 更新资源过期时间完成，vmrId：{}，过期时间：{},执行结果：{}", vmrId,
-                        hwExpireDate, update);
+                            hwExpireDate, update);
                 }
             }
         }
@@ -95,7 +96,8 @@ public class HWResourceTask {
 
     private List<MeetingResourcePO> getHwResourceList() {
 
-        ArrayList<@Nullable MeetingResourcePO> results = Lists.newArrayList();
+        Set<@Nullable MeetingResourcePO> results = Sets.newHashSet();
+
 
         //1、获取华为云资源
         SearchCorpVmrRequest request = new SearchCorpVmrRequest();
@@ -106,8 +108,8 @@ public class HWResourceTask {
         Boolean finished = true;
         int offset = 0;
         do {
-            SearchCorpVmrResponse response1 = mgrMeetingClient.searchCorpVmr(request);
             request.withOffset(offset * 100);
+            SearchCorpVmrResponse response1 = mgrMeetingClient.searchCorpVmr(request);
 
             Integer count = response1.getCount();
 
@@ -122,8 +124,10 @@ public class HWResourceTask {
                     offset++;
                 }
                 results.addAll(
-                    data1.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.CLOUD)).filter(ObjectUtil::isNotNull)
-                        .collect(Collectors.toList()));
+                        data1.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.CLOUD)).filter(ObjectUtil::isNotNull)
+                                .collect(Collectors.toList()));
+            } else {
+                finished = false;
             }
         } while (finished);
 
@@ -133,14 +137,14 @@ public class HWResourceTask {
         List<QueryOrgVmrResultDTO> data2 = response2.getData();
         if (CollectionUtil.isNotEmpty(data2)) {
             results.addAll(
-                data2.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.SEMINAR)).filter(ObjectUtil::isNotNull)
-                    .collect(Collectors.toList()));
+                    data2.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.SEMINAR)).filter(ObjectUtil::isNotNull)
+                            .collect(Collectors.toList()));
         }
-        return results;
+        return Lists.newArrayList(results);
     }
 
     MeetingResourcePO convert(QueryOrgVmrResultDTO queryOrgVmrResultDTO,
-        MeetingRoomHandlerEnum meetingRoomHandlerEnum) {
+                              MeetingRoomHandlerEnum meetingRoomHandlerEnum) {
         if (ObjectUtil.isNull(queryOrgVmrResultDTO.getExpireDate())) {
             //过期时间为空，则资源无效
             return null;
@@ -148,7 +152,7 @@ public class HWResourceTask {
         }
 
         Integer maxSize =
-            NumberUtil.max(queryOrgVmrResultDTO.getVmrPkgParties(), queryOrgVmrResultDTO.getMaxAudienceParties());
+                NumberUtil.max(queryOrgVmrResultDTO.getVmrPkgParties(), queryOrgVmrResultDTO.getMaxAudienceParties());
         MeetingResourcePO meetingResourcePO = new MeetingResourcePO();
         meetingResourcePO.setVmrId(queryOrgVmrResultDTO.getId());
         meetingResourcePO.setVmrConferenceId(queryOrgVmrResultDTO.getVmrId());
@@ -158,7 +162,7 @@ public class HWResourceTask {
         meetingResourcePO.setSize(maxSize);
         meetingResourcePO.setStatus(MeetingResourceStateEnum.PUBLIC_FREE.getState());
         meetingResourcePO.setExpireDate(DateUtil.date(queryOrgVmrResultDTO.getExpireDate()));
-//        meetingResourcePO.setOwnerImUserId();
+        //        meetingResourcePO.setOwnerImUserId();
         meetingResourcePO.setResourceType(MeetingResourceEnum.getBySize(maxSize).getCode());
 
         return meetingResourcePO;
