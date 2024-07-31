@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.QueryOrgVmrResultDTO;
@@ -69,6 +70,7 @@ public class HWResourceTask {
         //已过期或者不存在的资源
         List<MeetingResourcePO> invalidResources = CollectionUtil.subtractToList(oldResourceList, hwResourceList);
         if (CollectionUtil.isNotEmpty(invalidResources)) {
+            log.info("【定时执行华为资源同步】 删除过期资源 ，data:{}", JSON.toJSONString(invalidResources));
             List<Integer> deleteResourceIds =
                 invalidResources.stream().map(MeetingResourcePO::getId).collect(Collectors.toList());
             meetingResourceDaoService.removeBatchByIds(deleteResourceIds);
