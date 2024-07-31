@@ -19,7 +19,7 @@ import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
-import common.enums.MeetingResourceStateEnum;
+import common.enums.MeetingNewResourceStateEnum;
 import common.enums.MeetingRoomStateEnum;
 import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -256,7 +256,7 @@ public class HWUserCleanTask {
 
         //查询私有资源
         List<MeetingResourcePO> list = meetingResourceDaoService.lambdaQuery()
-            .eq(MeetingResourcePO::getStatus, MeetingResourceStateEnum.PRIVATE.getState()).list();
+            .eq(MeetingResourcePO::getStatus, MeetingNewResourceStateEnum.PRIVATE.getState()).list();
         Set<String> collect = list.stream().map(MeetingResourcePO::getOwnerImUserId).collect(Collectors.toSet());
         log.info("【定时任务：清理华为用户】查询私有资源 是{}人 ", collect.size());
 

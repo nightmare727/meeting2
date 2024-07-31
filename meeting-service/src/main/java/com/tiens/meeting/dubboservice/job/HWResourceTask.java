@@ -15,8 +15,8 @@ import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
-import common.enums.MeetingResourceEnum;
-import common.enums.MeetingResourceStateEnum;
+import common.enums.MeetingRoomResourceEnum;
+import common.enums.MeetingNewResourceStateEnum;
 import common.enums.MeetingRoomHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -138,10 +138,10 @@ public class HWResourceTask {
         meetingResourcePO.setVmrName(queryOrgVmrResultDTO.getVmrName());
         meetingResourcePO.setVmrPkgName(queryOrgVmrResultDTO.getVmrPkgName());
         meetingResourcePO.setSize(maxSize);
-        meetingResourcePO.setStatus(MeetingResourceStateEnum.PUBLIC_FREE.getState());
+        meetingResourcePO.setStatus(MeetingNewResourceStateEnum.PUBLIC_FREE.getState());
         meetingResourcePO.setExpireDate(DateUtil.date(queryOrgVmrResultDTO.getExpireDate()));
 //        meetingResourcePO.setOwnerImUserId();
-        meetingResourcePO.setResourceType(MeetingResourceEnum.getBySize(maxSize).getCode());
+        meetingResourcePO.setResourceType(MeetingRoomResourceEnum.getBySize(maxSize).getCode());
 
         return meetingResourcePO;
     }

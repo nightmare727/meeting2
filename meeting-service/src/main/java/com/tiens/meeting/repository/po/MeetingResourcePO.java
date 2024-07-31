@@ -60,10 +60,13 @@ public class MeetingResourcePO implements Serializable {
     private Integer size;
 
     /**
-     * 资源状态 1:公有空闲 2:公有预约 3:私有
+     * 资源状态 1:空闲 2:预约
      */
-    @TableField(value = "status")
-    private Integer status;
+    @TableField(value = "resource_status")
+    private Integer resourceStatus;
+
+    @TableField(value = "meeting_room_type")
+    private Integer meetingRoomType;
 
     /**
      * 到期时间的时间戳，单位毫秒

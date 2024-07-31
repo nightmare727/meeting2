@@ -11,7 +11,7 @@ import java.util.Map;
  * @Date: 2023/12/5
  * @Version 1.0 1:10方 2:50方 3:100方 4:200方 5:500方 6:1000方 7:3000方
  */
-public enum MeetingResourceEnum implements Serializable {
+public enum MeetingRoomResourceEnum implements Serializable {
 
     MEETING_RESOURCE_0(0, 0, "无", ""), MEETING_RESOURCE_10(1, 10, "普通会议(适用10人以下)", "moment_meeting_back_020"),
     MEETING_RESOURCE_50(2, 50, "中型会议(适用50人以下)", "moment_meeting_back_021"),
@@ -20,10 +20,10 @@ public enum MeetingResourceEnum implements Serializable {
     MEETING_RESOURCE_500(5, 500, "大型会议(适用500人以下)", "moment_meeting_back_024"),
     MEETING_RESOURCE_1000(6, 1000, "超大型会议(适用1000人以下)", "moment_meeting_back_025"),
     MEETING_RESOURCE_3000(7, 3000, "超大型会议(适用3000人以下)", "moment_meeting_back_026");
-    private static Map<Integer, MeetingResourceEnum> CodesMap = new HashMap<>(4);
+    private static Map<Integer, MeetingRoomResourceEnum> CodesMap = new HashMap<>(4);
 
     static {
-        for (MeetingResourceEnum status : MeetingResourceEnum.values()) {
+        for (MeetingRoomResourceEnum status : MeetingRoomResourceEnum.values()) {
             CodesMap.put(status.code, status);
         }
     }
@@ -38,19 +38,19 @@ public enum MeetingResourceEnum implements Serializable {
     @Getter
     private String wordKey;
 
-    MeetingResourceEnum(int code, int value, String desc, String wordKey) {
+    MeetingRoomResourceEnum(int code, int value, String desc, String wordKey) {
         this.code = code;
         this.value = value;
         this.desc = desc;
         this.wordKey = wordKey;
     }
 
-    public static MeetingResourceEnum getByCode(int code) {
+    public static MeetingRoomResourceEnum getByCode(int code) {
         return CodesMap.get(code);
     }
 
-    public static MeetingResourceEnum getBySize(int size) {
-        for (MeetingResourceEnum value : values()) {
+    public static MeetingRoomResourceEnum getBySize(int size) {
+        for (MeetingRoomResourceEnum value : values()) {
             if (value.getValue() == size) {
                 return value;
             }

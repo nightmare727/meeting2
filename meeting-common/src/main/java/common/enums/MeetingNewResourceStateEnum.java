@@ -11,14 +11,12 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum MeetingResourceStateEnum {
+public enum MeetingNewResourceStateEnum {
     /**
-     * 资源状态 1:公有空闲 2:公有预约 3:私有
+     * 资源状态 1:空闲 2:有预约
      */
-    PUBLIC_FREE(1, "公有空闲"),
-    PUBLIC_SUBSCRIBE(2, "公有预约"),
-    PRIVATE(3, "私有"),
-    REDISTRIBUTION(4, "公有预分配");
+    FREE(1, "空闲"), SUBSCRIBE(2, "有预约");
+
     private Integer state;
 
     private String desc;

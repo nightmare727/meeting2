@@ -30,7 +30,7 @@ import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
-import common.enums.MeetingResourceStateEnum;
+import common.enums.MeetingNewResourceStateEnum;
 import common.enums.MeetingRoomStateEnum;
 import common.pojo.CommonResult;
 import common.util.cache.CacheKeyUtil;
@@ -137,7 +137,7 @@ public class AppointMeetingTask {
                 String ownerImUserId = meetingRoomInfoPO.getOwnerImUserId();
                 MeetingResourcePO byId = meetingResourceDaoService.getById(meetingRoomInfoPO.getResourceId());
                 resourceMap.putIfAbsent(meetingRoomInfoPO.getResourceId(), byId);
-                if (!byId.getStatus().equals(MeetingResourceStateEnum.PRIVATE.getState())) {
+                if (!byId.getStatus().equals(MeetingNewResourceStateEnum.PRIVATE.getState())) {
                     log.info("【定时任务：会议开始前30分钟】 执行分配资源，ownerImUserId：{},vmrId:{}", ownerImUserId,
                         byId.getVmrId());
                     hwMeetingCommonService.associateVmr(ownerImUserId, Collections.singletonList(byId.getVmrId()));
