@@ -101,13 +101,29 @@ public class HWResourceTask {
         request.withVmrMode(MeetingRoomHandlerEnum.CLOUD.getVmrMode());
         request.withLimit(100);
         MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
-        SearchCorpVmrResponse response1 = mgrMeetingClient.searchCorpVmr(request);
-        List<QueryOrgVmrResultDTO> data1 = response1.getData();
-        if (CollectionUtil.isNotEmpty(data1)) {
-            results.addAll(
-                data1.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.CLOUD)).filter(ObjectUtil::isNotNull)
-                    .collect(Collectors.toList()));
-        }
+        Boolean finished = true;
+        int offset = 0;
+        do {
+            SearchCorpVmrResponse response1 = mgrMeetingClient.searchCorpVmr(request);
+            request.withOffset(offset * 100);
+
+            Integer count = response1.getCount();
+
+            List<QueryOrgVmrResultDTO> data1 = response1.getData();
+
+            if (CollectionUtil.isNotEmpty(data1)) {
+                if (data1.size() == count) {
+                    finished = false;
+                } else if (data1.size() < 100) {
+                    finished = false;
+                } else {
+                    offset++;
+                }
+                results.addAll(
+                    data1.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.CLOUD)).filter(ObjectUtil::isNotNull)
+                        .collect(Collectors.toList()));
+            }
+        } while (finished);
 
         //2、研讨会资源
         request.withVmrMode(MeetingRoomHandlerEnum.SEMINAR.getVmrMode());
