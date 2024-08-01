@@ -28,7 +28,7 @@ import com.tiens.meeting.repository.po.MeetingHostUserPO;
 import com.tiens.meeting.repository.po.MeetingLevelResourceConfigPO;
 import com.tiens.meeting.repository.service.MeetingHostUserDaoService;
 import com.tiens.meeting.repository.service.MeetingLevelResourceConfigDaoService;
-import common.enums.MeetingRoomResourceEnum;
+import common.enums.MeetingResourceEnum;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
@@ -319,8 +319,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         List<MeetingHostUserVO> meetingHostUserVOS = BeanUtil.copyToList(records, MeetingHostUserVO.class);
         if (ObjectUtil.isNotEmpty(meetingHostUserVOS)) {
             meetingHostUserVOS.forEach(meetingHostUserVO -> {
-                MeetingRoomResourceEnum byCode =
-                    MeetingRoomResourceEnum.getByCode(Optional.ofNullable(meetingHostUserVO.getResourceType()).orElse(0));
+                MeetingResourceEnum byCode =
+                    MeetingResourceEnum.getByCode(Optional.ofNullable(meetingHostUserVO.getResourceType()).orElse(0));
                 meetingHostUserVO.setResourceNum(byCode.getValue());
             });
         }
@@ -348,7 +348,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         list.forEach(meetingLevelResourceConfigPO -> {
             MeetingResourceTypeVO typeVO = new MeetingResourceTypeVO();
             BeanUtil.copyProperties(meetingLevelResourceConfigPO, typeVO);
-            MeetingRoomResourceEnum byCode = MeetingRoomResourceEnum.getByCode(typeVO.getResourceType());
+            MeetingResourceEnum byCode = MeetingResourceEnum.getByCode(typeVO.getResourceType());
             typeVO.setResourceTypeName(byCode.getDesc());
             typeVOS.add(typeVO);
         });

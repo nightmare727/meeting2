@@ -547,7 +547,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         if (publicFlag) {
             // 共有资源
-            resourceTypeDesc = MeetingRoomResourceEnum.getByCode(Integer.parseInt(resourceType)).getDesc();
+            resourceTypeDesc = MeetingResourceEnum.getByCode(Integer.parseInt(resourceType)).getDesc();
         } else {
             // 私有资源
             int size = Integer.valueOf(resourceType.split("-")[1]);
@@ -1005,10 +1005,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String resourceType = result.getResourceType();
         if (NumberUtil.isNumber(resourceType)) {
             // 共有会议类型
-            result.setResourceTypeWordKey(MeetingRoomResourceEnum.getByCode(Integer.parseInt(resourceType)).getWordKey());
+            result.setResourceTypeWordKey(MeetingResourceEnum.getByCode(Integer.parseInt(resourceType)).getWordKey());
         } else {
             // 私有会议
-            result.setResourceTypeWordKey(MeetingRoomResourceEnum.specialResourceKey);
+            result.setResourceTypeWordKey(MeetingResourceEnum.specialResourceKey);
             Pattern pattern = Pattern.compile("\\d+");
             Matcher matcher = pattern.matcher(result.getResourceTypeDesc());
             if (matcher.find()) {
@@ -1585,7 +1585,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         // 根据资源等级过滤资源类型
         List<ResourceTypeVO> levelResourceTypeVOList =
-            Arrays.stream(MeetingRoomResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
+            Arrays.stream(MeetingResourceEnum.values()).filter(t -> t.getCode() != 0 && t.getCode() <= maxResourceType)
                 .collect(Collectors.toList()).stream().map(
                     t -> ResourceTypeVO.builder().code(String.valueOf(t.getCode())).type(1).desc(t.getDesc())
                         .size(t.getValue()).wordKey(t.getWordKey()).coins(map.get(t.getCode()).getVmCoins())
@@ -1597,9 +1597,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         List<ResourceTypeVO> collect = privateResourceList.stream().map(MeetingResourcePO::getSize).distinct().map(
             t -> ResourceTypeVO.builder().type(2)
-                .code(imUserId + "-" + t + "-" + MeetingRoomResourceEnum.getBySize(t).getCode())
+                .code(imUserId + "-" + t + "-" + MeetingResourceEnum.getBySize(t).getCode())
                 .desc(String.format(privateResourceTypeFormat, t)).size(t)
-                .wordKey(MeetingRoomResourceEnum.specialResourceKey).build()).collect(Collectors.toList());
+                .wordKey(MeetingResourceEnum.specialResourceKey).build()).collect(Collectors.toList());
 
         collect.addAll(levelResourceTypeVOList);
         return CommonResult.success(collect);
