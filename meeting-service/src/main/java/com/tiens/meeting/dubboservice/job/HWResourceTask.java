@@ -4,7 +4,9 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.huaweicloud.sdk.meeting.v1.MeetingClient;
 import com.huaweicloud.sdk.meeting.v1.model.QueryOrgVmrResultDTO;
 import com.huaweicloud.sdk.meeting.v1.model.SearchCorpVmrRequest;
@@ -15,8 +17,8 @@ import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
-import common.enums.MeetingRoomResourceEnum;
-import common.enums.MeetingNewResourceStateEnum;
+import common.enums.MeetingResourceEnum;
+import common.enums.MeetingResourceStateEnum;
 import common.enums.MeetingRoomHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -52,13 +54,13 @@ public class HWResourceTask {
     public void jobHandler() throws Exception {
         List<MeetingResourcePO> hwResourceList = getHwResourceList();
         Map<String, MeetingResourcePO> hwResourceMap =
-            hwResourceList.stream().collect(Collectors.toMap(MeetingResourcePO::getVmrId, Function.identity()));
+                hwResourceList.stream().collect(Collectors.toMap(MeetingResourcePO::getVmrId, Function.identity()));
 
         List<MeetingResourcePO> oldResourceList =
-            meetingResourceDaoService.lambdaQuery().orderByAsc(MeetingResourcePO::getSize).list();
+                meetingResourceDaoService.lambdaQuery().orderByAsc(MeetingResourcePO::getSize).list();
 
         Map<String, MeetingResourcePO> oldResourceMap =
-            oldResourceList.stream().collect(Collectors.toMap(MeetingResourcePO::getVmrId, Function.identity()));
+                oldResourceList.stream().collect(Collectors.toMap(MeetingResourcePO::getVmrId, Function.identity()));
 
         //新资源列表
         List<MeetingResourcePO> newResources = CollectionUtil.subtractToList(hwResourceList, oldResourceList);
@@ -69,9 +71,10 @@ public class HWResourceTask {
         //已过期或者不存在的资源
         List<MeetingResourcePO> invalidResources = CollectionUtil.subtractToList(oldResourceList, hwResourceList);
         if (CollectionUtil.isNotEmpty(invalidResources)) {
+            log.info("【定时执行华为资源同步】 删除过期资源 ，data:{}", JSON.toJSONString(invalidResources));
             List<Integer> deleteResourceIds =
-                invalidResources.stream().map(MeetingResourcePO::getId).collect(Collectors.toList());
-            meetingResourceDaoService.removeBatchByIds(deleteResourceIds);
+                    invalidResources.stream().map(MeetingResourcePO::getId).collect(Collectors.toList());
+            //            meetingResourceDaoService.removeBatchByIds(deleteResourceIds);
         }
         Collection<MeetingResourcePO> intersection = CollectionUtil.intersection(oldResourceList, hwResourceList);
         //处理更新资源更新时间
@@ -83,9 +86,9 @@ public class HWResourceTask {
                 if (!hwExpireDate.equals(oldExpireDate)) {
                     //更新过期时间
                     boolean update = meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getVmrId, vmrId)
-                        .set(MeetingResourcePO::getExpireDate, hwExpireDate).update();
+                            .set(MeetingResourcePO::getExpireDate, hwExpireDate).update();
                     log.info("【定时执行华为资源同步】 更新资源过期时间完成，vmrId：{}，过期时间：{},执行结果：{}", vmrId,
-                        hwExpireDate, update);
+                            hwExpireDate, update);
                 }
             }
         }
@@ -93,7 +96,8 @@ public class HWResourceTask {
 
     private List<MeetingResourcePO> getHwResourceList() {
 
-        ArrayList<@Nullable MeetingResourcePO> results = Lists.newArrayList();
+        Set<@Nullable MeetingResourcePO> results = Sets.newHashSet();
+
 
         //1、获取华为云资源
         SearchCorpVmrRequest request = new SearchCorpVmrRequest();
@@ -101,13 +105,31 @@ public class HWResourceTask {
         request.withVmrMode(MeetingRoomHandlerEnum.CLOUD.getVmrMode());
         request.withLimit(100);
         MeetingClient mgrMeetingClient = hwMeetingCommonService.getMgrMeetingClient();
-        SearchCorpVmrResponse response1 = mgrMeetingClient.searchCorpVmr(request);
-        List<QueryOrgVmrResultDTO> data1 = response1.getData();
-        if (CollectionUtil.isNotEmpty(data1)) {
-            results.addAll(
-                data1.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.CLOUD)).filter(ObjectUtil::isNotNull)
-                    .collect(Collectors.toList()));
-        }
+        Boolean finished = true;
+        int offset = 0;
+        do {
+            request.withOffset(offset * 100);
+            SearchCorpVmrResponse response1 = mgrMeetingClient.searchCorpVmr(request);
+
+            Integer count = response1.getCount();
+
+            List<QueryOrgVmrResultDTO> data1 = response1.getData();
+
+            if (CollectionUtil.isNotEmpty(data1)) {
+                if (data1.size() == count) {
+                    finished = false;
+                } else if (data1.size() < 100) {
+                    finished = false;
+                } else {
+                    offset++;
+                }
+                results.addAll(
+                        data1.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.CLOUD)).filter(ObjectUtil::isNotNull)
+                                .collect(Collectors.toList()));
+            } else {
+                finished = false;
+            }
+        } while (finished);
 
         //2、研讨会资源
         request.withVmrMode(MeetingRoomHandlerEnum.SEMINAR.getVmrMode());
@@ -115,14 +137,14 @@ public class HWResourceTask {
         List<QueryOrgVmrResultDTO> data2 = response2.getData();
         if (CollectionUtil.isNotEmpty(data2)) {
             results.addAll(
-                data2.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.SEMINAR)).filter(ObjectUtil::isNotNull)
-                    .collect(Collectors.toList()));
+                    data2.stream().map(t -> this.convert(t, MeetingRoomHandlerEnum.SEMINAR)).filter(ObjectUtil::isNotNull)
+                            .collect(Collectors.toList()));
         }
-        return results;
+        return Lists.newArrayList(results);
     }
 
     MeetingResourcePO convert(QueryOrgVmrResultDTO queryOrgVmrResultDTO,
-        MeetingRoomHandlerEnum meetingRoomHandlerEnum) {
+                              MeetingRoomHandlerEnum meetingRoomHandlerEnum) {
         if (ObjectUtil.isNull(queryOrgVmrResultDTO.getExpireDate())) {
             //过期时间为空，则资源无效
             return null;
@@ -130,7 +152,7 @@ public class HWResourceTask {
         }
 
         Integer maxSize =
-            NumberUtil.max(queryOrgVmrResultDTO.getVmrPkgParties(), queryOrgVmrResultDTO.getMaxAudienceParties());
+                NumberUtil.max(queryOrgVmrResultDTO.getVmrPkgParties(), queryOrgVmrResultDTO.getMaxAudienceParties());
         MeetingResourcePO meetingResourcePO = new MeetingResourcePO();
         meetingResourcePO.setVmrId(queryOrgVmrResultDTO.getId());
         meetingResourcePO.setVmrConferenceId(queryOrgVmrResultDTO.getVmrId());
@@ -138,10 +160,10 @@ public class HWResourceTask {
         meetingResourcePO.setVmrName(queryOrgVmrResultDTO.getVmrName());
         meetingResourcePO.setVmrPkgName(queryOrgVmrResultDTO.getVmrPkgName());
         meetingResourcePO.setSize(maxSize);
-        meetingResourcePO.setStatus(MeetingNewResourceStateEnum.PUBLIC_FREE.getState());
+        meetingResourcePO.setStatus(MeetingResourceStateEnum.PUBLIC_FREE.getState());
         meetingResourcePO.setExpireDate(DateUtil.date(queryOrgVmrResultDTO.getExpireDate()));
-//        meetingResourcePO.setOwnerImUserId();
-        meetingResourcePO.setResourceType(MeetingRoomResourceEnum.getBySize(maxSize).getCode());
+        //        meetingResourcePO.setOwnerImUserId();
+        meetingResourcePO.setResourceType(MeetingResourceEnum.getBySize(maxSize).getCode());
 
         return meetingResourcePO;
     }
