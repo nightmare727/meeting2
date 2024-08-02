@@ -1,7 +1,12 @@
 package com.tiens.meeting.repository.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tiens.api.dto.MeetingRoomInfoDTO;
+import com.tiens.api.dto.MeetingRoomInfoQueryDTO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author yuwenjie
@@ -11,6 +16,13 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 */
 public interface MeetingRoomInfoMapper extends BaseMapper<MeetingRoomInfoPO> {
 
+    /**
+     * <p> 分页查询 </p>
+     *
+     * @param query MeetingRoomInfoQueryDTO
+     * @return IPage
+     **/
+    IPage<MeetingRoomInfoDTO> pageQuery(Page<MeetingRoomInfoDTO> page, @Param("param") MeetingRoomInfoQueryDTO query);
 }
 
 

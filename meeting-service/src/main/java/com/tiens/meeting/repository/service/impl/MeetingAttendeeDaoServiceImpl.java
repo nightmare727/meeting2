@@ -7,10 +7,7 @@ import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author yuwenjie
@@ -18,8 +15,7 @@ import java.util.List;
  * @createDate 2024-01-10 10:39:54
  */
 @Service
-public class MeetingAttendeeDaoServiceImpl extends ServiceImpl<MeetingAttendeeMapper, MeetingAttendeePO>
-    implements MeetingAttendeeDaoService {
+public class MeetingAttendeeDaoServiceImpl extends ServiceImpl<MeetingAttendeeMapper, MeetingAttendeePO> implements MeetingAttendeeDaoService {
 
     @Override
     @Transactional(rollbackFor = {Exception.class})
@@ -47,6 +43,10 @@ public class MeetingAttendeeDaoServiceImpl extends ServiceImpl<MeetingAttendeeMa
         return true;
     }
 
+    @Override
+    public List<Map<String, Object>> queryPersonsByRoomIds(List<String> roomIds) {
+        return baseMapper.queryPersonsByRoomIds(roomIds);
+    }
 }
 
 

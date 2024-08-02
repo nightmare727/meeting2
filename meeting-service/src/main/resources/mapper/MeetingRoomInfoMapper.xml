@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiens.meeting.repository.mapper.MeetingRoomInfoMapper">
+
+    <resultMap id="MeetingRoomInfoDTOResultMap" type="com.tiens.api.dto.MeetingRoomInfoDTO">
+        <id column="id" property="id"/>
+        <result column="resource_id" property="resourceId"/>
+        <result column="hw_meeting_code" property="hwMeetingCode"/>
+        <result column="resource_name" property="resourceName"/>
+        <result column="resource_type" property="resourceType"/>
+        <result column="resource_type_desc" property="resourceTypeDesc"/>
+        <result column="state" property="state"/>
+        <result column="size" property="size"/>
+        <result column="create_time" property="createTime"/>
+        <result column="owner_user_name" property="ownerUserName"/>
+        <result column="owner_im_user_id" property="ownerImUserId"/>
+        <result column="area" property="area"/>
+        <result column="show_start_time" property="showStartTime"/>
+        <result column="duration" property="duration"/>
+        <result column="rel_start_time" property="relStartTime"/>
+        <result column="rel_end_time" property="relEndTime"/>
+    </resultMap>
+
+    <select id="pageQuery" resultMap="MeetingRoomInfoDTOResultMap">
+        SELECT
+        mri.id, -- 主键id
+        mri.resource_id, -- 资源id
+        mri.hw_meeting_code, -- 云会议号
+        mri.resource_name, -- 资源名称
+        mri.resource_type, -- 资源类型枚举值
+        mri.resource_type_desc, -- 资源类型
+        mri.state, -- 会议状态
+        -- 会议室类型
+        mr.size, -- 资源大小
+        mri.create_time, -- 预约时间
+        mri.owner_user_name, -- 预约人
+        mri.owner_im_user_id, -- 预约人id
+        mri.area, -- 所在区域
+        mri.show_start_time, -- 计划开始时间
+        mri.duration, -- 时长
+        mri.rel_start_time, -- 实际开始时间
+        mri.rel_end_time -- 实际结束时间
+        FROM meeting_room_info mri
+        left join meeting_resource mr on mri.resource_id = mr.id -- 使用资源id关联
+        <where>
+            <if test="params.hwMeetingCode!=null and params.hwMeetingCode!=''">
+                mri.hw_meeting_code = #{params.hwMeetingCode}
+            </if>
+
+            <if test="params.relStartTime!=null and params.relStartTime!='' and params.relEndTime!=null and params.relEndTime!=''">
+                and mri.rel_start_time between #{params.relStartTime} and #{params.relEndTime}
+            </if>
+
+            <if test="params.resourceSize!=null and params.resourceSize!=''">
+                and mr.size = #{params.resourceSize}
+            </if>
+
+            <if test="params.meetingState!=null and params.meetingState!=''">
+                and mri.state = #{params.meetingState}
+            </if>
+
+            <if test="params.resourceId!=null and params.resourceId!=''">
+                and mri.resource_id = #{params.resourceId}
+            </if>
+
+            <if test="params.showStartTime!=null and params.showStartTime!='' and params.showEndTime!=null and params.showEndTime!=''">
+                and mri.show_start_time between #{params.showStartTime} and #{params.showEndTime}
+            </if>
+        </where>
+    </select>
+
+</mapper>

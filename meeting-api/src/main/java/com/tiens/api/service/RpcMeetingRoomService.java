@@ -144,4 +144,18 @@ public interface RpcMeetingRoomService {
      * @return
      */
     CommonResult enterMeetingRoom(JoinMeetingRoomDTO joinMeetingRoomDTO);
+
+    /**
+     * 取消会议
+     *
+     * @param meetingRoomUpDto MeetingRoomUpDTO
+     */
+    CommonResult closeMeeting(MeetingRoomUpDTO meetingRoomUpDto);
+
+    /**
+     * 结束会议
+     *
+     * @param meetingRoomUpDto MeetingRoomUpDTO
+     */
+    CommonResult stopMeeting(MeetingRoomUpDTO meetingRoomUpDto);
 }

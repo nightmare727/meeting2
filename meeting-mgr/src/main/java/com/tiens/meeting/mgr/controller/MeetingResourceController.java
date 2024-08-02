@@ -1,20 +1,22 @@
 package com.tiens.meeting.mgr.controller;
 
-import com.tiens.api.dto.CancelMeetingRoomDTO;
-import com.tiens.api.dto.CancelResourceAllocateDTO;
-import com.tiens.api.dto.ResourceAllocateDTO;
+import com.tiens.api.dto.*;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RPCMeetingTimeZoneService;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingRoomDetailDTO;
 import com.tiens.api.vo.MeetingTimeZoneConfigVO;
+import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import common.pojo.CommonResult;
+import common.pojo.PageParam;
+import common.pojo.PageResult;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -36,6 +38,9 @@ public class MeetingResourceController {
 
     @Reference
     RpcMeetingRoomService rpcMeetingRoomService;
+
+    @Resource
+    HwMeetingCommonService hwMeetingCommonService;
 
     /**
      * 获取时区列表
@@ -81,7 +86,7 @@ public class MeetingResourceController {
     @ResponseBody
     @GetMapping("/queryMeetingRoomList/{resourceId}")
     public CommonResult<List<MeetingRoomDetailDTO>> queryMeetingRoomList(
-        @PathVariable("resourceId") Integer resourceId) {
+            @PathVariable("resourceId") Integer resourceId) {
         return rpcMeetingResourceService.queryMeetingRoomList(resourceId);
     }
 
@@ -107,6 +112,40 @@ public class MeetingResourceController {
     @PostMapping("/cancelAllocate")
     public CommonResult cancelAllocate(@RequestBody CancelResourceAllocateDTO cancelResourceAllocateDTO) {
         return rpcMeetingResourceService.cancelAllocate(cancelResourceAllocateDTO);
+    }
+
+    /**
+     * 分页查询会议列表
+     *
+     * @param query MeetingRoomInfoQueryDTO
+     * @return MeetingRoomInfoDTO
+     */
+    @ResponseBody
+    @PostMapping("queryMeetingRoomPage")
+    public CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(@RequestBody PageParam<MeetingRoomInfoQueryDTO> query) {
+        return rpcMeetingResourceService.queryMeetingRoomPage(query);
+    }
+
+    /**
+     * 取消会议
+     *
+     * @param meetingRoomUpDto MeetingRoomUpDto
+     */
+    @ResponseBody
+    @PostMapping("closeMeeting")
+    public CommonResult closeMeeting(@RequestBody MeetingRoomUpDTO meetingRoomUpDto) {
+        return rpcMeetingRoomService.closeMeeting(meetingRoomUpDto);
+    }
+
+    /**
+     * 结束会议
+     *
+     * @param meetingRoomUpDto MeetingRoomUpDto
+     */
+    @ResponseBody
+    @PostMapping("stopMeeting")
+    public CommonResult stopMeeting(@RequestBody MeetingRoomUpDTO meetingRoomUpDto) {
+        return rpcMeetingRoomService.stopMeeting(meetingRoomUpDto);
     }
 
 }

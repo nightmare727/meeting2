@@ -6,7 +6,10 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tiens.api.dto.CancelResourceAllocateDTO;
+import com.tiens.api.dto.MeetingRoomInfoDTO;
+import com.tiens.api.dto.MeetingRoomInfoQueryDTO;
 import com.tiens.api.dto.ResourceAllocateDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RpcMeetingUserService;
@@ -16,13 +19,16 @@ import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
+import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
-import common.enums.MeetingNewResourceStateEnum;
+import common.enums.MeetingResourceStateEnum;
 import common.enums.MeetingRoomStateEnum;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
+import common.pojo.PageParam;
+import common.pojo.PageResult;
 import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +58,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
     private final MeetingResourceDaoService meetingResourceDaoService;
     private final MeetingRoomInfoDaoService meetingRoomInfoDaoService;
+    private final MeetingAttendeeDaoService meetingAttendeeDaoService;
 
     private final HwMeetingCommonService hwMeetingCommonService;
     private final RpcMeetingUserService rpcMeetingUserService;
@@ -141,15 +148,15 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
             //共有空闲、共有预约可分配，其他状态都不可分配
             MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
             Integer status = meetingResourcePO.getStatus();
-            if (MeetingNewResourceStateEnum.PRIVATE.getState()
-                .equals(status) || MeetingNewResourceStateEnum.REDISTRIBUTION.getState().equals(status)) {
+            if (MeetingResourceStateEnum.PRIVATE.getState()
+                .equals(status) || MeetingResourceStateEnum.REDISTRIBUTION.getState().equals(status)) {
                 return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_ALLOCATE_RESOURCE);
             }
             //当前资源状态是否为公有空闲
-            Boolean freeFlag = MeetingNewResourceStateEnum.PUBLIC_FREE.getState().equals(status);
+            Boolean freeFlag = MeetingResourceStateEnum.PUBLIC_FREE.getState().equals(status);
             meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceAllocateDTO.getResourceId())
-                .set(MeetingResourcePO::getStatus, freeFlag ? MeetingNewResourceStateEnum.PRIVATE.getState()
-                    : MeetingNewResourceStateEnum.REDISTRIBUTION.getState())
+                .set(MeetingResourcePO::getStatus, freeFlag ? MeetingResourceStateEnum.PRIVATE.getState()
+                    : MeetingResourceStateEnum.REDISTRIBUTION.getState())
                 .set(freeFlag, MeetingResourcePO::getCurrentUseImUserId, vmUserVO.getAccid())
                 .set(MeetingResourcePO::getOwnerImUserId, vmUserVO.getAccid())
                 .set(MeetingResourcePO::getOwnerImUserJoyoCode, vmUserVO.getJoyoCode())
@@ -195,11 +202,11 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
             MeetingResourcePO meetingResourcePO = meetingResourceDaoService.getById(resourceId);
             Integer status = meetingResourcePO.getStatus();
-            if (MeetingNewResourceStateEnum.PUBLIC_FREE.getState()
-                .equals(status) || MeetingNewResourceStateEnum.PUBLIC_SUBSCRIBE.getState().equals(status)) {
+            if (MeetingResourceStateEnum.PUBLIC_FREE.getState()
+                .equals(status) || MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState().equals(status)) {
                 return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_ALLOCATE_RESOURCE);
             }
-            Boolean privateFlag = MeetingNewResourceStateEnum.PRIVATE.getState().equals(status);
+            Boolean privateFlag = MeetingResourceStateEnum.PRIVATE.getState().equals(status);
             //查询是否有进行中或者预约中的会议
             if (privateFlag) {
                 List<MeetingRoomInfoPO> meetingRoomInfoPOList =
@@ -217,8 +224,8 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 .set(MeetingResourcePO::getOwnerImUserId, null).set(MeetingResourcePO::getOwnerImUserJoyoCode, null)
                 .set(MeetingResourcePO::getOwnerImUserName, null)
                 .set(privateFlag, MeetingResourcePO::getCurrentUseImUserId, null).set(MeetingResourcePO::getStatus,
-                    privateFlag ? MeetingNewResourceStateEnum.PUBLIC_FREE.getState()
-                        : MeetingNewResourceStateEnum.PUBLIC_SUBSCRIBE.getState()).update();
+                    privateFlag ? MeetingResourceStateEnum.PUBLIC_FREE.getState()
+                        : MeetingResourceStateEnum.PUBLIC_SUBSCRIBE.getState()).update();
             return CommonResult.success(null);
         } catch (Exception e) {
             log.error("【取消分配资源】发生异常，资源id：{},异常：{}", resourceId, e);
@@ -245,5 +252,27 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 .orderByAsc(MeetingRoomInfoPO::getLockStartTime).list();
         List<MeetingRoomDetailDTO> meetingRoomDetailDTOS = BeanUtil.copyToList(list, MeetingRoomDetailDTO.class);
         return CommonResult.success(meetingRoomDetailDTOS);
+    }
+
+    @Override
+    public CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(PageParam<MeetingRoomInfoQueryDTO> query) {
+        IPage<MeetingRoomInfoDTO> page = meetingRoomInfoDaoService.queryPage(query);
+        List<MeetingRoomInfoDTO> records = page.getRecords();
+        List<String> roomIds = records.stream().map(MeetingRoomInfoDTO::getId).collect(Collectors.toList());
+        // 获取参会人数
+        if (roomIds.size() > 0) {
+            List<Map<String, Object>> roomList = meetingAttendeeDaoService.queryPersonsByRoomIds(roomIds);
+            records.forEach((item) -> {
+                Optional<Object> first = roomList.stream()
+                        .filter(room -> room.get("roomId").equals(item.getId()))
+                        .map(room -> room.get("persons"))
+                        .findFirst();
+                first.ifPresent(o -> item.setPersons(Integer.parseInt(String.valueOf(o))));
+            });
+        }
+        PageResult<MeetingRoomInfoDTO> pageResult = new PageResult<>();
+        pageResult.setList(records);
+        pageResult.setTotal(page.getTotal());
+        return CommonResult.success(pageResult);
     }
 }

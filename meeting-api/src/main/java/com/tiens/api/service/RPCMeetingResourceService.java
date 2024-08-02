@@ -1,11 +1,13 @@
 package com.tiens.api.service;
 
-import com.tiens.api.dto.CancelResourceAllocateDTO;
-import com.tiens.api.dto.ResourceAllocateDTO;
+import com.tiens.api.dto.*;
+import com.tiens.api.vo.MeetingApproveVO;
 import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingRoomDetailDTO;
 import common.exception.ServiceException;
 import common.pojo.CommonResult;
+import common.pojo.PageParam;
+import common.pojo.PageResult;
 
 import java.util.List;
 
@@ -47,4 +49,11 @@ public interface RPCMeetingResourceService {
      * @return
      */
     CommonResult<List<MeetingRoomDetailDTO>> queryMeetingRoomList(Integer resourceId);
+
+    /**
+     * 分页查询会议列表
+     *
+     * @param query PageParam
+     */
+    CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(PageParam<MeetingRoomInfoQueryDTO> query);
 }

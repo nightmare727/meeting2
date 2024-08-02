@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiens.meeting.repository.mapper.MeetingAttendeeMapper">
+
+    <select id="queryPersonsByRoomIds" resultType="java.util.HashMap">
+        select
+        count(1) as persons,
+        meeting_room_id as roomId
+        FROM meeting_attendee
+        <where>
+            meeting_room_id in
+            <foreach item="item" index="index" collection="roomIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+        GROUP BY meeting_room_id
+    </select>
+
+</mapper>
