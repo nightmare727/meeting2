@@ -16,8 +16,8 @@ import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import common.enums.MeetingNewRoomTypeEnum;
 import common.enums.MeetingResourceHandleEnum;
-import common.enums.MeetingNewResourceStateEnum;
 import common.enums.MeetingRoomStateEnum;
 import common.util.cache.CacheKeyUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -120,8 +120,8 @@ public class MeetingStopTask {
                 }
 
                 if (meetingRoomInfoPO.getOwnerImUserId()
-                    .equals(meetingResourcePO.getCurrentUseImUserId()) && !meetingResourcePO.getStatus()
-                    .equals(MeetingNewResourceStateEnum.PRIVATE.getState())) {
+                    .equals(meetingResourcePO.getCurrentUseImUserId()) && !meetingResourcePO.getMeetingRoomType()
+                    .equals(MeetingNewRoomTypeEnum.PRIVATE.getState())) {
                     log.info("会议自动结束回收资源，会议数据：{}", meetingRoomInfoPO);
                     hwMeetingCommonService.disassociateVmr(meetingRoomInfoPO.getOwnerImUserId(),
                         Collections.singletonList(meetingResourcePO.getVmrId()));

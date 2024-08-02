@@ -64,7 +64,15 @@ public class MeetingResourcePO implements Serializable {
      */
     @TableField(value = "resource_status")
     private Integer resourceStatus;
+    /**
+     * 是否存在预分配 1否 2是
+     */
+    @TableField(value = "pre_allocation")
+    private Integer preAllocation;
 
+    /**
+     * 会议室类型 2公有 3私有 4付费
+     */
     @TableField(value = "meeting_room_type")
     private Integer meetingRoomType;
 
