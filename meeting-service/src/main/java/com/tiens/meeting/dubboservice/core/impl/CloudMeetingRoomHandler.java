@@ -236,7 +236,8 @@ public class CloudMeetingRoomHandler extends HwMeetingRoomHandler {
             RestConfConfigDTO confConfigInfoBody = new RestConfConfigDTO();
             confConfigInfoBody.withCallInRestriction(2).withAllowGuestStartConf(false)
                 .withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag()).withVmrIDType(isPrivate ? 0 : 1)
-                .withProlongLength(0).withEnableWaitingRoom(Boolean.FALSE);
+                .withProlongLength(isPrivate ? 60 : 0).withIsGuestFreePwd(meetingRoomContextDTO.getGuestPwdFlag())
+                .withEnableWaitingRoom(Boolean.FALSE);
             body.withVmrID(meetingRoomContextDTO.getVmrId());
             body.withVmrFlag(1);
             body.withRecordAuthType(1);
