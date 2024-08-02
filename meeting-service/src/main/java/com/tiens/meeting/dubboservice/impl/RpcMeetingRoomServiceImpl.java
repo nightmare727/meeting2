@@ -15,6 +15,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.huaweicloud.sdk.meeting.v1.model.StopMeetingResponse;
 import com.huaweicloud.sdk.meeting.v1.utils.HmacSHA256;
 import com.tiens.api.dto.*;
 import com.tiens.api.dto.hwevent.EventInfo;
@@ -242,6 +243,28 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         }
 
         return CommonResult.success(null);
+    }
+
+    @Override
+    public CommonResult closeMeeting(MeetingRoomUpDTO meetingRoomUpDto) {
+        MeetingRoomInfoPO meetingRoomInfo = meetingRoomInfoDaoService.getById(meetingRoomUpDto.getId());
+        if (meetingRoomInfo == null) {
+            return CommonResult.errorMsg("当前会议不存在");
+        }
+        CancelMeetingRoomDTO roomDto = new CancelMeetingRoomDTO();
+        roomDto.setMeetingRoomId(Long.parseLong(meetingRoomUpDto.getId()));
+        return this.cancelMeetingRoom(roomDto);
+    }
+
+    @Override
+    public CommonResult stopMeeting(MeetingRoomUpDTO meetingRoomUpDto) {
+        MeetingRoomInfoPO meetingRoomInfo = meetingRoomInfoDaoService.getById(meetingRoomUpDto.getId());
+        if (meetingRoomInfo == null) {
+            return CommonResult.errorMsg("当前会议不存在");
+        }
+        StopMeetingResponse response = hwMeetingCommonService.stopMeeting(meetingRoomInfo.getHwMeetingCode(), meetingRoomInfo.getHostPwd());
+        log.info("结束会议: id{}, response: {}", meetingRoomUpDto.getId(), response);
+        return CommonResult.success("");
     }
 
     /**

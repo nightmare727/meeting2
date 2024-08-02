@@ -6,7 +6,10 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tiens.api.dto.CancelResourceAllocateDTO;
+import com.tiens.api.dto.MeetingRoomInfoDTO;
+import com.tiens.api.dto.MeetingRoomInfoQueryDTO;
 import com.tiens.api.dto.ResourceAllocateDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RpcMeetingUserService;
@@ -16,6 +19,7 @@ import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingResourcePO;
 import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
+import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
 import com.tiens.meeting.repository.service.MeetingResourceDaoService;
 import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
 import common.enums.MeetingNewResourceStateEnum;
@@ -24,6 +28,8 @@ import common.enums.MeetingRoomStateEnum;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
+import common.pojo.PageParam;
+import common.pojo.PageResult;
 import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +59,8 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
     private final MeetingResourceDaoService meetingResourceDaoService;
     private final MeetingRoomInfoDaoService meetingRoomInfoDaoService;
+    private final MeetingAttendeeDaoService meetingAttendeeDaoService;
+
 
     private final HwMeetingCommonService hwMeetingCommonService;
     private final RpcMeetingUserService rpcMeetingUserService;
@@ -254,4 +262,27 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         List<MeetingRoomDetailDTO> meetingRoomDetailDTOS = BeanUtil.copyToList(list, MeetingRoomDetailDTO.class);
         return CommonResult.success(meetingRoomDetailDTOS);
     }
+
+    @Override
+    public CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(PageParam<MeetingRoomInfoQueryDTO> query) {
+        IPage<MeetingRoomInfoDTO> page = meetingRoomInfoDaoService.queryPage(query);
+        List<MeetingRoomInfoDTO> records = page.getRecords();
+        List<String> roomIds = records.stream().map(MeetingRoomInfoDTO::getId).collect(Collectors.toList());
+        // 获取参会人数
+        if (roomIds.size() > 0) {
+            List<Map<String, Object>> roomList = meetingAttendeeDaoService.queryPersonsByRoomIds(roomIds);
+            records.forEach((item) -> {
+                Optional<Object> first = roomList.stream()
+                        .filter(room -> room.get("roomId").equals(item.getId()))
+                        .map(room -> room.get("persons"))
+                        .findFirst();
+                first.ifPresent(o -> item.setPersons(Integer.parseInt(String.valueOf(o))));
+            });
+        }
+        PageResult<MeetingRoomInfoDTO> pageResult = new PageResult<>();
+        pageResult.setList(records);
+        pageResult.setTotal(page.getTotal());
+        return CommonResult.success(pageResult);
+    }
+
 }
