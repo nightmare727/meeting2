@@ -82,9 +82,10 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
         AssociateVmrResponse response = meetingClient.associateVmr(request);
         log.info("分配会议室结果：{}", JSON.toJSONString(response));
         for (String vmrId : vmrIds) {
-            //设置当前使用者
+            //设置当前使用者 清除预分配状态
             meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getVmrId, vmrId)
-                .set(MeetingResourcePO::getCurrentUseImUserId, imUserId).update();
+                .set(MeetingResourcePO::getCurrentUseImUserId, imUserId)
+                    .set(MeetingResourcePO::getPreAllocation,0).update();
         }
     }
 
