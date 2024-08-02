@@ -7,7 +7,6 @@ import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingRoomDetailDTO;
 import com.tiens.api.vo.MeetingTimeZoneConfigVO;
-import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
@@ -38,9 +37,6 @@ public class MeetingResourceController {
 
     @Reference
     RpcMeetingRoomService rpcMeetingRoomService;
-
-    @Resource
-    HwMeetingCommonService hwMeetingCommonService;
 
     /**
      * 获取时区列表
