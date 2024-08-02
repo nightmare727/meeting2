@@ -85,7 +85,7 @@ public class HwMeetingCommonServiceImpl implements HwMeetingCommonService {
             //设置当前使用者 清除预分配状态
             meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getVmrId, vmrId)
                 .set(MeetingResourcePO::getCurrentUseImUserId, imUserId)
-                    .set(MeetingResourcePO::getPreAllocation,0).update();
+                    .set(MeetingResourcePO::getPreAllocation,1).update();
         }
     }
 
