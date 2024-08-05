@@ -11,6 +11,7 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.http.param.MediaType;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
@@ -99,6 +100,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     RpcMeetingUserService rpcMeetingUserService;
 
     private final MeetingMemeberProfitConfigDaoService meetingMemeberProfitConfigDaoService;
+    private final MeetingBlackRecordDaoService meetingBlackRecordDaoService;
 
 
 
@@ -384,10 +386,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
             meetingBlackUserVO.setMaxTime(blackUserConfig.getMaxTime());
             meetingBlackUserVO.setLockDay(blackUserConfig.getLockDay());
-
-            meetingBlackUserVO.setNickName(meetingBlackUserPO.getNickName());
-            meetingBlackUserVO.setMobile(meetingBlackUserPO.getMobile());
-            meetingBlackUserVO.setCountryCode(meetingBlackUserPO.getCountryCode());
             return CommonResult.success(meetingBlackUserVO);
 
         }
@@ -401,50 +399,29 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      * @return
      */
     @Override
-    public CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(String finalUserId, PageParam<MeetingBlackUserVO> bean) {
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
-        RBucket<VMUserVO> bucket = null;
-        if (StringUtils.isNotBlank(finalUserId)){
-            // 查询缓存
-             bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(finalUserId));
-        }
-        VMUserVO vmUserCacheVO = bucket.get();
-        //用户id
-        if (!StrUtil.isEmpty(bean.getCondition().getUserId())) {
-            vmUserCacheVO.setAccid(bean.getCondition().getUserId());
-        }
-        //国家
-        if (!StrUtil.isEmpty(bean.getCondition().getCountryCode())) {
-            vmUserCacheVO.setCountry(bean.getCondition().getCountryCode());
-        }
-        //昵称
-        if (!StrUtil.isEmpty(bean.getCondition().getNickName())) {
-            vmUserCacheVO.setNickName(bean.getCondition().getNickName());
-        }
-        //手机号
-        if (!StrUtil.isEmpty(bean.getCondition().getMobile())) {
-            vmUserCacheVO.setMobile(bean.getCondition().getMobile());
-        }
+    public CommonResult<PageResult<MeetingBlackRecordVO>> getBlackUserAll(PageParam<MeetingBlackRecordVO> bean) {
+        MeetingBlackRecordPO meetingBlackRecordPO = new MeetingBlackRecordPO();
+        QueryWrapper<MeetingBlackRecordPO> wrapper = new QueryWrapper<>();
+        wrapper.eq(meetingBlackRecordPO.getUserId(), bean.getCondition().getUserId());
+        wrapper.eq(meetingBlackRecordPO.getCountryCode(), bean.getCondition().getCountryCode());
+        wrapper.eq(meetingBlackRecordPO.getNickName(), bean.getCondition().getNickName());
+        wrapper.eq(meetingBlackRecordPO.getMobile(), bean.getCondition().getMobile());
 
         //分页查询
         PageHelper.startPage(bean.getPageNum(), bean.getPageSize());
 
         //查询全部
-        List<MeetingBlackUserPO> meetingBlackUserPOList =
-            meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, vmUserCacheVO.getAccid())
-                .le(MeetingBlackUserPO::getStartTime, now).ge(MeetingBlackUserPO::getEndTime, now).list();
-        PageInfo<MeetingBlackUserPO> wmItemRecptPageInfo = new PageInfo<>(meetingBlackUserPOList);
+        List<MeetingBlackRecordPO> list = meetingBlackRecordDaoService.list(wrapper);
+        PageInfo<MeetingBlackRecordPO> wmItemRecptPageInfo = new PageInfo<>(list);
 
         //使用stream转成vo返回给前端
-        List<MeetingBlackUserVO> meetingBlackUserVOList = wmItemRecptPageInfo.getList().stream().map(meetingBlackUserPO -> {
-            MeetingBlackUserVO meetingBlackUserVO =
-                BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackUserVO.class);
-            meetingBlackUserVO.setMaxTime(meetingConfig.getBlackUserConfig().getMaxTime());
-            meetingBlackUserVO.setLockDay(meetingConfig.getBlackUserConfig().getLockDay());
+        List<MeetingBlackRecordVO> meetingBlackUserVOList = wmItemRecptPageInfo.getList().stream().map(meetingBlackUserPO -> {
+            MeetingBlackRecordVO meetingBlackUserVO =
+                BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackRecordVO.class);
             return meetingBlackUserVO;
         }).collect(Collectors.toList());
 
-        PageResult<MeetingBlackUserVO> meetingpage =  new PageResult<>();
+        PageResult<MeetingBlackRecordVO> meetingpage =  new PageResult<>();
         meetingpage.setList(meetingBlackUserVOList);
         meetingpage.setTotal(wmItemRecptPageInfo.getTotal());
         return CommonResult.success(meetingpage);
@@ -457,7 +434,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult deleteBlackUser(String userId) {
-        meetingBlackUserDaoService.lambdaUpdate().eq(MeetingBlackUserPO::getUserId, userId).remove();
+        meetingBlackRecordDaoService.lambdaUpdate().eq(MeetingBlackRecordPO::getUserId, userId).remove();
         //redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId)).delete();
         return CommonResult.success(null);
     }
@@ -469,7 +446,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult deleteBlackUserAll(List<String> userIdList) {
-        meetingBlackUserDaoService.lambdaUpdate().in(MeetingBlackUserPO::getUserId, userIdList).remove();
+        meetingBlackRecordDaoService.lambdaUpdate().in(MeetingBlackRecordPO::getUserId, userIdList).remove();
        /* userIdList.forEach(userId -> {
             redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId)).delete();
         });*/
@@ -478,21 +455,17 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     /**
      * 添加黑名单用户
-     * @param meetingBlackUserVO
+     * @param
      * @return
      */
     @Override
-    public CommonResult addBlackUser(MeetingBlackUserVO meetingBlackUserVO) {
-        if (meetingBlackUserVO != null) {
-            //设置默认锁定天数
-            meetingBlackUserVO.setLockDay(meetingConfig.getBlackUserConfig().getLockDay());
-            MeetingBlackUserPO meetingBlackUserPO =
-                BeanUtil.copyProperties(meetingBlackUserVO, MeetingBlackUserPO.class);
+    public CommonResult addBlackUser(MeetingBlackRecordVO meetingBlackRecordVO) {
+        if (meetingBlackRecordVO != null) {
+            MeetingBlackRecordPO meetingBlackUserPO =
+                BeanUtil.copyProperties(meetingBlackRecordVO, MeetingBlackRecordPO.class);
             meetingBlackUserPO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-            meetingBlackUserPO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-            //设置结束时间为开始时间往后推三天
-            meetingBlackUserPO.setEndTime(DateUtil.offsetDay(DateUtil.date(), meetingBlackUserVO.getLockDay()));
-            meetingBlackUserDaoService.save(meetingBlackUserPO);
+            meetingBlackUserPO.setUpdateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+            meetingBlackRecordDaoService.save(meetingBlackUserPO);
             return CommonResult.success(meetingBlackUserPO);
         }
         return null;

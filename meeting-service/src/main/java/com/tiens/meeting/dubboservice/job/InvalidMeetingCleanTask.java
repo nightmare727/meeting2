@@ -212,9 +212,6 @@ public class InvalidMeetingCleanTask {
             meetingBlackUserPO.setLastMeetingCode(meetingRoomInfoPO.getConferenceId());
             meetingBlackUserPO.setStartTime(startTime);
             meetingBlackUserPO.setEndTime(endTime);
-            meetingBlackUserPO.setNickName(meetingRoomInfoPO.getOwnerUserName());
-            meetingBlackUserPO.setMobile(meetingRoomInfoPO.getOwnerUserName());
-
 
             meetingBlackUserDaoService.save(meetingBlackUserPO);
         } else {
