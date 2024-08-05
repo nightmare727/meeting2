@@ -41,6 +41,5 @@ public class UserMemberProfitEntity implements Serializable {
     /**
      * 时间
      */
-    @TableField(value = "go_time")
-    private Date goTime;
+    private String  goTime;
 }
