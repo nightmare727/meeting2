@@ -177,7 +177,8 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 .set(freeFlag, MeetingResourcePO::getCurrentUseImUserId, vmUserVO.getAccid())
                 .set(MeetingResourcePO::getOwnerImUserId, vmUserVO.getAccid())
                 .set(MeetingResourcePO::getOwnerImUserJoyoCode, vmUserVO.getJoyoCode())
-                .set(MeetingResourcePO::getOwnerImUserName, vmUserVO.getNickName()).update();
+                .set(MeetingResourcePO::getOwnerImUserName, vmUserVO.getNickName())
+                .set(MeetingResourcePO::getOwnerExpireDate, resourceAllocateDTO.getOwnerExpireDate()).update();
             if (freeFlag) {
                 //当前是空闲状态，则直接分配资源
                 hwMeetingCommonService.associateVmr(vmUserVO.getAccid(),
@@ -247,6 +248,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 .set(privateFlag,MeetingResourcePO::getMeetingRoomType,MeetingNewRoomTypeEnum.INIT)
                 .set(MeetingResourcePO::getResourceStatus,MeetingNewResourceStateEnum.FREE)
                 .set(MeetingResourcePO::getPreAllocation,MeetingNewResourceStateEnum.FREE)
+                .set(MeetingResourcePO::getOwnerExpireDate,null)
                 .update();
             return CommonResult.success(null);
         } catch (Exception e) {

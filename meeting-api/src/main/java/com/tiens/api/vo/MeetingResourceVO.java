@@ -93,4 +93,8 @@ public class MeetingResourceVO implements Serializable {
     private String ownerImUserName;
     private String ownerImUserJoyoCode;
 
+    /**
+     * 私人专属到期时间的时间戳，单位毫秒
+     */
+    private Date ownerExpireDate;
 }
