@@ -12,6 +12,8 @@
         <result column="resource_type" property="resourceType"/>
         <result column="resource_type_desc" property="resourceTypeDesc"/>
         <result column="state" property="state"/>
+        <result column="meeting_room_type" property="meetingRoomType"/>
+        <result column="meeting_room_type_desc" property="meetingRoomTypeDesc"/>
         <result column="size" property="size"/>
         <result column="create_time" property="createTime"/>
         <result column="owner_user_name" property="ownerUserName"/>
@@ -32,7 +34,13 @@
         mri.resource_type, -- 资源类型枚举值
         mri.resource_type_desc, -- 资源类型
         mri.state, -- 会议状态
-        -- 会议室类型
+        mr.meeting_room_type, -- 会议室类型
+        case mr.meeting_room_type
+        when 0 then  '未分配'
+        when 1 then  '公有'
+        when 2 then  '私有'
+        when 3 then  '付费'
+        else null end as meeting_room_type_desc, -- 会议室类型描述
         mr.size, -- 资源大小
         mri.create_time, -- 预约时间
         mri.owner_user_name, -- 预约人
@@ -69,6 +77,7 @@
                 and mri.show_start_time between #{params.showStartTime} and #{params.showEndTime}
             </if>
         </where>
+        order by mri.create_time desc
     </select>
 
 </mapper>

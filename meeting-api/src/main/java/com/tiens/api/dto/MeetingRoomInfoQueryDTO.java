@@ -13,6 +13,9 @@ import lombok.Data;
 @Data
 public class MeetingRoomInfoQueryDTO {
 
+    /** 是否导出 */
+    private boolean export = false;
+
     /** 云会议号 */
     private String hwMeetingCode;
 

@@ -34,6 +34,12 @@ public class MeetingRoomInfoDTO {
     /** 会议状态 */
     private String state;
 
+    /** 会议室类型 */
+    private Integer meetingRoomType;
+
+    /** 会议室类型描述 */
+    private Integer meetingRoomTypeDesc;
+
     /** 资源大小 */
     private Integer size;
 

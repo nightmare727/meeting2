@@ -41,7 +41,7 @@ public class ServletUtils {
      * @throws IOException
      */
     public static void writeAttachment(HttpServletResponse response, String filename, byte[] content)
-        throws IOException {
+            throws IOException {
         // 设置 header 和 contentType
         response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
@@ -68,7 +68,7 @@ public class ServletUtils {
         if (!(requestAttributes instanceof ServletRequestAttributes)) {
             return null;
         }
-        return ((ServletRequestAttributes)requestAttributes).getRequest();
+        return ((ServletRequestAttributes) requestAttributes).getRequest();
     }
 
     public static String getUserAgent() {
@@ -89,6 +89,12 @@ public class ServletUtils {
 
     public static boolean isJsonRequest(ServletRequest request) {
         return StrUtil.startWithIgnoreCase(request.getContentType(), MediaType.APPLICATION_JSON_VALUE);
+    }
+
+    public static HttpServletResponse getResponse() {
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        assert servletRequestAttributes != null;
+        return servletRequestAttributes.getResponse();
     }
 
 }

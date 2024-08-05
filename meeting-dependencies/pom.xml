@@ -92,7 +92,7 @@
         <xercesImpl.version>2.12.2</xercesImpl.version>
         <wx-java-mp.version>4.3.0</wx-java-mp.version>
         <esdk-obs-java-bundle.version>[3.21.11,)</esdk-obs-java-bundle.version>
-
+        <easyexcel.verion>3.3.2</easyexcel.verion>
 
     </properties>
 
