@@ -14,7 +14,7 @@ import lombok.Getter;
 @Getter
 public enum MeetingNewRoomTypeEnum {
     /**
-     * 会议室类型 0未分配 2公有 3私有 4付费
+     * 会议室类型 0未分配 2公有预约3 付费预约 4私人专属
      */
 
     INIT(0, "未分配"),

@@ -13,7 +13,8 @@ import java.util.Map;
  */
 public enum MeetingResourceEnum implements Serializable {
 
-    MEETING_RESOURCE_0(0, 0, "无", ""), MEETING_RESOURCE_10(1, 10, "普通会议(适用10人以下)", "moment_meeting_back_020"),
+    MEETING_RESOURCE_0(0, 0, "无", ""),
+    MEETING_RESOURCE_10(1, 10, "普通会议(适用10人以下)", "moment_meeting_back_020"),
     MEETING_RESOURCE_50(2, 50, "中型会议(适用50人以下)", "moment_meeting_back_021"),
     MEETING_RESOURCE_100(3, 100, "中型会议(适用100人以下)", "moment_meeting_back_022"),
     MEETING_RESOURCE_200(4, 200, "大型会议(适用200人以下)", "moment_meeting_back_023"),

@@ -71,7 +71,7 @@ public class MeetingResourcePO implements Serializable {
     private Integer preAllocation;
 
     /**
-     * 会议室类型 2公有 3私有 4付费
+     * 会议室类型 会议室类型 0未分配 2公有预约3 付费预约 4私人专属
      */
     @TableField(value = "meeting_room_type")
     private Integer meetingRoomType;
