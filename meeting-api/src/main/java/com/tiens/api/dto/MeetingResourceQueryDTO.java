@@ -24,7 +24,7 @@ public class MeetingResourceQueryDTO implements Serializable {
     /**
      * 资源大小
      */
-    private Integer size;
+    private Integer resourceType;
     /**
      * 资源状态 1:空闲 2:预约
      */
