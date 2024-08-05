@@ -70,7 +70,7 @@
             </if>
 
             <if test="params.meetingRoomType!=null and params.meetingRoomType!=''">
-                and mri.meeting_room_type = #{params.meetingRoomType}
+                and mr.meeting_room_type = #{params.meetingRoomType}
             </if>
 
             <if test="params.resourceId!=null and params.resourceId!=''">

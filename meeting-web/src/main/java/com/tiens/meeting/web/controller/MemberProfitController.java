@@ -130,7 +130,7 @@ public class MemberProfitController {
      * @throws Exception
      */
     @ResponseBody
-    @GetMapping("/selectMeetingBlack")
+    @PostMapping("/selectMeetingBlack")
     public CommonResult<List<MeetingBlackUserVO>> selectBlackUser(@RequestBody PageParam<MeetingBlackUserVO> bean)
             throws Exception {
         CommonResult<PageResult<MeetingBlackUserVO>> pageResult = memberProfitService.getBlackUserAll(bean);
