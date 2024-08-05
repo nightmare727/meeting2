@@ -142,7 +142,7 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/addBlackMeeting")
-    public CommonResult addBlackUser(List<String> userIdList, Date endTime)
+    public CommonResult addBlackUser(@RequestBody List<String> userIdList,@RequestParam("endTime") Date endTime)
             throws Exception {
         return rpcMeetingUserService.addBlackUser(userIdList, endTime);
     }
@@ -173,7 +173,7 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/freeReservationLimit")
-    public CommonResult freeReservationLimit(List<MeetingMemeberProfitConfigVO> meetingMemeberProfitConfigVOList)
+    public CommonResult freeReservationLimit(@RequestBody List<MeetingMemeberProfitConfigVO> meetingMemeberProfitConfigVOList)
             throws Exception {
         return rpcMeetingUserService.freeReservationLimit(meetingMemeberProfitConfigVOList);
     }
