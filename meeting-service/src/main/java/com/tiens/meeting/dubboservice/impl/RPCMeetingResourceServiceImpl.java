@@ -285,7 +285,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
             query.setPageSize(maxNumber * 100);
             IPage<MeetingRoomInfoDTO> page = meetingRoomInfoDaoService.queryPage(query);
             try {
-                ExcelUtil.downloadExcelFull(ServletUtils.getResponse(), sObjectMapper.readTree(sObjectMapper.writeValueAsString(page.getRecords())),
+                ExcelUtil.downloadExcel(ServletUtils.getResponse(), sObjectMapper.readTree(sObjectMapper.writeValueAsString(page.getRecords())),
                         Arrays.asList("资源ID", "云会议号", "资源名称",
                                 "资源类型", "会议状态", "会议室类型",
                                 "资源大小", "预约时间", "预约人", "预约人ID",
@@ -296,8 +296,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                                 "size", "createTime", "ownerUserName", "ownerImUserId",
                                 "area", "showStartTime", "duration",
                                 "relStartTime", "relEndTime", "persons"
-                        ), maxNumber);
-
+                        ), "会议列表");
             } catch (IOException e) {
                 log.error("export error:{}", e.getMessage());
             }

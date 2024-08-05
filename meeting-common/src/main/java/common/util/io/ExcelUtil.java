@@ -64,7 +64,7 @@ public class ExcelUtil {
 
     /**
      * 导出excel
-     *
+     * <p>
      * 全量读，分批生成
      *
      * @param result    结果集
@@ -72,7 +72,7 @@ public class ExcelUtil {
      * @param keys      键
      * @param batchSize 每次导出的大小
      */
-    public static void downloadExcelFull(HttpServletResponse response, JsonNode result, List<String> params, List<String> keys, int batchSize) throws IOException {
+    public static void downloadExcelFullZip(HttpServletResponse response, JsonNode result, List<String> params, List<String> keys, int batchSize) throws IOException {
         List<List<Object>> data = buildExcelData(result, keys);
         int totalRecords = data.size();
         int numOfBatches = (totalRecords / batchSize) + (totalRecords % batchSize == 0 ? 0 : 1);
@@ -118,16 +118,34 @@ public class ExcelUtil {
 
     /**
      * 导出excel
-     *
+     * <p>
      * 简单生成
      *
      * @param result 结果集
      * @param params 表头
      * @param keys   键
      */
-    public static void downloadExcel(JsonNode result, List<String> params, List<String> keys) throws IOException {
+    public static void downloadExcelZip(JsonNode result, List<String> params, List<String> keys) throws IOException {
         ExcelBatchDownloader batchDownloader = ExcelBatchDownloader.getInstance();
         batchDownloader.addExcel(result, params, keys);
+    }
+
+    /**
+     * 导出excel
+     * <p>
+     * 简单生成
+     *
+     * @param result 结果集
+     * @param params 表头
+     * @param keys   键
+     */
+    public static void downloadExcel(HttpServletResponse response, JsonNode result, List<String> params, List<String> keys, String fileName) throws IOException {
+        response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
+        EasyExcel.write(response.getOutputStream())
+                .head(buildExcelHeads(params, null))
+                .registerWriteHandler(defaultStyle())
+                .sheet()
+                .doWrite(buildExcelData(result, keys));
     }
 
     /**
