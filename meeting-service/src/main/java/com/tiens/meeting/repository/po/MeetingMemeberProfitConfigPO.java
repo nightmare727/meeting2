@@ -68,7 +68,7 @@ public class MeetingMemeberProfitConfigPO implements Serializable {
      * 提前入会的时间
      */
     @TableField(value = "go_time")
-    private Date goTime;
+    private String goTime;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
