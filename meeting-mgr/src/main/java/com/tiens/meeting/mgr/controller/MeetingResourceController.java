@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -56,8 +55,8 @@ public class MeetingResourceController {
      */
     @ResponseBody
     @GetMapping("/queryMeetingResoucePage")
-    public CommonResult<List<MeetingResourceVO>> queryMeetingResoucePage() {
-        CommonResult<List<MeetingResourceVO>> listCommonResult = rpcMeetingResourceService.queryMeetingResourceList();
+    public CommonResult<List<MeetingResourceVO>> queryMeetingResoucePage(MeetingResourceQueryDTO meetingResourceQueryDTO) {
+        CommonResult<List<MeetingResourceVO>> listCommonResult = rpcMeetingResourceService.queryMeetingResourceList(meetingResourceQueryDTO);
         return listCommonResult;
     }
 

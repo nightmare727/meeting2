@@ -7,10 +7,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tiens.api.dto.CancelResourceAllocateDTO;
-import com.tiens.api.dto.MeetingRoomInfoDTO;
-import com.tiens.api.dto.MeetingRoomInfoQueryDTO;
-import com.tiens.api.dto.ResourceAllocateDTO;
+import com.tiens.api.dto.*;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.MeetingResourceVO;
@@ -34,6 +31,7 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -104,9 +102,14 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
      * @return
      */
     @Override
-    public CommonResult<List<MeetingResourceVO>> queryMeetingResourceList() throws ServiceException {
+    public CommonResult<List<MeetingResourceVO>> queryMeetingResourceList(MeetingResourceQueryDTO meetingResourceQueryDTO) throws ServiceException {
         List<MeetingResourcePO> list =
-            meetingResourceDaoService.lambdaQuery().orderByAsc(MeetingResourcePO::getSize).list();
+            meetingResourceDaoService.lambdaQuery()
+                    .eq(StringUtils.isNotBlank(meetingResourceQueryDTO.getVmrName()),MeetingResourcePO::getVmrName,meetingResourceQueryDTO.getVmrName())
+                    .eq(meetingResourceQueryDTO.getSize()!=null,MeetingResourcePO::getSize,meetingResourceQueryDTO.getSize())
+                    .eq(meetingResourceQueryDTO.getMeetingRoomType()!=null,MeetingResourcePO::getMeetingRoomType,meetingResourceQueryDTO.getMeetingRoomType())
+                    .eq(meetingResourceQueryDTO.getResourceStatus()!=null,MeetingResourcePO::getResourceStatus,meetingResourceQueryDTO.getResourceStatus())
+                    .orderByAsc(MeetingResourcePO::getSize).list();
         List<MeetingResourceVO> resourceVOS = list.stream().map(t -> {
             MeetingResourceVO meetingResourceVO = BeanUtil.copyProperties(t, MeetingResourceVO.class);
             meetingResourceVO.setResourceType(String.valueOf(t.getResourceType()));

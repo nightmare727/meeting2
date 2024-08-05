@@ -1,6 +1,5 @@
 package com.tiens.api.vo;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -48,9 +47,23 @@ public class MeetingResourceVO implements Serializable {
     private Integer size;
 
     /**
-     * 资源状态 1:公有空闲 2:公有预约 3:私有 4:预分配
+     * 28.0废弃资源状态 1:公有空闲 2:公有预约 3:私有 4:预分配
      */
+    @Deprecated
     private Integer status;
+    /**
+     * 资源状态 1:空闲 2:预约
+     */
+    private Integer resourceStatus;
+    /**
+     * 是否存在预分配 1否 2是
+     */
+    private Integer preAllocation;
+
+    /**
+     * 会议室类型 2公有 3私有 4付费
+     */
+    private Integer meetingRoomType;
 
     /**
      * 到期时间的时间戳，单位毫秒

@@ -1,7 +1,6 @@
 package com.tiens.api.service;
 
 import com.tiens.api.dto.*;
-import com.tiens.api.vo.MeetingApproveVO;
 import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingRoomDetailDTO;
 import common.exception.ServiceException;
@@ -24,7 +23,7 @@ public interface RPCMeetingResourceService {
      *
      * @return
      */
-    CommonResult<List<MeetingResourceVO>> queryMeetingResourceList() throws ServiceException;
+    CommonResult<List<MeetingResourceVO>> queryMeetingResourceList(MeetingResourceQueryDTO meetingResourceQueryDTO) throws ServiceException;
 
     /**
      * 预分配
