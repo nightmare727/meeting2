@@ -8,6 +8,7 @@ import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -54,7 +55,7 @@ public interface RPCMeetingResourceService {
      *
      * @param query PageParam
      */
-    CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(PageParam<MeetingRoomInfoQueryDTO> query);
+    CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(HttpServletResponse response, PageParam<MeetingRoomInfoQueryDTO> query);
 
     /**
      * 更改会议室类型 仅支持付费/公有之间转换
