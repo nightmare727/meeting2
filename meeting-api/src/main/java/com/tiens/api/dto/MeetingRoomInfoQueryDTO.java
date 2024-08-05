@@ -28,6 +28,9 @@ public class MeetingRoomInfoQueryDTO {
     /** 资源大小 */
     private Integer resourceSize;
 
+    /** 会议室类型 */
+    private Integer meetingRoomType;
+
     /** 会议状态 */
     private String meetingState;
 

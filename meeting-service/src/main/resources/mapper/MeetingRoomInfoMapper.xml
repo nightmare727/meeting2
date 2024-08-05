@@ -69,6 +69,10 @@
                 and mri.state = #{params.meetingState}
             </if>
 
+            <if test="params.meetingRoomType!=null and params.meetingRoomType!=''">
+                and mri.meeting_room_type = #{params.meetingRoomType}
+            </if>
+
             <if test="params.resourceId!=null and params.resourceId!=''">
                 and mri.resource_id = #{params.resourceId}
             </if>
