@@ -170,4 +170,10 @@ public interface MemberProfitService {
      * @return
      */
     CommonResult opoCommonProfitConfig(CommonProfitConfigSaveDTO commonProfitConfigSaveDTO);
+
+    /**
+     * 获取房间权益价格配置
+     *
+     */
+    CommonResult<List<MeetingPaidSettingVO>> getMeetingPaidSettingList();
 }

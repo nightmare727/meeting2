@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -127,8 +126,8 @@ public class MeetingResourceController {
      */
     @ResponseBody
     @PostMapping("queryMeetingRoomPage")
-    public CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(HttpServletResponse response, @RequestBody PageParam<MeetingRoomInfoQueryDTO> query) {
-        return rpcMeetingResourceService.queryMeetingRoomPage(response, query);
+    public CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(@RequestBody PageParam<MeetingRoomInfoQueryDTO> query) {
+        return rpcMeetingResourceService.queryMeetingRoomPage(query);
     }
 
     /**

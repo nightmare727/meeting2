@@ -281,13 +281,13 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     }
 
     @Override
-    public CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(HttpServletResponse response, PageParam<MeetingRoomInfoQueryDTO> query) {
+    public CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(PageParam<MeetingRoomInfoQueryDTO> query) {
         if (query.getCondition().getExport()) {
             // 限制100页
             query.setPageSize(maxNumber * 100);
             IPage<MeetingRoomInfoDTO> page = meetingRoomInfoDaoService.queryPage(query);
             try {
-                ExcelUtil.downloadExcel(response, sObjectMapper.readTree(sObjectMapper.writeValueAsString(page.getRecords())),
+                ExcelUtil.downloadExcel(sObjectMapper.readTree(sObjectMapper.writeValueAsString(page.getRecords())),
                         Arrays.asList("资源ID", "云会议号", "资源名称",
                                 "资源类型", "会议状态", "会议室类型",
                                 "资源大小", "预约时间", "预约人", "预约人ID",
