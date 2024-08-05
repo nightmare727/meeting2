@@ -1,5 +1,6 @@
 package com.tiens.meeting.mgr.controller;
 
+import cn.hutool.core.date.DateUtil;
 import com.tiens.api.dto.*;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RPCMeetingTimeZoneService;
@@ -7,9 +8,11 @@ import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.vo.MeetingResourceVO;
 import com.tiens.api.vo.MeetingRoomDetailDTO;
 import com.tiens.api.vo.MeetingTimeZoneConfigVO;
+import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
+import common.util.date.DateUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -94,6 +97,12 @@ public class MeetingResourceController {
     @ResponseBody
     @PostMapping("/allocate")
     public CommonResult allocate(@RequestBody ResourceAllocateDTO resourceAllocateDTO) {
+        if (resourceAllocateDTO.getOwnerExpireDate() != null &&
+                DateUtil.convertTimeZone(resourceAllocateDTO.getOwnerExpireDate(), DateUtils.TIME_ZONE_GMT).isBefore(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT))) {
+            //分配资源的过期时间早于了当前时间
+            log.error("【分配资源】分配资源的过期时间早于了当前时间:{}", resourceAllocateDTO);
+            return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_ALLOCATE_RESOURCE);
+        }
         return rpcMeetingResourceService.allocate(resourceAllocateDTO);
     }
 

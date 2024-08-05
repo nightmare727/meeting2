@@ -103,7 +103,11 @@ public class MeetingResourcePO implements Serializable {
     private String ownerImUserName;
     @TableField(value = "owner_im_user_joyo_code")
     private String ownerImUserJoyoCode;
-
+    /**
+     * 私人专属到期时间的时间戳，单位毫秒
+     */
+    @TableField(value = "owner_expire_date")
+    private Date ownerExpireDate;
     /**
      * 创建时间
      */
