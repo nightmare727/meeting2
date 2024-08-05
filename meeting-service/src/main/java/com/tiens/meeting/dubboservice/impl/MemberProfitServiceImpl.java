@@ -6,13 +6,17 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.http.param.MediaType;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.tiens.api.dto.*;
 import com.tiens.api.service.*;
@@ -392,32 +396,31 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<PageResult<MeetingBlackRecordVO>> getBlackUserAll(PageParam<MeetingBlackRecordVO> bean) {
-    return null;
-        //        MeetingBlackRecordPO meetingBlackRecordPO = new MeetingBlackRecordPO();
-//        QueryWrapper<MeetingBlackRecordPO> wrapper = new QueryWrapper<>();
-//        wrapper.eq(meetingBlackRecordPO.getUserId(), bean.getCondition().getUserId());
-//        wrapper.eq(meetingBlackRecordPO.getCountryCode(), bean.getCondition().getCountryCode());
-//        wrapper.eq(meetingBlackRecordPO.getNickName(), bean.getCondition().getNickName());
-//        wrapper.eq(meetingBlackRecordPO.getMobile(), bean.getCondition().getMobile());
-//
-//        //分页查询
-////        PageHelper.startPage(bean.getPageNum(), bean.getPageSize());
-//
-//        //查询全部
-//        List<MeetingBlackRecordPO> list = meetingBlackRecordDaoService.list(wrapper);
-////        PageInfo<MeetingBlackRecordPO> wmItemRecptPageInfo = new PageInfo<>(list);
-//
-//        //使用stream转成vo返回给前端
-//        List<MeetingBlackRecordVO> meetingBlackUserVOList = wmItemRecptPageInfo.getList().stream().map(meetingBlackUserPO -> {
-//            MeetingBlackRecordVO meetingBlackUserVO =
-//                BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackRecordVO.class);
-//            return meetingBlackUserVO;
-//        }).collect(Collectors.toList());
-//
-//        PageResult<MeetingBlackRecordVO> meetingpage =  new PageResult<>();
-//        meetingpage.setList(meetingBlackUserVOList);
-//        meetingpage.setTotal(wmItemRecptPageInfo.getTotal());
-//        return CommonResult.success(meetingpage);
+        Page<MeetingBlackRecordPO> meetingApprovePOPage =
+                new Page<>(bean.getPageNum(), bean.getPageSize());
+
+        MeetingBlackRecordVO condition = bean.getCondition();
+        Wrapper<MeetingBlackRecordPO> wrapper = Wrappers.lambdaQuery(MeetingBlackRecordPO.class)
+                .like(StrUtil.isNotBlank(condition.getUserId()), MeetingBlackRecordPO::getUserId, condition.getUserId())
+                .like(StrUtil.isNotBlank(condition.getNickName()), MeetingBlackRecordPO::getNickName, condition.getNickName())
+                .like(StrUtil.isNotBlank(condition.getMobile()), MeetingBlackRecordPO::getMobile, condition.getMobile())
+                .like(StrUtil.isNotBlank(condition.getCountryCode()), MeetingBlackRecordPO::getCountryCode, condition.getUserId());
+
+        //查询全部
+        List<MeetingBlackRecordPO> list = meetingBlackRecordDaoService.list(wrapper);
+        Page<MeetingBlackRecordPO> page = meetingBlackRecordDaoService.page(meetingApprovePOPage, wrapper);
+
+        //使用stream转成vo返回给前端
+        List<MeetingBlackRecordVO> meetingBlackUserVOList = list.stream().map(meetingBlackRecordPO1 -> {
+            MeetingBlackRecordVO meetingBlackRecordVO = new MeetingBlackRecordVO();
+            BeanUtil.copyProperties(meetingBlackRecordPO1, meetingBlackRecordVO);
+            return meetingBlackRecordVO;
+        }).collect(Collectors.toList());
+
+        PageResult<MeetingBlackRecordVO> meetingpage =  new PageResult<>();
+        meetingpage.setList(meetingBlackUserVOList);
+        meetingpage.setTotal(page.getTotal());
+        return CommonResult.success(meetingpage);
     }
 
     /**

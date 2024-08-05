@@ -123,14 +123,14 @@ public class MemberProfitController {
 
 
     /**
-     * 查询用户黑名单信息
+     * 查询会议黑名单信息
      *
      * @param bean
      * @return
      * @throws Exception
      */
     @ResponseBody
-    @GetMapping("/selectBlackUser")
+    @GetMapping("/selectMeetingBlack")
     public CommonResult<List<MeetingBlackRecordVO>> selectBlackUser(@RequestBody PageParam<MeetingBlackRecordVO> bean)
             throws Exception {
         CommonResult<PageResult<MeetingBlackRecordVO>> pageResult = memberProfitService.getBlackUserAll(bean);
@@ -141,8 +141,8 @@ public class MemberProfitController {
      * 根据用户id删除
      */
     @ResponseBody
-    @GetMapping("/deleteBlackUser")
-    public CommonResult deleteBlackUser(@RequestHeader("finalUserId") String finalUserId,@RequestParam("userId") String userId)
+    @GetMapping("/deleteMeetingBlack")
+    public CommonResult deleteBlackUser(@RequestParam("userId") String userId)
             throws Exception {
         return memberProfitService.deleteBlackUser(userId);
     }
@@ -152,8 +152,8 @@ public class MemberProfitController {
      * 批量解除黑名单
      */
     @ResponseBody
-    @PostMapping("/deleteBlackUserAll")
-    public CommonResult deleteBlackUserAll(@RequestHeader("finalUserId") String finalUserId,@RequestBody List<String> userIdList)
+    @PostMapping("/deleteMeetingBlackAll")
+    public CommonResult deleteBlackUserAll(@RequestBody List<String> userIdList)
             throws Exception {
         return memberProfitService.deleteBlackUserAll(userIdList);
     }
@@ -162,7 +162,7 @@ public class MemberProfitController {
      * 添加黑名单
      */
     @ResponseBody
-    @PostMapping("/addBlackUser")
+    @PostMapping("/addBlackMeeting")
     public CommonResult addBlackUser(@RequestBody MeetingBlackRecordVO meetingBlackRecordVO)
             throws Exception {
         return memberProfitService.addBlackUser(meetingBlackRecordVO);
