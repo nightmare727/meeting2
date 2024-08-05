@@ -58,7 +58,7 @@
             </if>
 
             <if test="params.relStartTime!=null and params.relStartTime!='' and params.relEndTime!=null and params.relEndTime!=''">
-                and mri.rel_start_time between #{params.relStartTime} and #{params.relEndTime}
+                and mri.rel_start_time &gt;= #{params.relStartTime} and mri.rel_end_time &lt;= #{params.relEndTime}
             </if>
 
             <if test="params.resourceSize!=null and params.resourceSize!=''">
