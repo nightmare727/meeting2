@@ -72,7 +72,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
     private static final ObjectMapper sObjectMapper = new ObjectMapper();
 
-    @Value("excel.max-number:3000")
+    @Value("${excel.max-number:3000}")
     private int maxNumber;
 
     public static void main(String[] args) {
