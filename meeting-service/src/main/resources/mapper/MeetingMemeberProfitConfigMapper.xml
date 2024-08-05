@@ -10,7 +10,7 @@
             <result property="freeDayAppointCount" column="free_day_appoint_count" jdbcType="INTEGER"/>
             <result property="limitCount" column="limit_count" jdbcType="INTEGER"/>
             <result property="ruleType" column="rule_type" jdbcType="TINYINT"/>
-            <result property="resourceType" column="resource_type" javaType="VARCHAR"/>
+            <result property="resourceType" column="resource_type" jdbcType="VARCHAR"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
            <result property="goTime" column="go_time" jdbcType="TIMESTAMP"/>
