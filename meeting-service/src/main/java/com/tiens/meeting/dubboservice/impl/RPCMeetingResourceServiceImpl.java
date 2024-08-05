@@ -32,7 +32,6 @@ import common.pojo.PageResult;
 import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import common.util.io.ExcelUtil;
-import common.util.servlet.ServletUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +41,6 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -173,9 +171,13 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
             }
             //当前资源状态是否为公有空闲
             boolean freeFlag = MeetingNewResourceStateEnum.FREE.getState().equals(status) && MeetingNewRoomTypeEnum.PUBLIC.getState().equals(type);
-            meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceAllocateDTO.getResourceId())
+            log.info("开始分配资源meetingResourcePO：{}freeFlag:{}",meetingResourcePO,freeFlag);
+            meetingResourceDaoService.lambdaUpdate()
+                    .eq(MeetingResourcePO::getId, resourceAllocateDTO.getResourceId())
                 .set(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
-                .set(!freeFlag,MeetingResourcePO::getPreAllocation, MeetingNewResourceStateEnum.SUBSCRIBE.getState())
+                .set(MeetingResourcePO::getPreAllocation,freeFlag?MeetingNewResourceStateEnum.FREE.getState() :
+                        MeetingNewResourceStateEnum.SUBSCRIBE.getState())
+                .set(freeFlag, MeetingResourcePO::getCurrentUseImUserId, vmUserVO.getAccid())
                 .set(freeFlag, MeetingResourcePO::getCurrentUseImUserId, vmUserVO.getAccid())
                 .set(MeetingResourcePO::getOwnerImUserId, vmUserVO.getAccid())
                 .set(MeetingResourcePO::getOwnerImUserJoyoCode, vmUserVO.getJoyoCode())
