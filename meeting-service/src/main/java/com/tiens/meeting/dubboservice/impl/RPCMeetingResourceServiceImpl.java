@@ -238,6 +238,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 .set(privateFlag,MeetingResourcePO::getMeetingRoomType,MeetingNewRoomTypeEnum.INIT)
                 .set(MeetingResourcePO::getResourceStatus,MeetingNewResourceStateEnum.FREE)
                 .set(MeetingResourcePO::getPreAllocation,MeetingNewResourceStateEnum.FREE)
+                .set(MeetingResourcePO::getOwnerExpireDate,null)
                 .update();
             return CommonResult.success(null);
         } catch (Exception e) {
