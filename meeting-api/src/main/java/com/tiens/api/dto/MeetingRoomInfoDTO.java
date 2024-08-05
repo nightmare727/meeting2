@@ -2,6 +2,8 @@ package com.tiens.api.dto;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * <p>
  * 会议列表返回dto
@@ -11,7 +13,7 @@ import lombok.Data;
  * @date 2024-08-02
  */
 @Data
-public class MeetingRoomInfoDTO {
+public class MeetingRoomInfoDTO implements Serializable {
 
     /** 主键 */
     private String id;
