@@ -131,9 +131,9 @@ public class MemberProfitController {
      */
     @ResponseBody
     @GetMapping("/selectMeetingBlack")
-    public CommonResult<List<MeetingBlackRecordVO>> selectBlackUser(@RequestBody PageParam<MeetingBlackRecordVO> bean)
+    public CommonResult<List<MeetingBlackUserVO>> selectBlackUser(@RequestBody PageParam<MeetingBlackUserVO> bean)
             throws Exception {
-        CommonResult<PageResult<MeetingBlackRecordVO>> pageResult = memberProfitService.getBlackUserAll(bean);
+        CommonResult<PageResult<MeetingBlackUserVO>> pageResult = memberProfitService.getBlackUserAll(bean);
         return CommonResult.success(pageResult.getData().getList());
     }
 
@@ -163,7 +163,7 @@ public class MemberProfitController {
      */
     @ResponseBody
     @PostMapping("/addBlackMeeting")
-    public CommonResult addBlackUser(@RequestBody MeetingBlackRecordVO meetingBlackRecordVO)
+    public CommonResult addBlackUser(@RequestBody MeetingBlackUserVO meetingBlackRecordVO)
             throws Exception {
         return memberProfitService.addBlackUser(meetingBlackRecordVO);
     }
