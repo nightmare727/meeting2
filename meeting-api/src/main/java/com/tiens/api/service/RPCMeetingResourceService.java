@@ -55,4 +55,12 @@ public interface RPCMeetingResourceService {
      * @param query PageParam
      */
     CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(PageParam<MeetingRoomInfoQueryDTO> query);
+
+    /**
+     * 更改会议室类型 仅支持付费/公有之间转换
+     *
+     * @param changeMeetingRoomType 更改会议室类型
+     * @return {@link CommonResult}
+     */
+    CommonResult changeMeetingRoomType(ChangeMeetingRoomTypeDTO changeMeetingRoomType);
 }

@@ -7,6 +7,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tiens.api.dto.*;
 import com.tiens.api.service.RPCMeetingResourceService;
@@ -320,6 +321,28 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         pageResult.setList(records);
         pageResult.setTotal(page.getTotal());
         return CommonResult.success(pageResult);
+    }
+
+    @Override
+    public CommonResult changeMeetingRoomType(ChangeMeetingRoomTypeDTO changeMeetingRoomType) {
+        if(CollectionUtils.isEmpty(changeMeetingRoomType.getResourceIds())){
+            //提示不能为空
+            return CommonResult.error(GlobalErrorCodeConstants.BAD_REQUEST);
+        }
+        if (!(MeetingNewRoomTypeEnum.PUBLIC.getState().equals(changeMeetingRoomType.getTargetRoomType())
+                || MeetingNewRoomTypeEnum.PAID.getState().equals(changeMeetingRoomType.getTargetRoomType()))) {
+            //仅支持付费到公有 或 公有到付费转换
+            return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_ALLOCATE_RESOURCE);
+        }
+
+        //变更资源
+        meetingResourceDaoService.lambdaUpdate()
+                .in(MeetingResourcePO::getId, changeMeetingRoomType.getResourceIds())
+                .set(MeetingResourcePO::getMeetingRoomType,changeMeetingRoomType.getTargetRoomType())
+                .ne(MeetingResourcePO::getMeetingRoomType,MeetingNewRoomTypeEnum.PRIVATE.getState())
+                .ne(MeetingResourcePO::getPreAllocation,MeetingNewResourceStateEnum.SUBSCRIBE.getState())
+                .update();
+        return CommonResult.success(null);
     }
 
 }
