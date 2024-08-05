@@ -118,7 +118,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         List<MeetingResourcePO> list =
             meetingResourceDaoService.lambdaQuery()
                     .eq(StringUtils.isNotBlank(meetingResourceQueryDTO.getVmrName()),MeetingResourcePO::getVmrName,meetingResourceQueryDTO.getVmrName())
-                    .eq(meetingResourceQueryDTO.getSize()!=null,MeetingResourcePO::getSize,meetingResourceQueryDTO.getSize())
+                    .eq(meetingResourceQueryDTO.getResourceType()!=null,MeetingResourcePO::getResourceType,meetingResourceQueryDTO.getResourceType())
                     .eq(meetingResourceQueryDTO.getMeetingRoomType()!=null,MeetingResourcePO::getMeetingRoomType,meetingResourceQueryDTO.getMeetingRoomType())
                     .eq(meetingResourceQueryDTO.getResourceStatus()!=null,MeetingResourcePO::getResourceStatus,meetingResourceQueryDTO.getResourceStatus())
                     .orderByAsc(MeetingResourcePO::getSize).list();
