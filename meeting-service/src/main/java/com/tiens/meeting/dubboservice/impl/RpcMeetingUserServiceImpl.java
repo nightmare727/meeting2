@@ -468,15 +468,20 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult PopupWindowList(LaugeVO la) {
+    public CommonResult PopupWindowList(List<LaugeVO> la) {
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
         String result = map.get(CommonProfitConfigConstants.CMS_SHOW_FLAG);
         if (StringUtils.isNotBlank(result) && "1".equals(result)) {
-            if (StringUtils.isNotBlank(la.getValue())) {
                 //将国家做为key文本做值存入redis中
-                map.put(la.getLabel(), la.getValue());
+            la.forEach(
+                    laugeVO -> {
+                        String countryCode = laugeVO.getLabel();
+                        String countryName = laugeVO.getValue();
+                        map.put(countryCode, countryName);
+                    }
+            );
                 return CommonResult.success( null);
-            }
+
         }
         if (StringUtils.isNotBlank(result) && "0".equals(result)) {
             //保留原来的数据,不做任何修改
@@ -537,7 +542,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult<LaugeVO> upPopupWindowList(LaugeVO laugeVO) {
+    public CommonResult<LaugeVO> upPopupWindowList() {
+        LaugeVO laugeVO = new LaugeVO();
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
         laugeVO.setValue(map.get(laugeVO.getLabel()));
         return CommonResult.success(laugeVO);

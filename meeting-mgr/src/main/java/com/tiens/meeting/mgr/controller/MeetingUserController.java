@@ -151,7 +151,7 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/popupWindow")
-    public CommonResult checkProfit(@RequestBody LaugeVO la)
+    public CommonResult checkProfit(@RequestBody List<LaugeVO> la)
             throws Exception {
         return rpcMeetingUserService.PopupWindowList(la);
     }
@@ -162,9 +162,9 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/upPopupWindowList")
-    public CommonResult<LaugeVO> getUserProfitConfig(@RequestBody LaugeVO la)
+    public CommonResult<LaugeVO> getUserProfitConfig()
             throws Exception {
-        return rpcMeetingUserService.upPopupWindowList(la);
+        return rpcMeetingUserService.upPopupWindowList();
     }
 
     /**
