@@ -37,9 +37,9 @@
         mr.meeting_room_type, -- 会议室类型
         case mr.meeting_room_type
         when 0 then  '未分配'
-        when 1 then  '公有'
-        when 2 then  '私有'
-        when 3 then  '付费'
+        when 2 then  '公有预约'
+        when 3 then  '付费预约'
+        when 4 then  '私人专属'
         else null end as meeting_room_type_desc, -- 会议室类型描述
         mr.size, -- 资源大小
         mri.create_time, -- 预约时间
