@@ -12,7 +12,6 @@ import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.http.param.MediaType;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
@@ -89,6 +88,9 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     private final MemberProfitCacheService memberProfitCacheService;
 
     private final MeetingCacheService meetingCacheService;
+
+    private final MeetingPaidSettingService meetingPaidSettingService;
+
     @Autowired
     RpcMeetingRoomService rpcMeetingRoomService;
 
@@ -388,6 +390,17 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     }
 
 
+    @Override
+    public CommonResult<List<MeetingPaidSettingVO>> getMeetingPaidSettingList() {
+        List<MeetingPaidSettingPO> list = meetingPaidSettingService.list();
+        return CommonResult.success(BeanUtil.copyToList(list, MeetingPaidSettingVO.class));
+    }
+
+    @Override
+    public CommonResult updMeetingPaidSetting(MeetingPaidSettingVO request) {
+        MeetingPaidSettingPO settingPo = BeanUtil.copyProperties(request, MeetingPaidSettingPO.class);
+        return CommonResult.success(meetingPaidSettingService.updateById(settingPo));
+    }
 
     /**
      * 查询用户权益

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiens.meeting.repository.mapper.MeetingPaidSettingPOMapper">
+
+    <resultMap id="BaseResultMap" type="com.tiens.meeting.repository.po.MeetingPaidSettingPO">
+        <id property="id" column="id"/>
+        <result property="resourceType" column="resource_type"/>
+        <result property="vmCoin" column="vm_coin"/>
+        <result property="money" column="money"/>
+        <result property="baseLimitTime" column="base_limit_time"/>
+        <result property="onceLimit" column="once_limit"/>
+    </resultMap>
+
+</mapper>

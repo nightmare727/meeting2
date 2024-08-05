@@ -3,6 +3,7 @@ package com.tiens.meeting.mgr.controller;
 import com.tiens.api.dto.CommonProfitConfigSaveDTO;
 import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.vo.CommonProfitConfigQueryVO;
+import com.tiens.api.vo.MeetingPaidSettingVO;
 import com.tiens.api.vo.UserMemberProfitEntity;
 import common.pojo.CommonResult;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -67,4 +68,25 @@ public class MeetingUserProfitController {
         CommonResult result = memberProfitService.saveCommonProfitConfig(commonProfitConfigSaveDTO);
         return result;
     }
+
+    /**
+     * 会议付费设置
+     *
+     */
+    @ResponseBody
+    @GetMapping("getMeetingPaidSettingList")
+    public CommonResult getMeetingPaidSettingList() {
+        return memberProfitService.getMeetingPaidSettingList();
+    }
+
+    /**
+     * 会议付费设置
+     *
+     */
+    @ResponseBody
+    @PostMapping("updMeetingPaidSetting")
+    public CommonResult updMeetingPaidSetting(@RequestBody MeetingPaidSettingVO request) {
+        return memberProfitService.updMeetingPaidSetting(request);
+    }
+
 }

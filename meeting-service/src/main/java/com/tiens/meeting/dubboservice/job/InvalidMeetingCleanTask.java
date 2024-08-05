@@ -4,37 +4,34 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tiens.api.dto.CancelMeetingRoomDTO;
+import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RpcMeetingRoomService;
-import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
-import com.tiens.meeting.repository.po.MeetingAttendeePO;
-import com.tiens.meeting.repository.po.MeetingBlackRecordPO;
-import com.tiens.meeting.repository.po.MeetingBlackUserPO;
-import com.tiens.meeting.repository.po.MeetingRoomInfoPO;
-import com.tiens.meeting.repository.service.MeetingAttendeeDaoService;
-import com.tiens.meeting.repository.service.MeetingBlackRecordDaoService;
-import com.tiens.meeting.repository.service.MeetingBlackUserDaoService;
-import com.tiens.meeting.repository.service.MeetingRoomInfoDaoService;
+import com.tiens.meeting.repository.po.*;
+import com.tiens.meeting.repository.service.*;
 import com.tiens.meeting.util.mdc.MDCLog;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import common.enums.CommonStateEnum;
+import common.enums.MeetingNewResourceStateEnum;
+import common.enums.MeetingNewRoomTypeEnum;
 import common.enums.MeetingRoomStateEnum;
 import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.redisson.api.RBucket;
+import org.apache.commons.collections.CollectionUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +40,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 
 /**
  * @Author: 蔚文杰
@@ -69,8 +67,12 @@ public class InvalidMeetingCleanTask {
     @Autowired
     HwMeetingCommonService hwMeetingCommonService;
 
-    @Autowired
+    @Resource
     RpcMeetingRoomService rpcMeetingRoomService;
+    @Resource
+    RPCMeetingResourceService rpcMeetingResourceService;
+    @Autowired
+    MeetingResourceDaoService meetingResourceDaoService;
     @Autowired
     MeetingBlackRecordDaoService meetingBlackRecordDaoService;
 
@@ -156,7 +158,7 @@ public class InvalidMeetingCleanTask {
 
                 }
             }
-
+//            cleanExpirePrivateResource();
         } catch (Exception e) {
             log.error("【定时清理无效会议】 执行异常", e);
         } finally {
@@ -222,4 +224,60 @@ public class InvalidMeetingCleanTask {
 
     }
 
+    /**
+     * 清理过期私有资源
+     */
+    private void cleanExpirePrivateResource() {
+        //获取已过期私人会议资源
+        log.info("【清理过期私人会议资源】 开始");
+        List<MeetingResourcePO> resourceList = meetingResourceDaoService.list(Wrappers.<MeetingResourcePO>lambdaQuery()
+                .eq(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE)
+                .le(MeetingResourcePO::getOwnerExpireDate, DateUtil.date()));
+        if (CollectionUtils.isNotEmpty(resourceList)) {
+            List<Integer> resourceIds = resourceList.stream().map(MeetingResourcePO::getId).collect(Collectors.toList());
+            log.info("【已过期私人会议资源】 列表:{}",resourceIds);
+            //判断是否存在召开的会议
+            List<MeetingRoomInfoPO> meetingRoomInfoPOList =
+                    meetingRoomInfoDaoService.lambdaQuery()
+                            .in(MeetingRoomInfoPO::getResourceId, resourceIds)
+                            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).list();
+            if (CollectionUtils.isNotEmpty(meetingRoomInfoPOList)) {
+                //移除正在召开的会议
+                Set<Integer> usingResourceId = meetingRoomInfoPOList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toSet());
+                resourceIds.removeIf(element -> usingResourceId.removeIf(usingResourceId::contains));
+            }
+            log.info("【已过期私人会议资源】 移除正在使用后资源列表:{}",resourceIds);
+            //清理已过期且未在使用的私人会议资源
+            resourceIds.forEach(resourceId -> {
+                RLock lock = redissonClient.getLock(CacheKeyUtil.getResourceLockKey(resourceId));
+                try {
+                    if (lock.isLocked()) {
+                        //资源锁定中
+                        log.error("【清理过期私人会议资源】抢占资源锁失败，资源已被占用，资源id:{}", resourceId);
+                    }
+                    //资源维度锁定
+                    lock.lock(10, TimeUnit.SECONDS);
+                    //可以取消分配
+                    meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
+                            .set(MeetingResourcePO::getOwnerImUserId, null)
+                            .set(MeetingResourcePO::getOwnerImUserJoyoCode, null)
+                            .set(MeetingResourcePO::getOwnerImUserName, null)
+                            .set(MeetingResourcePO::getCurrentUseImUserId, null)
+                            .set(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.INIT.getState())
+                            .set(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.FREE.getState())
+                            .set(MeetingResourcePO::getPreAllocation, MeetingNewResourceStateEnum.FREE.getState())
+                            .set(MeetingResourcePO::getOwnerExpireDate, null)
+                            .update();
+                } catch (Exception e) {
+                    log.error("【清理过期私人会议资源】发生异常，资源id：{},异常：{}", resourceId, e);
+                    throw e;
+                }
+                if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+                    log.info("【清理过期私人会议资源】释放资源锁：资源id：{}", resourceId);
+                    lock.unlock();
+                }
+            });
+        }
+        log.info("【清理过期私人会议资源】 结束");
+    }
 }

@@ -42,6 +42,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -286,7 +287,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
             query.setPageSize(maxNumber * 100);
             IPage<MeetingRoomInfoDTO> page = meetingRoomInfoDaoService.queryPage(query);
             try {
-                ExcelUtil.downloadExcel(ServletUtils.getResponse(), sObjectMapper.readTree(sObjectMapper.writeValueAsString(page.getRecords())),
+                ExcelUtil.downloadExcel(sObjectMapper.readTree(sObjectMapper.writeValueAsString(page.getRecords())),
                         Arrays.asList("资源ID", "云会议号", "资源名称",
                                 "资源类型", "会议状态", "会议室类型",
                                 "资源大小", "预约时间", "预约人", "预约人ID",
