@@ -142,7 +142,7 @@ public class MemberProfitController {
      */
     @ResponseBody
     @GetMapping("/deleteBlackUser")
-    public CommonResult deleteBlackUser(@RequestHeader("finalUserId") String finalUserId,@RequestParam("userId") String userId)
+    public CommonResult deleteBlackUser(@RequestParam("userId") String userId)
             throws Exception {
         return memberProfitService.deleteBlackUser(userId);
     }
@@ -153,7 +153,7 @@ public class MemberProfitController {
      */
     @ResponseBody
     @PostMapping("/deleteBlackUserAll")
-    public CommonResult deleteBlackUserAll(@RequestHeader("finalUserId") String finalUserId,@RequestBody List<String> userIdList)
+    public CommonResult deleteBlackUserAll(@RequestBody List<String> userIdList)
             throws Exception {
         return memberProfitService.deleteBlackUserAll(userIdList);
     }

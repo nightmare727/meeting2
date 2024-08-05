@@ -11,17 +11,16 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.http.param.MediaType;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.tiens.api.dto.*;
 import com.tiens.api.service.*;
 import com.tiens.api.vo.*;
-import com.tiens.china.circle.api.common.enumeration.MemberPackageTypeEnum;
 import com.tiens.meeting.dubboservice.common.entity.SyncCommonResult;
 import com.tiens.meeting.dubboservice.common.entity.VMCoinsOperateModel;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
@@ -43,14 +42,11 @@ import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
-import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
@@ -400,30 +396,30 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<PageResult<MeetingBlackRecordVO>> getBlackUserAll(PageParam<MeetingBlackRecordVO> bean) {
-        MeetingBlackRecordPO meetingBlackRecordPO = new MeetingBlackRecordPO();
-        QueryWrapper<MeetingBlackRecordPO> wrapper = new QueryWrapper<>();
-        wrapper.eq(meetingBlackRecordPO.getUserId(), bean.getCondition().getUserId());
-        wrapper.eq(meetingBlackRecordPO.getCountryCode(), bean.getCondition().getCountryCode());
-        wrapper.eq(meetingBlackRecordPO.getNickName(), bean.getCondition().getNickName());
-        wrapper.eq(meetingBlackRecordPO.getMobile(), bean.getCondition().getMobile());
+        Page<MeetingBlackRecordPO> meetingApprovePOPage =
+                new Page<>(bean.getPageNum(), bean.getPageSize());
 
-        //分页查询
-        PageHelper.startPage(bean.getPageNum(), bean.getPageSize());
+        MeetingBlackRecordVO condition = bean.getCondition();
+        Wrapper<MeetingBlackRecordPO> wrapper = Wrappers.lambdaQuery(MeetingBlackRecordPO.class)
+                .like(StrUtil.isNotBlank(condition.getUserId()), MeetingBlackRecordPO::getUserId, condition.getUserId())
+                .like(StrUtil.isNotBlank(condition.getNickName()), MeetingBlackRecordPO::getNickName, condition.getNickName())
+                .like(StrUtil.isNotBlank(condition.getMobile()), MeetingBlackRecordPO::getMobile, condition.getMobile())
+                .like(StrUtil.isNotBlank(condition.getCountryCode()), MeetingBlackRecordPO::getCountryCode, condition.getUserId());
 
         //查询全部
         List<MeetingBlackRecordPO> list = meetingBlackRecordDaoService.list(wrapper);
-        PageInfo<MeetingBlackRecordPO> wmItemRecptPageInfo = new PageInfo<>(list);
+        Page<MeetingBlackRecordPO> page = meetingBlackRecordDaoService.page(meetingApprovePOPage, wrapper);
 
         //使用stream转成vo返回给前端
-        List<MeetingBlackRecordVO> meetingBlackUserVOList = wmItemRecptPageInfo.getList().stream().map(meetingBlackUserPO -> {
-            MeetingBlackRecordVO meetingBlackUserVO =
-                BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackRecordVO.class);
-            return meetingBlackUserVO;
+        List<MeetingBlackRecordVO> meetingBlackUserVOList = list.stream().map(meetingBlackRecordPO1 -> {
+            MeetingBlackRecordVO meetingBlackRecordVO = new MeetingBlackRecordVO();
+            BeanUtil.copyProperties(meetingBlackRecordPO1, meetingBlackRecordVO);
+            return meetingBlackRecordVO;
         }).collect(Collectors.toList());
 
         PageResult<MeetingBlackRecordVO> meetingpage =  new PageResult<>();
         meetingpage.setList(meetingBlackUserVOList);
-        meetingpage.setTotal(wmItemRecptPageInfo.getTotal());
+        meetingpage.setTotal(page.getTotal());
         return CommonResult.success(meetingpage);
     }
 
