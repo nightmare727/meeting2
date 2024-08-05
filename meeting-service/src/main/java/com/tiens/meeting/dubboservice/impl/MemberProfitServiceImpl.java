@@ -505,7 +505,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     @Override
     public CommonResult PopupWindowList(Long meetingRoomId,String text,String nation_code) {
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
-        String result = map.get(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG);
+        String result = map.get(CommonProfitConfigConstants.CMS_SHOW_FLAG);
         if (StringUtils.isNotBlank(result) && "1".equals(result)) {
             if (StringUtils.isNotBlank(text)) {
                 //将传过来的文本和语言码按照会议id存入redis中
@@ -527,16 +527,19 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult freeReservationLimit(List<MeetingMemeberProfitConfigVO> meetingMemeberProfitConfigVOList) {
-        //根据传来的数据进行修改表中数据
-        if (meetingMemeberProfitConfigVOList != null && !meetingMemeberProfitConfigVOList.isEmpty()) {
-            meetingMemeberProfitConfigVOList.forEach(meetingMemeberProfitConfigVO -> {
-                MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = BeanUtil.copyProperties(meetingMemeberProfitConfigVO, MeetingMemeberProfitConfigPO.class);
-                meetingMemeberProfitConfigDaoService.updateById(meetingMemeberProfitConfigPO);
-                //redissonClient.getBucket(CacheKeyUtil.getMemberProfitConfigKey()).set(meetingMemeberProfitConfigDaoService.list());
-            });
-            return CommonResult.success(null);
+        RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
+        String result = map.get(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG);
+        if (StringUtils.isNotBlank(result) && "1".equals(result)) {
+            //根据传来的数据进行修改表中数据
+            if (meetingMemeberProfitConfigVOList != null && !meetingMemeberProfitConfigVOList.isEmpty()) {
+                meetingMemeberProfitConfigVOList.forEach(meetingMemeberProfitConfigVO -> {
+                    MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = BeanUtil.copyProperties(meetingMemeberProfitConfigVO, MeetingMemeberProfitConfigPO.class);
+                    meetingMemeberProfitConfigDaoService.updateById(meetingMemeberProfitConfigPO);
+                });
+                return CommonResult.success(null);
+            }
         }
-        return null;
+        return CommonResult.errorMsg("未成功");
     }
 
     /**
