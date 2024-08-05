@@ -113,7 +113,7 @@ public interface RpcMeetingUserService {
      * 会议模版弹窗
      * @return
      */
-    CommonResult PopupWindowList(LaugeVO la);
+    CommonResult PopupWindowList(List<LaugeVO> la);
 
     /**
      * 免费预约限制
@@ -133,5 +133,5 @@ public interface RpcMeetingUserService {
      * 回显
      * @return
      */
-    CommonResult<LaugeVO> upPopupWindowList(LaugeVO la);
+    CommonResult<LaugeVO> upPopupWindowList();
 }
