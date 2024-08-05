@@ -8,7 +8,6 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tiens.api.dto.*;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RpcMeetingUserService;
@@ -31,17 +30,14 @@ import common.pojo.PageParam;
 import common.pojo.PageResult;
 import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
-import common.util.io.ExcelUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
@@ -69,11 +65,6 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     private final RpcMeetingUserService rpcMeetingUserService;
 
     private final RedissonClient redissonClient;
-
-    private static final ObjectMapper sObjectMapper = new ObjectMapper();
-
-    @Value("${excel.max-number:3000}")
-    private int maxNumber;
 
     public static void main(String[] args) {
         System.out.println(LocalDateTimeUtil.now());
@@ -284,28 +275,6 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
     @Override
     public CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(PageParam<MeetingRoomInfoQueryDTO> query) {
-        if (query.getCondition().getExport()) {
-            // 限制100页
-            query.setPageSize(maxNumber * 100);
-            IPage<MeetingRoomInfoDTO> page = meetingRoomInfoDaoService.queryPage(query);
-            try {
-                ExcelUtil.downloadExcel(sObjectMapper.readTree(sObjectMapper.writeValueAsString(page.getRecords())),
-                        Arrays.asList("资源ID", "云会议号", "资源名称",
-                                "资源类型", "会议状态", "会议室类型",
-                                "资源大小", "预约时间", "预约人", "预约人ID",
-                                "所在区域", "计划开始时间", "时长",
-                                "实际开始时间", "实际结束时间", "与会人数"),
-                        Arrays.asList("resourceId", "hwMeetingCode", "resourceName",
-                                "resourceTypeDesc", "state", "meetingRoomTypeDesc",
-                                "size", "createTime", "ownerUserName", "ownerImUserId",
-                                "area", "showStartTime", "duration",
-                                "relStartTime", "relEndTime", "persons"
-                        ), "会议列表");
-            } catch (IOException e) {
-                log.error("export error:{}", e.getMessage());
-            }
-            return null;
-        }
         IPage<MeetingRoomInfoDTO> page = meetingRoomInfoDaoService.queryPage(query);
         List<MeetingRoomInfoDTO> records = page.getRecords();
         List<String> roomIds = records.stream().map(MeetingRoomInfoDTO::getId).collect(Collectors.toList());
