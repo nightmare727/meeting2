@@ -1,4 +1,4 @@
-package com.tiens.meeting.repository.po;
+package com.tiens.api.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -16,7 +16,7 @@ import java.util.Date;
  */
 @TableName(value = "meeting_black_record")
 @Data
-public class MeetingBlackRecordPO implements Serializable {
+public class MeetingBlackRecordVO implements Serializable {
     /**
      * 主键
      */

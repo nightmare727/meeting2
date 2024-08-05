@@ -128,7 +128,7 @@ public interface MemberProfitService {
      * @param bean
      * @return
      */
-    CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(String finalUserId, PageParam<MeetingBlackUserVO> bean);
+    CommonResult<PageResult<MeetingBlackRecordVO>> getBlackUserAll(PageParam<MeetingBlackRecordVO> bean);
 
     /**
      * 解除黑名单用户
@@ -146,10 +146,10 @@ public interface MemberProfitService {
 
     /**
      * 添加黑名单用户
-     * @param meetingBlackUserVO
+     * @param meetingBlackRecordVO
      * @return
      */
-    CommonResult addBlackUser(MeetingBlackUserVO meetingBlackUserVO);
+    CommonResult addBlackUser(MeetingBlackRecordVO meetingBlackRecordVO);
 
     /**
      * 会议模版弹窗
