@@ -9,6 +9,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tiens.api.dto.CancelMeetingRoomDTO;
 import com.tiens.api.service.RpcMeetingRoomService;
+import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.MeetingAttendeePO;
@@ -26,6 +27,8 @@ import common.enums.MeetingRoomStateEnum;
 import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -209,6 +212,9 @@ public class InvalidMeetingCleanTask {
             meetingBlackUserPO.setLastMeetingCode(meetingRoomInfoPO.getConferenceId());
             meetingBlackUserPO.setStartTime(startTime);
             meetingBlackUserPO.setEndTime(endTime);
+            meetingBlackUserPO.setNickName(meetingRoomInfoPO.getOwnerUserName());
+            meetingBlackUserPO.setMobile(meetingRoomInfoPO.getOwnerUserName());
+
 
             meetingBlackUserDaoService.save(meetingBlackUserPO);
         } else {

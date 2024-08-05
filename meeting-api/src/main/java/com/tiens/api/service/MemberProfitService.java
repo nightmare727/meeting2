@@ -3,6 +3,8 @@ package com.tiens.api.service;
 import com.tiens.api.dto.*;
 import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
+import common.pojo.PageParam;
+import common.pojo.PageResult;
 
 import java.util.List;
 
@@ -118,4 +120,54 @@ public interface MemberProfitService {
      * @return
      */
     CommonResult buyMeetingProfit(BuyMeetingProfitDTO buyMeetingProfitDTO);
+
+    /**
+     * 会议黑名单
+     *
+     * @param
+     * @param bean
+     * @return
+     */
+    CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(String finalUserId, PageParam<MeetingBlackUserVO> bean);
+
+    /**
+     * 解除黑名单用户
+     * @param userId
+     * @return
+     */
+    CommonResult deleteBlackUser(String userId);
+
+    /**
+     * 批量解除黑名单用户
+     * @param userIdList
+     * @return
+     */
+    CommonResult deleteBlackUserAll(List<String> userIdList);
+
+    /**
+     * 添加黑名单用户
+     * @param meetingBlackUserVO
+     * @return
+     */
+    CommonResult addBlackUser(MeetingBlackUserVO meetingBlackUserVO);
+
+    /**
+     * 会议模版弹窗
+     * @return
+     */
+    CommonResult PopupWindowList(Long meetingRoomId,String text,String nation_code);
+
+    /**
+     * 免费预约限制
+     * @param meetingMemeberProfitConfigVOList
+     * @return
+     */
+    CommonResult freeReservationLimit(List<MeetingMemeberProfitConfigVO> meetingMemeberProfitConfigVOList);
+
+    /**
+     * 开关接口
+     * @param commonProfitConfigSaveDTO
+     * @return
+     */
+    CommonResult opoCommonProfitConfig(CommonProfitConfigSaveDTO commonProfitConfigSaveDTO);
 }

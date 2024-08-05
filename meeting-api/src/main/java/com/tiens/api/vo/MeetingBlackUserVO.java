@@ -48,11 +48,25 @@ public class MeetingBlackUserVO implements Serializable {
     private Integer lockDay;
 
 
-
-
     /**
      * 创建时间
      */
     private Date createTime;
+
+    /**
+     * 国家编码
+     */
+    private String countryCode;
+
+    /**
+     * 昵称
+     */
+    private String nickName;
+
+    /**
+     * 手机号
+     */
+    private String mobile;
+
 
 }

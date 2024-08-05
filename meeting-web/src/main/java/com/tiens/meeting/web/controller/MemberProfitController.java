@@ -1,17 +1,15 @@
 package com.tiens.meeting.web.controller;
 
-import com.tiens.api.dto.BuyMeetingProfitDTO;
-import com.tiens.api.dto.CmsShowGetDTO;
-import com.tiens.api.dto.PushOrderDTO;
+import com.tiens.api.dto.*;
 import com.tiens.api.service.MemberProfitService;
-import com.tiens.api.vo.CmsShowVO;
-import com.tiens.api.vo.MeetingBlackUserVO;
-import com.tiens.api.vo.MeetingProfitProductListVO;
-import com.tiens.api.vo.MeetingUserProfitVO;
+import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
+import common.pojo.PageParam;
+import common.pojo.PageResult;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +28,8 @@ public class MemberProfitController {
 
     @Reference
     MemberProfitService memberProfitService;
+
+
 
     /**
      * 推送订单
@@ -120,5 +120,84 @@ public class MemberProfitController {
 
         return memberProfitService.buyMeetingProfit(buyMeetingProfitDTO);
     }
+
+
+    /**
+     * 查询用户黑名单信息
+     *
+     * @param bean
+     * @return
+     * @throws Exception
+     */
+    @ResponseBody
+    @GetMapping("/selectBlackUser")
+    public CommonResult<List<MeetingBlackUserVO>> selectBlackUser(@RequestHeader("finalUserId") String finalUserId,@RequestBody PageParam<MeetingBlackUserVO> bean)
+            throws Exception {
+        CommonResult<PageResult<MeetingBlackUserVO>> pageResult = memberProfitService.getBlackUserAll(finalUserId,bean);
+        return CommonResult.success(pageResult.getData().getList());
+    }
+
+    /**
+     * 根据用户id删除
+     */
+    @ResponseBody
+    @GetMapping("/deleteBlackUser")
+    public CommonResult deleteBlackUser(@RequestHeader("finalUserId") String finalUserId,@RequestParam("userId") String userId)
+            throws Exception {
+        return memberProfitService.deleteBlackUser(userId);
+    }
+
+
+    /**
+     * 批量解除黑名单
+     */
+    @ResponseBody
+    @PostMapping("/deleteBlackUserAll")
+    public CommonResult deleteBlackUserAll(@RequestHeader("finalUserId") String finalUserId,@RequestBody List<String> userIdList)
+            throws Exception {
+        return memberProfitService.deleteBlackUserAll(userIdList);
+    }
+
+    /**
+     * 添加黑名单
+     */
+    @ResponseBody
+    @PostMapping("/addBlackUser")
+    public CommonResult addBlackUser(@RequestHeader("finalUserId") String finalUserId,@RequestBody MeetingBlackUserVO meetingBlackUserVO)
+            throws Exception {
+        return memberProfitService.addBlackUser(meetingBlackUserVO);
+    }
+
+    /**
+     * 会议板块弹窗
+     */
+    @ResponseBody
+    @PostMapping("/popupWindow")
+    public CommonResult checkProfit(Long meetingRoomId,String text,String nation_code)
+            throws Exception {
+        return memberProfitService.PopupWindowList(meetingRoomId,text,nation_code);
+    }
+
+    /**
+     * 会议免费预约限制
+     */
+    @ResponseBody
+    @PostMapping("/freeReservationLimit")
+    public CommonResult freeReservationLimit(List<MeetingMemeberProfitConfigVO> meetingMemeberProfitConfigVOList)
+            throws Exception {
+        return memberProfitService.freeReservationLimit(meetingMemeberProfitConfigVOList);
+    }
+
+
+    /**
+     * 开关接口
+     */
+    @ResponseBody
+    @PostMapping("/opoCommonProfitConfig")
+    public CommonResult opoCommonProfitConfig(@RequestBody CommonProfitConfigSaveDTO commonProfitConfigSaveDTO)
+            throws Exception {
+        return memberProfitService.opoCommonProfitConfig(commonProfitConfigSaveDTO);
+    }
+
 
 }

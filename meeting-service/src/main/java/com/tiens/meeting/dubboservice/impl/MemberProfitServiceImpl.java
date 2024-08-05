@@ -6,6 +6,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
@@ -13,10 +14,13 @@ import com.alibaba.nacos.common.http.param.MediaType;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import com.tiens.api.dto.*;
 import com.tiens.api.service.*;
 import com.tiens.api.vo.*;
+import com.tiens.china.circle.api.common.enumeration.MemberPackageTypeEnum;
 import com.tiens.meeting.dubboservice.common.entity.SyncCommonResult;
 import com.tiens.meeting.dubboservice.common.entity.VMCoinsOperateModel;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
@@ -31,15 +35,21 @@ import common.enums.TerminalEnum;
 import common.exception.ErrorCode;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
+import common.pojo.PageParam;
+import common.pojo.PageResult;
 import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
+import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
@@ -52,6 +62,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
 
 /**
  * @Author: 蔚文杰
@@ -86,6 +97,11 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     @Autowired
     RpcMeetingUserService rpcMeetingUserService;
+
+    private final MeetingMemeberProfitConfigDaoService meetingMemeberProfitConfigDaoService;
+
+
+
 
     /**
      * 校验用户权益
@@ -368,11 +384,189 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
             meetingBlackUserVO.setMaxTime(blackUserConfig.getMaxTime());
             meetingBlackUserVO.setLockDay(blackUserConfig.getLockDay());
+
+            meetingBlackUserVO.setNickName(meetingBlackUserPO.getNickName());
+            meetingBlackUserVO.setMobile(meetingBlackUserPO.getMobile());
+            meetingBlackUserVO.setCountryCode(meetingBlackUserPO.getCountryCode());
             return CommonResult.success(meetingBlackUserVO);
 
         }
         return CommonResult.success(null);
     }
+
+    /**
+     * 会议黑名单
+     *
+     * @param
+     * @return
+     */
+    @Override
+    public CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(String finalUserId, PageParam<MeetingBlackUserVO> bean) {
+        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+        RBucket<VMUserVO> bucket = null;
+        if (StringUtils.isNotBlank(finalUserId)){
+            // 查询缓存
+             bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(finalUserId));
+        }
+        VMUserVO vmUserCacheVO = bucket.get();
+        //用户id
+        if (!StrUtil.isEmpty(bean.getCondition().getUserId())) {
+            vmUserCacheVO.setAccid(bean.getCondition().getUserId());
+        }
+        //国家
+        if (!StrUtil.isEmpty(bean.getCondition().getCountryCode())) {
+            vmUserCacheVO.setCountry(bean.getCondition().getCountryCode());
+        }
+        //昵称
+        if (!StrUtil.isEmpty(bean.getCondition().getNickName())) {
+            vmUserCacheVO.setNickName(bean.getCondition().getNickName());
+        }
+        //手机号
+        if (!StrUtil.isEmpty(bean.getCondition().getMobile())) {
+            vmUserCacheVO.setMobile(bean.getCondition().getMobile());
+        }
+
+        //分页查询
+        PageHelper.startPage(bean.getPageNum(), bean.getPageSize());
+
+        //查询全部
+        List<MeetingBlackUserPO> meetingBlackUserPOList =
+            meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, vmUserCacheVO.getAccid())
+                .le(MeetingBlackUserPO::getStartTime, now).ge(MeetingBlackUserPO::getEndTime, now).list();
+        PageInfo<MeetingBlackUserPO> wmItemRecptPageInfo = new PageInfo<>(meetingBlackUserPOList);
+
+        //使用stream转成vo返回给前端
+        List<MeetingBlackUserVO> meetingBlackUserVOList = wmItemRecptPageInfo.getList().stream().map(meetingBlackUserPO -> {
+            MeetingBlackUserVO meetingBlackUserVO =
+                BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackUserVO.class);
+            meetingBlackUserVO.setMaxTime(meetingConfig.getBlackUserConfig().getMaxTime());
+            meetingBlackUserVO.setLockDay(meetingConfig.getBlackUserConfig().getLockDay());
+            return meetingBlackUserVO;
+        }).collect(Collectors.toList());
+
+        PageResult<MeetingBlackUserVO> meetingpage =  new PageResult<>();
+        meetingpage.setList(meetingBlackUserVOList);
+        meetingpage.setTotal(wmItemRecptPageInfo.getTotal());
+        return CommonResult.success(meetingpage);
+    }
+
+    /**
+     * 解除黑名单用户
+     * @param userId
+     * @return
+     */
+    @Override
+    public CommonResult deleteBlackUser(String userId) {
+        meetingBlackUserDaoService.lambdaUpdate().eq(MeetingBlackUserPO::getUserId, userId).remove();
+        //redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId)).delete();
+        return CommonResult.success(null);
+    }
+
+    /**
+     * 批量解除黑名单用户
+     * @param userIdList
+     * @return
+     */
+    @Override
+    public CommonResult deleteBlackUserAll(List<String> userIdList) {
+        meetingBlackUserDaoService.lambdaUpdate().in(MeetingBlackUserPO::getUserId, userIdList).remove();
+       /* userIdList.forEach(userId -> {
+            redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId)).delete();
+        });*/
+        return  CommonResult.success(null);
+    }
+
+    /**
+     * 添加黑名单用户
+     * @param meetingBlackUserVO
+     * @return
+     */
+    @Override
+    public CommonResult addBlackUser(MeetingBlackUserVO meetingBlackUserVO) {
+        if (meetingBlackUserVO != null) {
+            //设置默认锁定天数
+            meetingBlackUserVO.setLockDay(meetingConfig.getBlackUserConfig().getLockDay());
+            MeetingBlackUserPO meetingBlackUserPO =
+                BeanUtil.copyProperties(meetingBlackUserVO, MeetingBlackUserPO.class);
+            meetingBlackUserPO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+            meetingBlackUserPO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+            //设置结束时间为开始时间往后推三天
+            meetingBlackUserPO.setEndTime(DateUtil.offsetDay(DateUtil.date(), meetingBlackUserVO.getLockDay()));
+            meetingBlackUserDaoService.save(meetingBlackUserPO);
+            return CommonResult.success(meetingBlackUserPO);
+        }
+        return null;
+    }
+
+    /**
+     * 会议模版弹窗
+     * @return
+     */
+    @Override
+    public CommonResult PopupWindowList(Long meetingRoomId,String text,String nation_code) {
+        RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
+        String result = map.get(CommonProfitConfigConstants.CMS_SHOW_FLAG);
+        if (StringUtils.isNotBlank(result) && "1".equals(result)) {
+            if (StringUtils.isNotBlank(text)) {
+                //将传过来的文本和语言码按照会议id存入redis中
+                redissonClient.getBucket(CacheKeyUtil.getSettleProfitKey(meetingRoomId)).compareAndSet(text, nation_code);
+                return CommonResult.success( null);
+            }
+        }
+        if (StringUtils.isNotBlank(result) && "0".equals(result)) {
+          //保留原来的数据,不做任何修改
+            return CommonResult.success(null);
+        }
+        return  CommonResult.errorMsg("未成功");
+    }
+
+    /**
+     * 免费预约限制
+     * @param meetingMemeberProfitConfigVOList
+     * @return
+     */
+    @Override
+    public CommonResult freeReservationLimit(List<MeetingMemeberProfitConfigVO> meetingMemeberProfitConfigVOList) {
+        RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
+        String result = map.get(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG);
+        if (StringUtils.isNotBlank(result) && "1".equals(result)) {
+            //根据传来的数据进行修改表中数据
+            if (meetingMemeberProfitConfigVOList != null && !meetingMemeberProfitConfigVOList.isEmpty()) {
+                meetingMemeberProfitConfigVOList.forEach(meetingMemeberProfitConfigVO -> {
+                    MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = BeanUtil.copyProperties(meetingMemeberProfitConfigVO, MeetingMemeberProfitConfigPO.class);
+                    meetingMemeberProfitConfigDaoService.updateById(meetingMemeberProfitConfigPO);
+                });
+                return CommonResult.success(null);
+            }
+        }
+        return CommonResult.errorMsg("未成功");
+    }
+
+    /**
+     * 开关接口
+     * @param commonProfitConfigSaveDTO
+     * @return
+     */
+    @Override
+    public CommonResult opoCommonProfitConfig(CommonProfitConfigSaveDTO commonProfitConfigSaveDTO) {
+         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
+         //redis重新赋值
+         map.put(CommonProfitConfigConstants.CMS_SHOW_FLAG,commonProfitConfigSaveDTO.getCmsShowFlag());
+         map.put(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG,commonProfitConfigSaveDTO.getMemberProfitFlag());
+         //同步修改数据库中的数据
+         meetingProfitCommonConfigDaoService.updateById(BeanUtil.copyProperties(commonProfitConfigSaveDTO, MeetingProfitCommonConfigPO.class));
+         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+             @Override
+             public void afterCommit() {
+                 //刷新缓存
+                 log.info("执行刷新缓存逻辑");
+
+                 memberProfitCacheService.refreshMemberProfitCache();
+             }
+         });
+        return CommonResult.success(null);
+    }
+
 
     /**
      * 查询用户权益
