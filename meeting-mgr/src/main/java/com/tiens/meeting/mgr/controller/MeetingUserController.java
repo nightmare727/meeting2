@@ -142,7 +142,7 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/addBlackMeeting")
-    public CommonResult addBlackUser(@RequestBody List<String> userIdList,@RequestParam("endTime") Date endTime)
+    public CommonResult addBlackUser(@RequestParam("userIdList") List<String> userIdList,@RequestParam("endTime") Date endTime)
             throws Exception {
         return rpcMeetingUserService.addBlackUser(userIdList, endTime);
     }
