@@ -42,4 +42,12 @@ public class MeetingRoomInfoQueryDTO {
 
     /** 会议结束时间 */
     private String showEndTime;
+
+    public boolean getExport() {
+        return export;
+    }
+
+    public void setExport(boolean export) {
+        this.export = export;
+    }
 }
