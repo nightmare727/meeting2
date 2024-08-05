@@ -2,7 +2,6 @@ package com.tiens.meeting.mgr.controller;
 
 import com.tiens.api.dto.CommonProfitConfigSaveDTO;
 import com.tiens.api.dto.MeetingHostPageDTO;
-import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
@@ -111,10 +110,9 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/selectMeetingBlack")
-    public CommonResult<List<MeetingBlackUserVO>> selectBlackUser(@RequestBody PageParam<MeetingBlackUserVO> bean)
+    public CommonResult<PageResult<MeetingBlackUserVO>> selectBlackUser(@RequestBody PageParam<MeetingBlackUserVO> bean)
             throws Exception {
-        CommonResult<PageResult<MeetingBlackUserVO>> pageResult = rpcMeetingUserService.getBlackUserAll(bean);
-        return CommonResult.success(pageResult.getData().getList());
+        return rpcMeetingUserService.getBlackUserAll(bean);
     }
 
     /**
