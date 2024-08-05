@@ -430,7 +430,12 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult deleteBlackUser(String userId) {
-        meetingBlackRecordDaoService.lambdaUpdate().eq(MeetingBlackRecordPO::getUserId, userId).remove();
+        //根据id查询
+        MeetingBlackRecordPO meetingBlackUserPO = meetingBlackRecordDaoService.lambdaQuery().eq(MeetingBlackRecordPO::getUserId, userId).one();
+        meetingBlackUserPO.setStatus(0);
+        //修改数据库
+        meetingBlackRecordDaoService.updateById(meetingBlackUserPO);
+        //meetingBlackRecordDaoService.lambdaUpdate().eq(MeetingBlackRecordPO::getUserId, userId).remove();
         //redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId)).delete();
         return CommonResult.success(null);
     }
@@ -442,7 +447,14 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult deleteBlackUserAll(List<String> userIdList) {
-        meetingBlackRecordDaoService.lambdaUpdate().in(MeetingBlackRecordPO::getUserId, userIdList).remove();
+        userIdList.forEach(
+                userId -> {
+                    MeetingBlackRecordPO meetingBlackUserPO = meetingBlackRecordDaoService.lambdaQuery().eq(MeetingBlackRecordPO::getUserId, userId).one();
+                    meetingBlackUserPO.setStatus(0);
+                    meetingBlackRecordDaoService.updateById(meetingBlackUserPO);
+                }
+        );
+        //meetingBlackRecordDaoService.lambdaUpdate().in(MeetingBlackRecordPO::getUserId, userIdList).remove();
        /* userIdList.forEach(userId -> {
             redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId)).delete();
         });*/
