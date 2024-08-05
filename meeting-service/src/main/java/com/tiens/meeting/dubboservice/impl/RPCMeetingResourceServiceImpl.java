@@ -161,8 +161,8 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_ALLOCATE_RESOURCE);
             }
             //当前资源状态是否为公有空闲
-            boolean freeFlag = MeetingNewResourceStateEnum.FREE.getState().equals(status) && MeetingNewRoomTypeEnum.PUBLIC.getState().equals(type);
-            log.info("开始分配资源meetingResourcePO：{}freeFlag:{}",meetingResourcePO,freeFlag);
+            boolean freeFlag = MeetingNewResourceStateEnum.FREE.getState().equals(status);
+            log.info("开始分配资源Resource：{}freeFlag:{}",meetingResourcePO,freeFlag);
             meetingResourceDaoService.lambdaUpdate()
                     .eq(MeetingResourcePO::getId, resourceAllocateDTO.getResourceId())
                 .set(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
