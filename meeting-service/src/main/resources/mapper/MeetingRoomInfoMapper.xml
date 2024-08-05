@@ -12,6 +12,7 @@
         <result column="resource_type" property="resourceType"/>
         <result column="resource_type_desc" property="resourceTypeDesc"/>
         <result column="state" property="state"/>
+        <result column="state_desc" property="stateDesc"/>
         <result column="meeting_room_type" property="meetingRoomType"/>
         <result column="meeting_room_type_desc" property="meetingRoomTypeDesc"/>
         <result column="size" property="size"/>
@@ -34,6 +35,13 @@
         mri.resource_type, -- 资源类型枚举值
         mri.resource_type_desc, -- 资源类型
         mri.state, -- 会议状态
+        case mri.state
+        when 'Schedule' then  '即将召开'
+        when 'Creating' then  '创建中'
+        when 'Created' then  '正在召开'
+        when 'Destroyed' then  '历史会议'
+        when 'Canceled' then  '取消'
+        else null end as state_desc, -- 会议状态描述
         mr.meeting_room_type, -- 会议室类型
         case mr.meeting_room_type
         when 0 then  '未分配'
@@ -53,8 +61,9 @@
         FROM meeting_room_info mri
         left join meeting_resource mr on mri.resource_id = mr.id -- 使用资源id关联
         <where>
+                mri.is_deleted = 0
             <if test="params.hwMeetingCode!=null and params.hwMeetingCode!=''">
-                mri.hw_meeting_code = #{params.hwMeetingCode}
+                and mri.hw_meeting_code = #{params.hwMeetingCode}
             </if>
 
             <if test="params.relStartTime!=null and params.relStartTime!='' and params.relEndTime!=null and params.relEndTime!=''">
@@ -69,7 +78,7 @@
                 and mri.state = #{params.meetingState}
             </if>
 
-            <if test="params.meetingRoomType!=null and params.meetingRoomType!=''">
+            <if test="params.meetingRoomType!=null">
                 and mr.meeting_room_type = #{params.meetingRoomType}
             </if>
 

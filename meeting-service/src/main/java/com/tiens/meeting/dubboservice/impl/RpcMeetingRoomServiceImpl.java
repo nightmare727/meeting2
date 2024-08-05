@@ -263,7 +263,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             return CommonResult.errorMsg("当前会议不存在");
         }
         StopMeetingResponse response = hwMeetingCommonService.stopMeeting(meetingRoomInfo.getHwMeetingCode(), meetingRoomInfo.getHostPwd());
-        log.info("结束会议: id{}, response: {}", meetingRoomUpDto.getId(), response);
+        log.info("结束会议: id: {}, response: {}", meetingRoomUpDto.getId(), response);
         return CommonResult.success("");
     }
 

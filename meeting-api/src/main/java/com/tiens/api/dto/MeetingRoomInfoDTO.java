@@ -36,6 +36,9 @@ public class MeetingRoomInfoDTO implements Serializable {
     /** 会议状态 */
     private String state;
 
+    /** 会议状态 */
+    private String stateDesc;
+
     /** 会议室类型 */
     private Integer meetingRoomType;
 
