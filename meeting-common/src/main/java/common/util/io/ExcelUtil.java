@@ -6,11 +6,11 @@ import com.alibaba.excel.write.metadata.style.WriteCellStyle;
 import com.alibaba.excel.write.metadata.style.WriteFont;
 import com.alibaba.excel.write.style.HorizontalCellStyleStrategy;
 import com.fasterxml.jackson.databind.JsonNode;
+import common.util.servlet.ServletUtils;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -72,7 +72,7 @@ public class ExcelUtil {
      * @param keys      键
      * @param batchSize 每次导出的大小
      */
-    public static void downloadExcelFullZip(HttpServletResponse response, JsonNode result, List<String> params, List<String> keys, int batchSize) throws IOException {
+    public static void downloadExcelFullZip(JsonNode result, List<String> params, List<String> keys, int batchSize) throws IOException {
         List<List<Object>> data = buildExcelData(result, keys);
         int totalRecords = data.size();
         int numOfBatches = (totalRecords / batchSize) + (totalRecords % batchSize == 0 ? 0 : 1);
@@ -96,11 +96,11 @@ public class ExcelUtil {
         }
 
         String zipFileName = URLEncoder.encode("excels.zip", "UTF-8").replaceAll("\\+", "%20");
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/zip");
-        response.setHeader("Content-Disposition", "attachment;filename=" + zipFileName);
+        ServletUtils.getResponse().setCharacterEncoding("UTF-8");
+        ServletUtils.getResponse().setContentType("application/zip");
+        ServletUtils.getResponse().setHeader("Content-Disposition", "attachment;filename=" + zipFileName);
 
-        try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+        try (ZipOutputStream zos = new ZipOutputStream(ServletUtils.getResponse().getOutputStream())) {
             for (File excelFile : excelFiles) {
                 try (FileInputStream fis = new FileInputStream(excelFile)) {
                     zos.putNextEntry(new ZipEntry(excelFile.getName()));
@@ -139,9 +139,9 @@ public class ExcelUtil {
      * @param params 表头
      * @param keys   键
      */
-    public static void downloadExcel(HttpServletResponse response, JsonNode result, List<String> params, List<String> keys, String fileName) throws IOException {
-        response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
-        EasyExcel.write(response.getOutputStream())
+    public static void downloadExcel(JsonNode result, List<String> params, List<String> keys, String fileName) throws IOException {
+        ServletUtils.getResponse().setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
+        EasyExcel.write(ServletUtils.getResponse().getOutputStream())
                 .head(buildExcelHeads(params, null))
                 .registerWriteHandler(defaultStyle())
                 .sheet()

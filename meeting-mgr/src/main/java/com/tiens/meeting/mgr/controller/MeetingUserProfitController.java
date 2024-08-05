@@ -67,4 +67,15 @@ public class MeetingUserProfitController {
         CommonResult result = memberProfitService.saveCommonProfitConfig(commonProfitConfigSaveDTO);
         return result;
     }
+
+    /**
+     * 会议付费设置
+     *
+     */
+    @ResponseBody
+    @GetMapping("closeMeeting")
+    public CommonResult getMeetingPaidSettingList() {
+        return memberProfitService.getMeetingPaidSettingList();
+    }
+
 }

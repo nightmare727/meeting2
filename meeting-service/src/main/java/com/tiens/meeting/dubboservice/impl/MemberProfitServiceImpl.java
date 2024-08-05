@@ -89,6 +89,9 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     private final MemberProfitCacheService memberProfitCacheService;
 
     private final MeetingCacheService meetingCacheService;
+
+    private final MeetingPaidSettingService meetingPaidSettingService;
+
     @Autowired
     RpcMeetingRoomService rpcMeetingRoomService;
 
@@ -550,6 +553,11 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         return CommonResult.success(null);
     }
 
+    @Override
+    public CommonResult<List<MeetingPaidSettingVO>> getMeetingPaidSettingList() {
+        List<MeetingPaidSettingPO> list = meetingPaidSettingService.list();
+        return CommonResult.success(BeanUtil.copyToList(list, MeetingPaidSettingVO.class));
+    }
 
     /**
      * 查询用户权益

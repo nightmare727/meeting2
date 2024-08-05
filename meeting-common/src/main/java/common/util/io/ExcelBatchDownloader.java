@@ -2,6 +2,7 @@ package common.util.io;
 
 import com.alibaba.excel.EasyExcel;
 import com.fasterxml.jackson.databind.JsonNode;
+import common.util.servlet.ServletUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -50,13 +51,13 @@ public class ExcelBatchDownloader {
         excelFiles.add(file);
     }
 
-    public void downloadZip(HttpServletResponse response) throws IOException {
+    public void downloadZip() throws IOException {
         String zipFileName = URLEncoder.encode("excels.zip", "UTF-8").replaceAll("\\+", "%20");
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/zip");
-        response.setHeader("Content-Disposition", "attachment;filename=" + zipFileName);
+        ServletUtils.getResponse().setCharacterEncoding("UTF-8");
+        ServletUtils.getResponse().setContentType("application/zip");
+        ServletUtils.getResponse().setHeader("Content-Disposition", "attachment;filename=" + zipFileName);
 
-        try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+        try (ZipOutputStream zos = new ZipOutputStream(ServletUtils.getResponse().getOutputStream())) {
             for (File excelFile : excelFiles) {
                 try (FileInputStream fis = new FileInputStream(excelFile)) {
                     zos.putNextEntry(new ZipEntry(excelFile.getName()));
