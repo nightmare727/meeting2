@@ -151,5 +151,15 @@ public class MeetingResourceController {
     public CommonResult stopMeeting(@RequestBody MeetingRoomUpDTO meetingRoomUpDto) {
         return rpcMeetingRoomService.stopMeeting(meetingRoomUpDto);
     }
-
+    /**
+     * 变更房间类型 仅支持公有与付费转换
+     *
+     * @param changeMeetingRoomType
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/changeType")
+    public CommonResult changeType(@RequestBody ChangeMeetingRoomTypeDTO changeMeetingRoomType) {
+        return rpcMeetingResourceService.changeMeetingRoomType(changeMeetingRoomType);
+    }
 }
