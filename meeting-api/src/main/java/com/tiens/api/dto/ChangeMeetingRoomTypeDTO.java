@@ -21,5 +21,8 @@ public class ChangeMeetingRoomTypeDTO implements Serializable {
      */
     private List<Integer> resourceIds;
 
+    /**
+     * 目标会议室类型
+     */
     private Integer targetRoomType;
 }
