@@ -30,4 +30,14 @@ public class UserMemberProfitEntity implements Serializable {
      * 每场预约时长（分钟）
      */
     private Integer everyLimitCount;
+
+    /**
+     * 规格
+     */
+    private String resourceType;
+
+    /**
+     * 时间
+     */
+    private String  goTime;
 }

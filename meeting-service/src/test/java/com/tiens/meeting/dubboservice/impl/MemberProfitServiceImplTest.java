@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import com.tiens.api.dto.*;
 import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.vo.CommonProfitConfigQueryVO;
+import com.tiens.api.vo.MeetingBlackUserVO;
 import com.tiens.api.vo.MeetingUserProfitVO;
 import com.tiens.meeting.ServiceApplication;
 import common.pojo.CommonResult;

@@ -1,13 +1,13 @@
 package com.tiens.api.service;
 
+import com.tiens.api.dto.CommonProfitConfigSaveDTO;
 import com.tiens.api.dto.MeetingHostPageDTO;
-import com.tiens.api.vo.MeetingHostUserVO;
-import com.tiens.api.vo.MeetingResourceTypeVO;
-import com.tiens.api.vo.VMUserVO;
+import com.tiens.api.vo.*;
 import common.exception.ServiceException;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -76,4 +76,62 @@ public interface RpcMeetingUserService {
      * @param level
      */
     CommonResult<List<MeetingResourceTypeVO>> queryResourceTypes(Integer level);
+
+
+
+    /**
+     * 会议黑名单
+     *
+     * @param
+     * @param bean
+     * @return
+     */
+    CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(PageParam<MeetingBlackUserVO> bean);
+
+    /**
+     * 解除黑名单用户
+     * @param userId
+     * @return
+     */
+    CommonResult deleteBlackUser(String userId);
+
+    /**
+     * 批量解除黑名单用户
+     * @param userIdList
+     * @return
+     */
+    CommonResult deleteBlackUserAll(List<String> userIdList);
+
+    /**
+     * 添加黑名单用户
+     * @param meetingBlackRecordVO
+     * @return
+     */
+    CommonResult addBlackUser(MeetingBlackUserVO meetingBlackRecordVO);
+
+    /**
+     * 会议模版弹窗
+     * @return
+     */
+    CommonResult PopupWindowList(LaugeVO la);
+
+    /**
+     * 免费预约限制
+     * @param meetingMemeberProfitConfigVOList
+     * @return
+     */
+    CommonResult freeReservationLimit(List<MeetingMemeberProfitConfigVO> meetingMemeberProfitConfigVOList);
+
+    /**
+     * 开关接口
+     * @param commonProfitConfigSaveDTO
+     * @return
+     */
+    CommonResult opoCommonProfitConfig(CommonProfitConfigSaveDTO commonProfitConfigSaveDTO);
+
+    /**
+     * 回显
+     * @return
+     */
+    CommonResult<LaugeVO> upPopupWindowList(LaugeVO la);
 }

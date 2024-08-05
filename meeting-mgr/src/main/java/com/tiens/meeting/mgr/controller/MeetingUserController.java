@@ -1,11 +1,10 @@
 package com.tiens.meeting.mgr.controller;
 
+import com.tiens.api.dto.CommonProfitConfigSaveDTO;
 import com.tiens.api.dto.MeetingHostPageDTO;
 import com.tiens.api.service.RpcMeetingRoomService;
 import com.tiens.api.service.RpcMeetingUserService;
-import com.tiens.api.vo.MeetingHostUserVO;
-import com.tiens.api.vo.MeetingResourceTypeVO;
-import com.tiens.api.vo.VMUserVO;
+import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
@@ -101,5 +100,95 @@ public class MeetingUserController {
         CommonResult<List<MeetingResourceTypeVO>> listCommonResult = rpcMeetingUserService.queryResourceTypes(level);
         return listCommonResult;
     }
+
+
+    /**
+     * 查询会议黑名单信息
+     *
+     * @param bean
+     * @return
+     * @throws Exception
+     */
+    @ResponseBody
+    @PostMapping("/selectMeetingBlack")
+    public CommonResult<List<MeetingBlackUserVO>> selectBlackUser(@RequestBody PageParam<MeetingBlackUserVO> bean)
+            throws Exception {
+        CommonResult<PageResult<MeetingBlackUserVO>> pageResult = rpcMeetingUserService.getBlackUserAll(bean);
+        return CommonResult.success(pageResult.getData().getList());
+    }
+
+    /**
+     * 根据用户id删除
+     */
+    @ResponseBody
+    @GetMapping("/deleteMeetingBlack")
+    public CommonResult deleteBlackUser(@RequestParam("userId") String userId)
+            throws Exception {
+        return rpcMeetingUserService.deleteBlackUser(userId);
+    }
+
+
+    /**
+     * 批量解除黑名单
+     */
+    @ResponseBody
+    @PostMapping("/deleteMeetingBlackAll")
+    public CommonResult deleteBlackUserAll(@RequestBody List<String> userIdList)
+            throws Exception {
+        return rpcMeetingUserService.deleteBlackUserAll(userIdList);
+    }
+
+    /**
+     * 添加黑名单
+     */
+    @ResponseBody
+    @PostMapping("/addBlackMeeting")
+    public CommonResult addBlackUser(@RequestBody MeetingBlackUserVO meetingBlackRecordVO)
+            throws Exception {
+        return rpcMeetingUserService.addBlackUser(meetingBlackRecordVO);
+    }
+
+    /**
+     * 会议板块弹窗
+     */
+    @ResponseBody
+    @PostMapping("/popupWindow")
+    public CommonResult checkProfit(@RequestBody LaugeVO la)
+            throws Exception {
+        return rpcMeetingUserService.PopupWindowList(la);
+    }
+
+
+    /**
+     * 会议板块弹窗回显
+     */
+    @ResponseBody
+    @PostMapping("/upPopupWindowList")
+    public CommonResult<LaugeVO> getUserProfitConfig(@RequestBody LaugeVO la)
+            throws Exception {
+        return rpcMeetingUserService.upPopupWindowList(la);
+    }
+
+    /**
+     * 会议免费预约限制
+     */
+    @ResponseBody
+    @PostMapping("/freeReservationLimit")
+    public CommonResult freeReservationLimit(List<MeetingMemeberProfitConfigVO> meetingMemeberProfitConfigVOList)
+            throws Exception {
+        return rpcMeetingUserService.freeReservationLimit(meetingMemeberProfitConfigVOList);
+    }
+
+
+    /**
+     * 开关接口
+     */
+    @ResponseBody
+    @PostMapping("/opoCommonProfitConfig")
+    public CommonResult opoCommonProfitConfig(@RequestBody CommonProfitConfigSaveDTO commonProfitConfigSaveDTO)
+            throws Exception {
+        return rpcMeetingUserService.opoCommonProfitConfig(commonProfitConfigSaveDTO);
+    }
+
 
 }
