@@ -395,29 +395,29 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      * @return
      */
     @Override
-    public CommonResult<PageResult<MeetingBlackRecordVO>> getBlackUserAll(PageParam<MeetingBlackRecordVO> bean) {
-        Page<MeetingBlackRecordPO> meetingApprovePOPage =
+    public CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(PageParam<MeetingBlackUserVO> bean) {
+        Page<MeetingBlackUserPO> meetingApprovePOPage =
                 new Page<>(bean.getPageNum(), bean.getPageSize());
 
-        MeetingBlackRecordVO condition = bean.getCondition();
-        Wrapper<MeetingBlackRecordPO> wrapper = Wrappers.lambdaQuery(MeetingBlackRecordPO.class)
-                .like(StrUtil.isNotBlank(condition.getUserId()), MeetingBlackRecordPO::getUserId, condition.getUserId())
-                .like(StrUtil.isNotBlank(condition.getNickName()), MeetingBlackRecordPO::getNickName, condition.getNickName())
-                .like(StrUtil.isNotBlank(condition.getMobile()), MeetingBlackRecordPO::getMobile, condition.getMobile())
-                .like(StrUtil.isNotBlank(condition.getCountryCode()), MeetingBlackRecordPO::getCountryCode, condition.getUserId());
+        MeetingBlackUserVO condition = bean.getCondition();
+        Wrapper<MeetingBlackUserPO> wrapper = Wrappers.lambdaQuery(MeetingBlackUserPO.class)
+                .like(StrUtil.isNotBlank(condition.getUserId()), MeetingBlackUserPO::getUserId, condition.getUserId())
+                .like(StrUtil.isNotBlank(condition.getNickName()), MeetingBlackUserPO::getNickName, condition.getNickName())
+                .like(StrUtil.isNotBlank(condition.getMobile()), MeetingBlackUserPO::getMobile, condition.getMobile())
+                .like(StrUtil.isNotBlank(condition.getCountryCode()), MeetingBlackUserPO::getCountryCode, condition.getUserId());
 
         //查询全部
-        List<MeetingBlackRecordPO> list = meetingBlackRecordDaoService.list(wrapper);
-        Page<MeetingBlackRecordPO> page = meetingBlackRecordDaoService.page(meetingApprovePOPage, wrapper);
+        List<MeetingBlackUserPO> list = meetingBlackUserDaoService.list(wrapper);
+        Page<MeetingBlackUserPO> page = meetingBlackUserDaoService.page(meetingApprovePOPage, wrapper);
 
         //使用stream转成vo返回给前端
-        List<MeetingBlackRecordVO> meetingBlackUserVOList = list.stream().map(meetingBlackRecordPO1 -> {
-            MeetingBlackRecordVO meetingBlackRecordVO = new MeetingBlackRecordVO();
+        List<MeetingBlackUserVO> meetingBlackUserVOList = list.stream().map(meetingBlackRecordPO1 -> {
+            MeetingBlackUserVO meetingBlackRecordVO = new MeetingBlackUserVO();
             BeanUtil.copyProperties(meetingBlackRecordPO1, meetingBlackRecordVO);
             return meetingBlackRecordVO;
         }).collect(Collectors.toList());
 
-        PageResult<MeetingBlackRecordVO> meetingpage =  new PageResult<>();
+        PageResult<MeetingBlackUserVO> meetingpage =  new PageResult<>();
         meetingpage.setList(meetingBlackUserVOList);
         meetingpage.setTotal(page.getTotal());
         return CommonResult.success(meetingpage);
@@ -431,11 +431,10 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     @Override
     public CommonResult deleteBlackUser(String userId) {
         //根据id查询
-        MeetingBlackRecordPO meetingBlackUserPO = meetingBlackRecordDaoService.lambdaQuery().eq(MeetingBlackRecordPO::getUserId, userId).one();
-        meetingBlackUserPO.setStatus(0);
+      /*  MeetingBlackUserPO meetingBlackUserPO = meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, userId).one();
         //修改数据库
-        meetingBlackRecordDaoService.updateById(meetingBlackUserPO);
-        //meetingBlackRecordDaoService.lambdaUpdate().eq(MeetingBlackRecordPO::getUserId, userId).remove();
+        meetingBlackUserDaoService.updateById(meetingBlackUserPO);*/
+        meetingBlackUserDaoService.lambdaUpdate().eq(MeetingBlackUserPO::getUserId, userId).remove();
         //redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId)).delete();
         return CommonResult.success(null);
     }
@@ -447,14 +446,13 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult deleteBlackUserAll(List<String> userIdList) {
-        userIdList.forEach(
+     /*   userIdList.forEach(
                 userId -> {
-                    MeetingBlackRecordPO meetingBlackUserPO = meetingBlackRecordDaoService.lambdaQuery().eq(MeetingBlackRecordPO::getUserId, userId).one();
-                    meetingBlackUserPO.setStatus(0);
-                    meetingBlackRecordDaoService.updateById(meetingBlackUserPO);
+                    MeetingBlackUserPO meetingBlackUserPO = meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, userId).one();
+                    meetingBlackUserDaoService.updateById(meetingBlackUserPO);
                 }
-        );
-        //meetingBlackRecordDaoService.lambdaUpdate().in(MeetingBlackRecordPO::getUserId, userIdList).remove();
+        );*/
+        meetingBlackUserDaoService.lambdaUpdate().in(MeetingBlackUserPO::getUserId, userIdList).remove();
        /* userIdList.forEach(userId -> {
             redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId)).delete();
         });*/
@@ -467,13 +465,17 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      * @return
      */
     @Override
-    public CommonResult addBlackUser(MeetingBlackRecordVO meetingBlackRecordVO) {
-        if (meetingBlackRecordVO != null) {
-            MeetingBlackRecordPO meetingBlackUserPO =
-                BeanUtil.copyProperties(meetingBlackRecordVO, MeetingBlackRecordPO.class);
+    public CommonResult addBlackUser(MeetingBlackUserVO meetingBlackUserVO) {
+        if (meetingBlackUserVO != null) {
+            //设置默认锁定天数
+            meetingBlackUserVO.setLockDay(meetingConfig.getBlackUserConfig().getLockDay());
+            MeetingBlackUserPO meetingBlackUserPO =
+                    BeanUtil.copyProperties(meetingBlackUserVO, MeetingBlackUserPO.class);
             meetingBlackUserPO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-            meetingBlackUserPO.setUpdateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-            meetingBlackRecordDaoService.save(meetingBlackUserPO);
+            meetingBlackUserPO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+            //设置结束时间为开始时间往后推三天
+            meetingBlackUserPO.setEndTime(DateUtil.offsetDay(DateUtil.date(), meetingBlackUserVO.getLockDay()));
+            meetingBlackUserDaoService.save(meetingBlackUserPO);
             return CommonResult.success(meetingBlackUserPO);
         }
         return null;
