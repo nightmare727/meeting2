@@ -10,6 +10,7 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.http.param.MediaType;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
@@ -392,8 +393,15 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     @Override
     public CommonResult updMeetingPaidSetting(MeetingPaidSettingVO request) {
+        if (request.getId() == null) {
+            MeetingPaidSettingPO one = meetingPaidSettingService.getOne(new LambdaQueryWrapper<MeetingPaidSettingPO>()
+                    .eq(MeetingPaidSettingPO::getResourceType, request.getResourceType()));
+            if (one != null) {
+                return CommonResult.errorMsg("当前资源类型已经存在，请配置其他类型~");
+            }
+        }
         MeetingPaidSettingPO settingPo = BeanUtil.copyProperties(request, MeetingPaidSettingPO.class);
-        return CommonResult.success(meetingPaidSettingService.updateById(settingPo));
+        return CommonResult.success(meetingPaidSettingService.saveOrUpdate(settingPo));
     }
 
     /**

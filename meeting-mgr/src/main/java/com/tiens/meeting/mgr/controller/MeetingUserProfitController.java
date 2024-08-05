@@ -5,10 +5,12 @@ import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.vo.CommonProfitConfigQueryVO;
 import com.tiens.api.vo.MeetingPaidSettingVO;
 import com.tiens.api.vo.UserMemberProfitEntity;
+import common.enums.CheckGroupEnum;
 import common.pojo.CommonResult;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -80,12 +82,20 @@ public class MeetingUserProfitController {
     }
 
     /**
-     * 会议付费设置
-     *
+     * 修改会议付费设置
      */
     @ResponseBody
     @PostMapping("updMeetingPaidSetting")
-    public CommonResult updMeetingPaidSetting(@RequestBody MeetingPaidSettingVO request) {
+    public CommonResult updMeetingPaidSetting(@RequestBody @Validated MeetingPaidSettingVO request) {
+        return memberProfitService.updMeetingPaidSetting(request);
+    }
+
+    /**
+     * 保存会议付费设置
+     */
+    @ResponseBody
+    @PostMapping("saveMeetingPaidSetting")
+    public CommonResult saveMeetingPaidSetting(@RequestBody @Validated(value = CheckGroupEnum.Modify.class) MeetingPaidSettingVO request) {
         return memberProfitService.updMeetingPaidSetting(request);
     }
 
