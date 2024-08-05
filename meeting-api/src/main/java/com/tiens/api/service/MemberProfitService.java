@@ -121,55 +121,6 @@ public interface MemberProfitService {
      */
     CommonResult buyMeetingProfit(BuyMeetingProfitDTO buyMeetingProfitDTO);
 
-    /**
-     * 会议黑名单
-     *
-     * @param
-     * @param bean
-     * @return
-     */
-    CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(PageParam<MeetingBlackUserVO> bean);
-
-    /**
-     * 解除黑名单用户
-     * @param userId
-     * @return
-     */
-    CommonResult deleteBlackUser(String userId);
-
-    /**
-     * 批量解除黑名单用户
-     * @param userIdList
-     * @return
-     */
-    CommonResult deleteBlackUserAll(List<String> userIdList);
-
-    /**
-     * 添加黑名单用户
-     * @param meetingBlackRecordVO
-     * @return
-     */
-    CommonResult addBlackUser(MeetingBlackUserVO meetingBlackRecordVO);
-
-    /**
-     * 会议模版弹窗
-     * @return
-     */
-    CommonResult PopupWindowList(Long meetingRoomId,String text,String nation_code);
-
-    /**
-     * 免费预约限制
-     * @param meetingMemeberProfitConfigVOList
-     * @return
-     */
-    CommonResult freeReservationLimit(List<MeetingMemeberProfitConfigVO> meetingMemeberProfitConfigVOList);
-
-    /**
-     * 开关接口
-     * @param commonProfitConfigSaveDTO
-     * @return
-     */
-    CommonResult opoCommonProfitConfig(CommonProfitConfigSaveDTO commonProfitConfigSaveDTO);
 
     /**
      * 获取房间权益价格配置
