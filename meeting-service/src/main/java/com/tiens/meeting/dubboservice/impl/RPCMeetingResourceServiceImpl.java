@@ -226,7 +226,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_ALLOCATE_RESOURCE);
             }
 
-            Boolean privateFlag = MeetingNewRoomTypeEnum.PRIVATE.getState().equals(status);
+            Boolean privateFlag = MeetingNewRoomTypeEnum.PRIVATE.getState().equals(roomType);
             //查询是否有进行中或者预约中的会议
             if (privateFlag) {
                 List<MeetingRoomInfoPO> meetingRoomInfoPOList =
