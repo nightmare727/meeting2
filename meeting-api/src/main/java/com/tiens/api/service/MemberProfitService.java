@@ -176,4 +176,10 @@ public interface MemberProfitService {
      *
      */
     CommonResult<List<MeetingPaidSettingVO>> getMeetingPaidSettingList();
+
+    /**
+     * 修改房间权益价格配置
+     *
+     */
+    CommonResult updMeetingPaidSetting(MeetingPaidSettingVO request);
 }

@@ -1,7 +1,6 @@
 package com.tiens.api.vo;
 
 import lombok.Data;
-import org.apache.poi.hpsf.Decimal;
 
 import java.io.Serializable;
 
@@ -18,7 +17,7 @@ public class MeetingPaidSettingVO implements Serializable {
     private Integer vmCoin;
 
     /** 金额 */
-    private Decimal money;
+    private Double money;
 
     /** 基础时限 */
     private Integer baseLimitTime;

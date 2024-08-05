@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.poi.hpsf.Decimal;
 
 import java.io.Serializable;
 
@@ -33,7 +32,7 @@ public class MeetingPaidSettingPO implements Serializable {
 
     /** 金额 */
     @TableField(value = "money")
-    private Decimal money;
+    private Double money;
 
     /** 基础时限 */
     @TableField(value = "base_limit_time")
