@@ -240,7 +240,8 @@ public class InvalidMeetingCleanTask {
             List<MeetingRoomInfoPO> meetingRoomInfoPOList =
                     meetingRoomInfoDaoService.lambdaQuery()
                             .in(MeetingRoomInfoPO::getResourceId, resourceIds)
-                            .ne(MeetingRoomInfoPO::getState, MeetingRoomStateEnum.Destroyed.getState()).list();
+                            .in(MeetingRoomInfoPO::getState,
+                                Lists.newArrayList(MeetingRoomStateEnum.Created.getState(), MeetingRoomStateEnum.Schedule.getState())).list();
             if (CollectionUtils.isNotEmpty(meetingRoomInfoPOList)) {
                 //移除正在召开的会议
                 Set<Integer> usingResourceId = meetingRoomInfoPOList.stream().map(MeetingRoomInfoPO::getResourceId).collect(Collectors.toSet());
