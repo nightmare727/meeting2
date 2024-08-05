@@ -281,7 +281,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
 
     @Override
     public CommonResult<PageResult<MeetingRoomInfoDTO>> queryMeetingRoomPage(PageParam<MeetingRoomInfoQueryDTO> query) {
-        if (query.getCondition().isExport()) {
+        if (query.getCondition().getExport()) {
             // 限制100页
             query.setPageSize(maxNumber * 100);
             IPage<MeetingRoomInfoDTO> page = meetingRoomInfoDaoService.queryPage(query);
