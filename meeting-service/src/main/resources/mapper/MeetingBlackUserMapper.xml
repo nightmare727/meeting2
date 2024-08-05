@@ -12,11 +12,14 @@
             <result property="startTime" column="start_time" jdbcType="TIMESTAMP"/>
             <result property="endTime" column="end_time" jdbcType="TIMESTAMP"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="mobile" column="mobile" jdbcType="VARCHAR"/>
+            <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>
+            <result property="countryCode" column="country_code" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,user_id,joyo_code,
         last_meeting_code,start_time,end_time,
-        create_time
+        create_time,mobile,nick_name,country_code
     </sql>
 </mapper>

@@ -10,13 +10,16 @@
             <result property="freeDayAppointCount" column="free_day_appoint_count" jdbcType="INTEGER"/>
             <result property="limitCount" column="limit_count" jdbcType="INTEGER"/>
             <result property="ruleType" column="rule_type" jdbcType="TINYINT"/>
+            <result property="resourceType" column="resource_type" javaType="VARCHAR"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+           <result property="goTime" column="go_time" jdbcType="TIMESTAMP"/>
+
     </resultMap>
 
     <sql id="Base_Column_List">
         id,member_type,free_day_appoint_count,
-        limit_count,rule_type,create_time,
-        update_time
+        limit_count,rule_type,resource_type,create_time,
+        update_time,go_time
     </sql>
 </mapper>
