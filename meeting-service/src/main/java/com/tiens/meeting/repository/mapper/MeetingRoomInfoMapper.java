@@ -22,7 +22,7 @@ public interface MeetingRoomInfoMapper extends BaseMapper<MeetingRoomInfoPO> {
      * @param query MeetingRoomInfoQueryDTO
      * @return IPage
      **/
-    IPage<MeetingRoomInfoDTO> pageQuery(Page<MeetingRoomInfoDTO> page, @Param("param") MeetingRoomInfoQueryDTO query);
+    IPage<MeetingRoomInfoDTO> pageQuery(Page<MeetingRoomInfoDTO> page, @Param("params") MeetingRoomInfoQueryDTO query);
 }
 
 

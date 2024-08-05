@@ -26,7 +26,7 @@ public class MeetingRoomInfoDTO {
     private String resourceName;
 
     /** 资源类型枚举值 */
-    private Integer resourceType;
+    private String resourceType;
 
     /** 资源类型 */
     private String resourceTypeDesc;
@@ -38,7 +38,7 @@ public class MeetingRoomInfoDTO {
     private Integer meetingRoomType;
 
     /** 会议室类型描述 */
-    private Integer meetingRoomTypeDesc;
+    private String meetingRoomTypeDesc;
 
     /** 资源大小 */
     private Integer size;
