@@ -53,6 +53,7 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -447,20 +448,23 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult addBlackUser(MeetingBlackUserVO meetingBlackUserVO) {
-        if (meetingBlackUserVO != null) {
-            //设置默认锁定天数
-            meetingBlackUserVO.setLockDay(meetingConfig.getBlackUserConfig().getLockDay());
-            MeetingBlackUserPO meetingBlackUserPO =
-                    BeanUtil.copyProperties(meetingBlackUserVO, MeetingBlackUserPO.class);
-            meetingBlackUserPO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-            meetingBlackUserPO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-            //设置结束时间为开始时间往后推三天
-            meetingBlackUserPO.setEndTime(DateUtil.offsetDay(DateUtil.date(), meetingBlackUserVO.getLockDay()));
+    public CommonResult addBlackUser(List<String> userIdList, Date endTime) {
+          MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
+        userIdList.forEach(
+                userId -> {
+                    MeetingBlackUserPO meetingBlackUserPO1 = new MeetingBlackUserPO();
+                    meetingBlackUserPO1.setUserId(userId);
+                    meetingBlackUserPO1.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                    meetingBlackUserPO1.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                    if (endTime != null){
+                        meetingBlackUserPO1.setEndTime(DateUtil.convertTimeZone(endTime, DateUtils.TIME_ZONE_GMT));
+                    }else {
+                        meetingBlackUserPO1.setEndTime(null);
+                    }
+                }
+        );
             meetingBlackUserDaoService.save(meetingBlackUserPO);
             return CommonResult.success(meetingBlackUserPO);
-        }
-        return null;
     }
 
     /**

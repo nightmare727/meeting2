@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -141,9 +142,9 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/addBlackMeeting")
-    public CommonResult addBlackUser(@RequestBody MeetingBlackUserVO meetingBlackRecordVO)
+    public CommonResult addBlackUser(List<String> userIdList, Date endTime)
             throws Exception {
-        return rpcMeetingUserService.addBlackUser(meetingBlackRecordVO);
+        return rpcMeetingUserService.addBlackUser(userIdList, endTime);
     }
 
     /**

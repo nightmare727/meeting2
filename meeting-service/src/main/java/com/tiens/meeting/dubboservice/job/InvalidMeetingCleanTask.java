@@ -26,6 +26,7 @@ import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.redisson.api.RLock;
+import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -214,6 +215,7 @@ public class InvalidMeetingCleanTask {
             meetingBlackUserPO.setLastMeetingCode(meetingRoomInfoPO.getConferenceId());
             meetingBlackUserPO.setStartTime(startTime);
             meetingBlackUserPO.setEndTime(endTime);
+            meetingBlackUserPO.setNickName(meetingRoomInfoPO.getOwnerUserName());
 
             meetingBlackUserDaoService.save(meetingBlackUserPO);
         } else {

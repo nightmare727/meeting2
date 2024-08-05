@@ -9,6 +9,7 @@ import common.pojo.PageParam;
 import common.pojo.PageResult;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -104,10 +105,10 @@ public interface RpcMeetingUserService {
 
     /**
      * 添加黑名单用户
-     * @param meetingBlackRecordVO
+     * @param
      * @return
      */
-    CommonResult addBlackUser(MeetingBlackUserVO meetingBlackRecordVO);
+    CommonResult addBlackUser(List<String> userIdList, Date endTime);
 
     /**
      * 会议模版弹窗
