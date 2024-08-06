@@ -10,7 +10,6 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.http.param.MediaType;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
@@ -37,6 +36,7 @@ import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
+import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
@@ -393,15 +393,15 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     @Override
     public CommonResult updMeetingPaidSetting(MeetingPaidSettingVO request) {
-        if (request.getId() == null) {
-            MeetingPaidSettingPO one = meetingPaidSettingService.getOne(new LambdaQueryWrapper<MeetingPaidSettingPO>()
-                    .eq(MeetingPaidSettingPO::getResourceType, request.getResourceType()));
-            if (one != null) {
-                return CommonResult.errorMsg("当前资源类型已经存在，请配置其他类型~");
-            }
-        }
         MeetingPaidSettingPO settingPo = BeanUtil.copyProperties(request, MeetingPaidSettingPO.class);
-        return CommonResult.success(meetingPaidSettingService.saveOrUpdate(settingPo));
+        boolean res = meetingPaidSettingService.updateById(settingPo);
+        if (res) {
+            // 清除缓存
+            String key = CacheKeyUtil.getMeetingPaidSettingKey(request.getResourceType());
+            RBucket<MeetingPaidSettingVO> bucket = redissonClient.getBucket(key);
+            bucket.delete();
+        }
+        return CommonResult.success(res);
     }
 
     /**

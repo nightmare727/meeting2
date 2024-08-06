@@ -133,6 +133,11 @@ public class MeetingRoomInfoPO implements Serializable {
      */
     @TableField(value = "owner_user_name")
     private String ownerUserName;
+    /**
+     * 主持人卓越卡号
+     */
+    @TableField(value = "owner_joyo_code")
+    private String ownerJoyoCode;
 
     /**
      * 主持人密码

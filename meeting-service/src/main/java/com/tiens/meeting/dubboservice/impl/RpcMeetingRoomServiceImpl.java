@@ -586,7 +586,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .timeZoneId(meetingRoomContextDTO.getTimeZoneID()).timeZoneOffset(meetingRoomContextDTO.getTimeZoneOffset())
             .vmrMode(meetingRoomContextDTO.getVmrMode()).ownerUserName(meetingRoomContextDTO.getImUserName())
             .subject(meetingRoomContextDTO.getSubject()).remark(meetingRoomContextDTO.getRemark())
-            .languageId(meetingRoomContextDTO.getLanguageId()).leadTime(leadTime).build();
+            .languageId(meetingRoomContextDTO.getLanguageId()).leadTime(leadTime).ownerJoyoCode(meetingRoomContextDTO.getJoyoCode()).build();
         if (ObjectUtil.isNotNull(meetingRoom)) {
             build.setHwMeetingId(meetingRoom.getHwMeetingId());
             build.setHwMeetingCode(meetingRoom.getHwMeetingCode());
