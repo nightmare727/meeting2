@@ -108,7 +108,7 @@ public interface RpcMeetingUserService {
      * @param
      * @return
      */
-    CommonResult addBlackUser(String account, UserRequestDTO userRequestDTO);
+    CommonResult addBlackUser( String finalUserId,String account, UserRequestDTO userRequestDTO);
 
     /**
      * 会议模版弹窗
@@ -134,7 +134,7 @@ public interface RpcMeetingUserService {
      * 回显
      * @return
      */
-    CommonResult<LaugeVO> upPopupWindowList(List<String> countryCode);
+    CommonResult<LaugeVO> upPopupWindowList();
 
     /**
      * 查询会员权益表

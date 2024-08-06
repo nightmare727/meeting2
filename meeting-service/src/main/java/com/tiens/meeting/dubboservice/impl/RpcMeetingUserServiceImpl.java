@@ -32,6 +32,7 @@ import com.tiens.meeting.repository.po.*;
 import com.tiens.meeting.repository.service.*;
 import common.constants.CommonProfitConfigConstants;
 import common.enums.MeetingResourceEnum;
+import common.exception.ErrorCode;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
@@ -437,27 +438,41 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult addBlackUser(String account,UserRequestDTO userRequestDTO) {
+    public CommonResult addBlackUser(String finalUserId,String account,UserRequestDTO userRequestDTO) {
         MeetingBlackUserVO meetingBlackUserVO = new MeetingBlackUserVO();
         MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
         List<String> userIdList = userRequestDTO.getUserIdList();
-            Date endTime = userRequestDTO.getEndTime();
+        Date endTime = userRequestDTO.getEndTime();
+        RBucket<VMUserVO> bucket = null;
+        if (StringUtils.isNotBlank(finalUserId)){
+            // 查询缓存
+            bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(finalUserId));
+        }
+        VMUserVO vmUserCacheVO = bucket.get();
+        //校验黑名单
        userIdList.forEach(
-                            userId -> {
-                                meetingBlackUserVO.setUserId(userId);
-                                meetingBlackUserVO.setJoyoCode(userId);
-                                meetingBlackUserVO.setLastMeetingCode("");
-                                meetingBlackUserVO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-                                meetingBlackUserVO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-                                if (endTime != null){
-                                    meetingBlackUserVO.setEndTime(endTime);
-                                }else {
-                                    meetingBlackUserVO.setEndTime(null);
-                                }
-                                meetingBlackUserVO.setOperator(account);
-                                redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserVO);
-                                BeanUtil.copyProperties(meetingBlackUserVO, meetingBlackUserPO);
-                                meetingBlackUserDaoService.save(meetingBlackUserPO);
+                userId -> {
+                    //用户id和finalUserId相同时取数据
+                    if (userId.equals(finalUserId)) {
+                        //根据userid去查用户的信息
+                        meetingBlackUserVO.setUserId(userId);
+                        meetingBlackUserVO.setJoyoCode(userId);
+                        meetingBlackUserVO.setLastMeetingCode("");
+                        meetingBlackUserVO.setMobile(vmUserCacheVO.getMobile());
+                        meetingBlackUserVO.setNickName(vmUserCacheVO.getNickName());
+                        meetingBlackUserVO.setCountryCode(vmUserCacheVO.getCountry());
+                        meetingBlackUserVO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                        meetingBlackUserVO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                        if (endTime != null) {
+                            meetingBlackUserVO.setEndTime(endTime);
+                        } else {
+                            meetingBlackUserVO.setEndTime(null);
+                        }
+                        meetingBlackUserVO.setOperator(account);
+                        redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserVO);
+                        BeanUtil.copyProperties(meetingBlackUserVO, meetingBlackUserPO);
+                        meetingBlackUserDaoService.save(meetingBlackUserPO);
+                    }
                 }
         );
             return CommonResult.success(meetingBlackUserPO);
@@ -476,12 +491,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             la.forEach(
                     laugeVO -> {
                         List<String> label = laugeVO.getLabel();
-                        label.forEach(
-                                countryCode -> {
-                                   //往redis中存
-                                    redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(countryCode)).set(laugeVO.getValue());
-                                }
-                        );
+                        //将所有国家做为key文本做值为list存入redis中
+                        redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(label.toString())).set(laugeVO.getValue());
                     }
             );
                 return CommonResult.success( null);
@@ -548,24 +559,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult<LaugeVO> upPopupWindowList(List<String> countryCode) {
-        LaugeVO laugeVO = new LaugeVO();
-        countryCode.forEach(
-                country -> {
-                    laugeVO.setLabel(Arrays.asList(country));
-                }
-        );
-        List<String> label = laugeVO.getLabel();
-        label.forEach(
-                countryCode1 -> {
-                    laugeVO.setValue((String) redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(countryCode1)).get());
-                }
-        );
-      //前端没传值就设置语言为英语
-        if (StringUtils.isBlank(laugeVO.getValue())){
-            laugeVO.setLabel(Arrays.asList("EN"));
-            laugeVO.setValue(redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey("EN")).get().toString());
-        }
+    public CommonResult<LaugeVO> upPopupWindowList() {
+        //直接取redis中的数据
+        LaugeVO laugeVO = (LaugeVO) redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey( "")).get();
         //返回数据
         return CommonResult.success(laugeVO);
     }
