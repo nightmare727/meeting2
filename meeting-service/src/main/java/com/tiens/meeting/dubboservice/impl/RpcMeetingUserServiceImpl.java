@@ -456,7 +456,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                                 meetingBlackUserPO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
                                 meetingBlackUserPO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
                                 if (endTime != null){
-                                    meetingBlackUserPO.setEndTime(DateUtil.convertTimeZone(endTime, DateUtils.TIME_ZONE_GMT));
+                                    meetingBlackUserPO.setEndTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
                                 }else {
                                     meetingBlackUserPO.setEndTime(null);
                                 }
