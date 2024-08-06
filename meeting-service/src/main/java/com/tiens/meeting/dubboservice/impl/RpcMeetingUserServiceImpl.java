@@ -457,10 +457,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                         meetingBlackUserPO1.setEndTime(null);
                     }
                     redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserPO);
+                    meetingBlackUserDaoService.save(meetingBlackUserPO);
                 }
         );
-            meetingBlackUserDaoService.save(meetingBlackUserPO);
-            //将用户黑名单添加到缓存中
             return CommonResult.success(meetingBlackUserPO);
     }
 
