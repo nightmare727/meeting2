@@ -128,6 +128,11 @@ public class CacheKeyUtil {
         return new StringBuilder(BASE_CACHE_PREFIX).append(SETTLE_PROFIT_PREFIX).append(meetingId).toString();
     }
 
+
+    public static String getBlackUserInfoKey(String userId) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append("blackUserInfo:").append(userId).toString();
+    }
+
     /**
      * 获取某一个会议室规格下的付费配置
      *

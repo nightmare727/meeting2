@@ -19,6 +19,7 @@
         <result column="create_time" property="createTime"/>
         <result column="owner_user_name" property="ownerUserName"/>
         <result column="owner_im_user_id" property="ownerImUserId"/>
+        <result column="owner_joyo_code" property="ownerJoyoCode"/>
         <result column="area" property="area"/>
         <result column="show_start_time" property="showStartTime"/>
         <result column="duration" property="duration"/>
@@ -53,6 +54,7 @@
         mri.create_time, -- 预约时间
         mri.owner_user_name, -- 预约人
         mri.owner_im_user_id, -- 预约人id
+        mri.owner_joyo_code, -- 预约人卓越卡号
         mri.area, -- 所在区域
         mri.show_start_time, -- 计划开始时间
         mri.duration, -- 时长

@@ -461,13 +461,15 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<List<UserMemberProfitEntity>> queryUserProfitConfig() {
+        //先查数据库更新缓存
+        memberProfitCacheService.refreshMemberProfitCache();
         RMap<Integer, MeetingMemeberProfitConfigPO> map =
             redissonClient.getMap(CacheKeyUtil.getMemberProfitConfigKey());
         Collection<MeetingMemeberProfitConfigPO> values = map.values();
 
         List<UserMemberProfitEntity> collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))
             .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType)).collect(Collectors.toList());
-
+        log.info("【查询权益配置】 返回：{}", JSON.toJSONString(collect));
         return CommonResult.success(collect);
     }
 
