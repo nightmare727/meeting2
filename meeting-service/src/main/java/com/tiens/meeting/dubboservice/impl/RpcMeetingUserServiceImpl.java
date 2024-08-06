@@ -448,6 +448,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
        userIdList.forEach(
                             userId -> {
                                 meetingBlackUserPO.setUserId(userId);
+                                meetingBlackUserPO.setLastMeetingCode("");
                                 meetingBlackUserPO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
                                 meetingBlackUserPO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
                                 if (endTime != null){
@@ -474,9 +475,14 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                 //将国家做为key文本做值存入redis中
             la.forEach(
                     laugeVO -> {
-                        String countryCode = laugeVO.getLabel();
-                        String countryName = laugeVO.getValue();
-                        map.put(countryCode, countryName);
+                        List<String> label = laugeVO.getLabel();
+                        label.forEach(
+                                countryCode -> {
+                                   //往redis中存
+                                    redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(countryCode)).set(laugeVO.getValue());
+                                }
+                        );
+
                     }
             );
                 return CommonResult.success( null);
