@@ -78,7 +78,6 @@ public class MemberProfitController {
 
     /**
      * 查询用户权益
-     *
      * @param finalUserId
      * @return
      * @throws Exception

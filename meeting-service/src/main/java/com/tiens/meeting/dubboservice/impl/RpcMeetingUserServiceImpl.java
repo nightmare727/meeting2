@@ -41,6 +41,7 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
@@ -52,9 +53,8 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -378,16 +378,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(String finalUserId,PageParam<MeetingBlackUserVO> bean) {
+    public CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(PageParam<MeetingBlackUserVO> bean) {
         Page<MeetingBlackUserPO> meetingApprovePOPage =
                 new Page<>(bean.getPageNum(), bean.getPageSize());
-        RBucket<VMUserVO> bucket = null;
-        if (StringUtils.isNotBlank(finalUserId)){
-            // 查询缓存
-            bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(finalUserId));
-        }
-        VMUserVO vmUserCacheVO = bucket.get();
-        String accid = vmUserCacheVO.getAccid();
         MeetingBlackUserVO condition = bean.getCondition();
         Wrapper<MeetingBlackUserPO> wrapper = Wrappers.lambdaQuery(MeetingBlackUserPO.class)
                 .like(StrUtil.isNotBlank(condition.getUserId()), MeetingBlackUserPO::getUserId, condition.getUserId())
@@ -402,7 +395,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         List<MeetingBlackUserVO> meetingBlackUserVOList = page.getRecords().stream().map(meetingBlackRecordPO1 -> {
             MeetingBlackUserVO meetingBlackRecordVO = new MeetingBlackUserVO();
             //设置操作人
-            meetingBlackRecordVO.setOperator(accid);
             BeanUtil.copyProperties(meetingBlackRecordPO1, meetingBlackRecordVO);
             return meetingBlackRecordVO;
         }).collect(Collectors.toList());
@@ -445,22 +437,38 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult addBlackUser(UserRequestDTO userRequestDTO) {
-            MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
-            List<String> userIdList = userRequestDTO.getUserIdList();
+    public CommonResult addBlackUser(String account,UserRequestDTO userRequestDTO) {
+        RBucket<VMUserVO> bucket = null;
+        if (StringUtils.isNotBlank(account)){
+            // 查询缓存
+            bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(account));
+        }
+        VMUserVO vmUserCacheVO = bucket.get();
+        String accid = vmUserCacheVO.getAccid();
+        MeetingBlackUserVO meetingBlackUserVO = new MeetingBlackUserVO();
+        MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
+        List<String> userIdList = userRequestDTO.getUserIdList();
             Date endTime = userRequestDTO.getEndTime();
        userIdList.forEach(
                             userId -> {
-                                meetingBlackUserPO.setUserId(userId);
-                                meetingBlackUserPO.setLastMeetingCode("");
-                                meetingBlackUserPO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-                                meetingBlackUserPO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                                meetingBlackUserVO.setUserId(userId);
+                                meetingBlackUserVO.setLastMeetingCode("");
+                                meetingBlackUserVO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                                meetingBlackUserVO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
                                 if (endTime != null){
-                                    meetingBlackUserPO.setEndTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                                    meetingBlackUserVO.setEndTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
                                 }else {
-                                    meetingBlackUserPO.setEndTime(null);
+                                    meetingBlackUserVO.setEndTime(null);
                                 }
-                                redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserPO);
+                                meetingBlackUserVO.setOperator(accid);
+                                redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserVO);
+                                try {
+                                    BeanUtils.copyProperties(meetingBlackUserVO, meetingBlackUserPO);
+                                } catch (IllegalAccessException e) {
+                                    throw new RuntimeException(e);
+                                } catch (InvocationTargetException e) {
+                                    throw new RuntimeException(e);
+                                }
                                 meetingBlackUserDaoService.save(meetingBlackUserPO);
                 }
         );
@@ -570,4 +578,14 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     }
 
 
+    /**
+     * 查询会员权益表
+     *
+     * @return
+     */
+    @Override
+    public CommonResult<List<MeetingMemeberProfitConfigVO>> queryCommonmeberProfitConfig(){
+        List<MeetingMemeberProfitConfigPO> list = meetingMemeberProfitConfigDaoService.list();
+       return CommonResult.success(BeanUtil.copyToList(list, MeetingMemeberProfitConfigVO.class));
+    }
 }
