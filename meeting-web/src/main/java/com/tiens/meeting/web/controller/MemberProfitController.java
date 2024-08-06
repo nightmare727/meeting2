@@ -2,6 +2,8 @@ package com.tiens.meeting.web.controller;
 
 import com.tiens.api.dto.BuyMeetingProfitDTO;
 import com.tiens.api.dto.CmsShowGetDTO;
+import com.tiens.api.dto.MeetingProfitPurchaseDetailGetDTO;
+import com.tiens.api.dto.ProfitPaidCheckOutGetDTO;
 import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
@@ -74,6 +76,7 @@ public class MemberProfitController {
 
     /**
      * 查询用户权益
+     *
      * @param finalUserId
      * @return
      * @throws Exception
@@ -96,7 +99,6 @@ public class MemberProfitController {
     @ResponseBody
     @GetMapping("/getALlProfit")
     public CommonResult<List<UserMemberProfitEntity>> getALlProfit() throws Exception {
-
         return memberProfitService.getALlProfit();
     }
 
@@ -128,6 +130,42 @@ public class MemberProfitController {
         buyMeetingProfitDTO.setNationId(nationId);
 
         return memberProfitService.buyMeetingProfit(buyMeetingProfitDTO);
+    }
+
+    /**
+     * 查询权益购买详情
+     *
+     * @param finalUserId
+     * @param memberType
+     * @param meetingProfitPurchaseDetailGetDTO
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/getMeetingProfitPurchaseDetail")
+    public CommonResult<MeetingProfitPurchaseDetailVO> getMeetingProfitPurchaseDetail(
+        @RequestHeader("finalUserId") String finalUserId,
+        @RequestHeader("memberType") Integer memberType,
+        @RequestBody MeetingProfitPurchaseDetailGetDTO meetingProfitPurchaseDetailGetDTO) {
+        meetingProfitPurchaseDetailGetDTO.setFinalUserId(finalUserId);
+        meetingProfitPurchaseDetailGetDTO.setMemberType(memberType);
+        return memberProfitService.getMeetingProfitPurchaseDetail(meetingProfitPurchaseDetailGetDTO);
+    }
+
+    /**
+     * 查询结算金额
+     *
+     * @param finalUserId
+     * @param memberType
+     * @param profitPaidCheckOutGetDTO
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/getProfitPaidCheckOut")
+    public CommonResult<ProfitPaidCheckOutGetVO> getProfitPaidCheckOut(
+        @RequestHeader("finalUserId") String finalUserId,
+        @RequestHeader("memberType") Integer memberType,
+        @RequestBody ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDTO) {
+        return memberProfitService.getProfitPaidCheckOut(profitPaidCheckOutGetDTO);
     }
 
 }

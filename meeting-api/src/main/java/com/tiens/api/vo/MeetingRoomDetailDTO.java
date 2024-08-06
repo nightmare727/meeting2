@@ -190,4 +190,9 @@ public class MeetingRoomDetailDTO implements Serializable {
      */
     private String meetingLength;
 
+    /**
+     * 付费类型 0：会员权益 1：额外付费
+     */
+    private Integer paidType;
+
 }

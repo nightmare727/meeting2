@@ -22,6 +22,12 @@ public class UserMemberProfitEntity implements Serializable {
      * 1：普通会员 10： V++ 20: 红宝石V+ 30:蓝宝石+
      */
     private Integer memberType;
+
+    /**
+     * 剩余次数
+     */
+    private Integer surPlusCount;
+
     /**
      * 每天每次免费剩余预约次数
      */

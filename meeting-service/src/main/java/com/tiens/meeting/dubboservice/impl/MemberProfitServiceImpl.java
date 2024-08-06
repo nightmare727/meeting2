@@ -33,7 +33,6 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
@@ -46,13 +45,11 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -114,11 +111,11 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         Boolean isHighestMemberLevel = MemberLevelEnum.BLUE.getState().equals(memberType);
 
         if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(resourceType)) {
-            //海外用户或者私有会议返回成功
+            //或者私有会议返回成功
             return CommonResult.success(null);
         }
 
-        DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+       /* DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
         Date showStartTime =
             DateUtils.roundToHalfHour(ObjectUtil.defaultIfNull(meetingRoomContextDTO.getStartTime(), now),
                 DateUtils.TIME_ZONE_DEFAULT);
@@ -194,7 +191,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             }
             //有剩余资源时长
             meetingRoomContextDTO.setPaidType(PaidTypeEnum.PAID.getState());
-        }
+        }*/
 
         return CommonResult.success(null);
 
@@ -322,10 +319,11 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         meetingUserProfitOrderPO.setDuration(pushOrderDTO.getDuration());
 
         try {
+
             meetingUserProfitOrderDaoService.save(meetingUserProfitOrderPO);
 
             //增加会员付费权益
-            MeetingUserPaidProfitPO meetingUserPaidProfitPO = new MeetingUserPaidProfitPO();
+         /*   MeetingUserPaidProfitPO meetingUserPaidProfitPO = new MeetingUserPaidProfitPO();
             meetingUserPaidProfitPO.setUserId(accid);
             meetingUserPaidProfitPO.setJoyoCode(data.getJoyoCode());
             meetingUserPaidProfitPO.setResourceType(resourceType);
@@ -342,7 +340,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             } else {
                 //插入
                 meetingUserPaidProfitDaoService.save(meetingUserPaidProfitPO);
-            }
+            }*/
 
         } catch (DuplicateKeyException e) {
             log.error("订单重复录入异常，订单数据：{}", JSON.toJSONString(pushOrderDTO));
@@ -386,7 +384,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     @Override
     public CommonResult<List<MeetingPaidSettingVO>> getMeetingPaidSettingList() {
-        List<MeetingPaidSettingPO> list = meetingPaidSettingService.list(new LambdaQueryWrapper<MeetingPaidSettingPO>().orderByAsc(MeetingPaidSettingPO::getResourceType));
+        List<MeetingPaidSettingPO> list = meetingPaidSettingService.list(
+            new LambdaQueryWrapper<MeetingPaidSettingPO>().orderByAsc(MeetingPaidSettingPO::getResourceType));
         return CommonResult.success(BeanUtil.copyToList(list, MeetingPaidSettingVO.class));
     }
 
@@ -410,8 +409,161 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<List<UserMemberProfitEntity>> getALlProfit() {
+        CommonResult<CommonProfitConfigQueryVO> commonProfitConfigQueryVOCommonResult = queryCommonProfitConfig();
+        return CommonResult.success(commonProfitConfigQueryVOCommonResult.getData().getUserMemberProfitList());
+    }
 
-        return CommonResult.success(null);
+    /**
+     * 查询会员权益购买详情
+     *
+     * @param meetingProfitPurchaseDetailGetDTO
+     * @return
+     */
+    @Override
+    public CommonResult<MeetingProfitPurchaseDetailVO> getMeetingProfitPurchaseDetail(
+        MeetingProfitPurchaseDetailGetDTO meetingProfitPurchaseDetailGetDTO) {
+        log.info("【查询会员权益购买详情】入参：{}", JSON.toJSONString(meetingProfitPurchaseDetailGetDTO));
+
+        String resourceType = meetingProfitPurchaseDetailGetDTO.getResourceType();
+
+        Integer purchaseStatus;
+
+        /**
+         * 最大持续时长
+         */
+        Integer maxDuration = 0;
+        //是否是会员
+        Boolean isNormalMember =
+            meetingProfitPurchaseDetailGetDTO.getMemberType().equals(MemberLevelEnum.NORMAL.getState());
+        //查询权益配置
+        CommonResult<MeetingUserProfitVO> userProfit =
+            this.getUserProfit(meetingProfitPurchaseDetailGetDTO.getFinalUserId(),
+                meetingProfitPurchaseDetailGetDTO.getMemberType());
+
+        //查询空闲资源列表
+        FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
+        freeResourceListDTO.setImUserId(meetingProfitPurchaseDetailGetDTO.getFinalUserId());
+//        freeResourceListDTO.setLevelCode();
+        freeResourceListDTO.setStartTime(meetingProfitPurchaseDetailGetDTO.getStartTime());
+        freeResourceListDTO.setTimeZoneOffset(meetingProfitPurchaseDetailGetDTO.getTimeZoneOffset());
+        freeResourceListDTO.setLength(meetingProfitPurchaseDetailGetDTO.getLength());
+        freeResourceListDTO.setResourceType(meetingProfitPurchaseDetailGetDTO.getResourceType());
+        freeResourceListDTO.setLeadTime(meetingProfitPurchaseDetailGetDTO.getLeadTime());
+
+        CommonResult<List<MeetingResourceVO>> freeResourceList =
+            rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO);
+        List<MeetingResourceVO> freeResourceListData = freeResourceList.getData();
+
+        //公有空闲资源列表
+        List<MeetingResourceVO> publicFreeList = freeResourceListData.stream()
+            .filter(t -> MeetingRoomTypeEnum.PUBLIC_SUBSCRIBE.getState().equals(t.getMeetingRoomType()))
+            .collect(Collectors.toList());
+        //付费空闲资源列表
+        List<MeetingResourceVO> paidFreeList = freeResourceListData.stream()
+            .filter(t -> MeetingRoomTypeEnum.PAID_SUBSCRIBE.getState().equals(t.getMeetingRoomType()))
+            .collect(Collectors.toList());
+
+        //查询付费权益
+        CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
+            meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
+        MeetingPaidSettingVO meetingPaidSettingVO = meetingPaidSettingByResourceType.getData();
+
+        MeetingUserProfitVO data = userProfit.getData();
+        //会员权益
+        UserMemberProfitEntity userMemberProfit = data.getUserMemberProfit();
+
+        //剩余次数
+        Integer surPlusCount = userMemberProfit.getSurPlusCount();
+        //付费可约最大时长
+        Integer paidDuration = meetingPaidSettingVO.getOnceLimit().intValue() * 30;
+        if (!resourceType.contains(meetingProfitPurchaseDetailGetDTO.getResourceType())) {
+            //超出所有规格，设置购买
+            purchaseStatus = MeetingProfitPurchaseDetailStatusEnum.PAY_FOR_HIGHT_RESOURCE.getState();
+            maxDuration = paidDuration;
+        } else {
+            if (surPlusCount > 0) {
+                //有剩余次数
+                if (isNormalMember) {
+                    //普通会员，查询当前是否有公有预约资源
+                    if (ObjectUtil.isEmpty(publicFreeList)) {
+                        //无空闲资源
+                        if (ObjectUtil.isNotEmpty(paidFreeList)) {
+                            //付费资源
+                            purchaseStatus = MeetingProfitPurchaseDetailStatusEnum.FREE_RESOURCE_MAX.getState();
+                            maxDuration = paidDuration;
+                        } else {
+                            //付费资源也没有了.无法购买
+                            purchaseStatus = MeetingProfitPurchaseDetailStatusEnum.CAN_NOT_USE.getState();
+                        }
+
+                    } else {
+                        //有空闲资源
+                        purchaseStatus = MeetingProfitPurchaseDetailStatusEnum.FREE_USE.getState();
+                        maxDuration = userMemberProfit.getEveryLimitCount();
+                    }
+                } else {
+                    // 非普通会员
+                    if (ObjectUtil.isAllEmpty(publicFreeList, paidFreeList)) {
+                        //都没资源了，无法使用
+                        purchaseStatus = MeetingProfitPurchaseDetailStatusEnum.CAN_NOT_USE.getState();
+                    } else {
+                        //可以使用
+                        purchaseStatus = MeetingProfitPurchaseDetailStatusEnum.FREE_USE.getState();
+                    }
+
+                }
+
+            } else {
+                //无次数
+                if (!ObjectUtil.isAllEmpty(paidFreeList, publicFreeList)) {
+
+                    //任意有资源，需要购买
+                    purchaseStatus = MeetingProfitPurchaseDetailStatusEnum.FREE_TIME_USERD.getState();
+                    maxDuration = userMemberProfit.getEveryLimitCount();
+                } else {
+                    //无资源，无法使用
+                    purchaseStatus = MeetingProfitPurchaseDetailStatusEnum.CAN_NOT_USE.getState();
+                }
+            }
+        }
+        MeetingProfitPurchaseDetailVO meetingProfitPurchaseDetailVO = new MeetingProfitPurchaseDetailVO();
+        meetingProfitPurchaseDetailVO.setPurchaseStatus(purchaseStatus);
+        meetingProfitPurchaseDetailVO.setMaxDuration(maxDuration);
+
+        return CommonResult.success(meetingProfitPurchaseDetailVO);
+    }
+
+    /**
+     * 查询结算金额
+     *
+     * @param profitPaidCheckOutGetDTO
+     * @return
+     */
+    @Override
+    public CommonResult<ProfitPaidCheckOutGetVO> getProfitPaidCheckOut(
+        ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDTO) {
+        String resourceType = profitPaidCheckOutGetDTO.getResourceType();
+        if (NumberUtil.isNumber(resourceType)) {
+            return CommonResult.success(null);
+        }
+
+        CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
+            meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
+        MeetingPaidSettingVO meetingPaidSettingVO = meetingPaidSettingByResourceType.getData();
+
+        Integer duration = profitPaidCheckOutGetDTO.getDuration();
+        Integer leadTime = profitPaidCheckOutGetDTO.getLeadTime();
+
+        Integer finalTime = duration + leadTime;
+
+        Integer vmCoin = meetingPaidSettingVO.getVmCoin();
+        Double money = meetingPaidSettingVO.getMoney();
+        ProfitPaidCheckOutGetVO profitPaidCheckOutGetVO = new ProfitPaidCheckOutGetVO();
+
+        profitPaidCheckOutGetVO.setNeedPayVMAmount(BigDecimal.valueOf((long)(finalTime / 30) * vmCoin));
+        profitPaidCheckOutGetVO.setNeedPayAmount(BigDecimal.valueOf((long)(finalTime / 30) * money));
+
+        return CommonResult.success(profitPaidCheckOutGetVO);
     }
 
     /**
@@ -480,10 +632,11 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         List<UserMemberProfitEntity> collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))
             .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType)).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(collect)){
+        if (CollectionUtils.isEmpty(collect)) {
             //先查数据库更新缓存
             try {
-                CommonResult<List<MeetingMemeberProfitConfigVO>> listCommonResult = rpcMeetingUserService.queryCommonmeberProfitConfig();
+                CommonResult<List<MeetingMemeberProfitConfigVO>> listCommonResult =
+                    rpcMeetingUserService.queryCommonmeberProfitConfig();
                 //将数据放到redis中
                 if (listCommonResult.isSuccess()) {
                     List<MeetingMemeberProfitConfigVO> data = listCommonResult.getData();
@@ -493,7 +646,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                         map.put(t.getMemberType(), t);
                     });
                     collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))
-                        .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType)).collect(Collectors.toList());
+                        .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType))
+                        .collect(Collectors.toList());
                 }
 
             } catch (Exception e) {
@@ -511,15 +665,18 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         Integer freeDayAppointCount = t.getFreeDayAppointCount();
 
-        userMemberProfitEntity.setFreeDayAppointCount(
+        userMemberProfitEntity.setFreeDayAppointCount(freeDayAppointCount);
+
+        userMemberProfitEntity.setSurPlusCount(
             ObjectUtil.isNotNull(useCount) ? (int)Math.abs(freeDayAppointCount - useCount) : freeDayAppointCount);
+
         userMemberProfitEntity.setEveryLimitCount(t.getLimitCount());
         userMemberProfitEntity.setGoTime(t.getGoTime());
         userMemberProfitEntity.setResourceType(t.getResourceType());
 
         List<Integer> resourceSizeList = Arrays.asList(t.getResourceType().split(",")).stream()
-            .map(f -> MeetingResourceEnum.getByType(Integer.parseInt(f)).getValue())
-            .sorted().collect(Collectors.toList());
+            .map(f -> MeetingResourceEnum.getByType(Integer.parseInt(f)).getValue()).sorted()
+            .collect(Collectors.toList());
 
         userMemberProfitEntity.setResourceSizeList(resourceSizeList);
 
@@ -713,10 +870,13 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         String finalUserId = buyMeetingProfitDTO.getFinalUserId();
         String joyoCode = buyMeetingProfitDTO.getJoyoCode();
 
-        MeetingProfitProductListPO meetingProfitProductListPO = queryMeetingProfitProductByCode(resourceType);
-        if (ObjectUtil.isNull(meetingProfitProductListPO)) {
-            return CommonResult.error(GlobalErrorCodeConstants.NOT_FOUND_PROFIT_PRODUCT);
-        }
+        CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
+            meetingCacheService.getMeetingPaidSettingByResourceType(Integer.valueOf(resourceType));
+
+        Integer vmCoin = meetingPaidSettingByResourceType.getData().getVmCoin();
+
+        Integer amount = buyMeetingProfitDTO.getLength() / 30 * vmCoin;
+
         FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
         freeResourceListDTO.setStartTime(buyMeetingProfitDTO.getStartTime());
         freeResourceListDTO.setLength(buyMeetingProfitDTO.getLength());
@@ -733,7 +893,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         //3、扣减vm币
         CommonResult result1 =
-            doCountDownMemberProfitCoins(joyoCode, nationId, meetingProfitProductListPO.getVmCoins());
+            doCountDownMemberProfitCoins(joyoCode, nationId, amount);
         if (result1.isError()) {
             log.error("扣减VM币失败，错误信息：{}", result1.getMsg());
             return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
@@ -745,12 +905,12 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         pushOrderDTO.setAccId(finalUserId);
         pushOrderDTO.setJoyoCode(joyoCode);
         pushOrderDTO.setOrderNo(getProfitOrderNewNo());
-        pushOrderDTO.setSkuId(meetingProfitProductListPO.getProfitCode());
+        pushOrderDTO.setSkuId(resourceType);
         pushOrderDTO.setOrderStatus(1);
-        pushOrderDTO.setPaidVmAmount(new BigDecimal(meetingProfitProductListPO.getVmCoins()));
-        pushOrderDTO.setPaidRealAmount(new BigDecimal(meetingProfitProductListPO.getVmCoins()));
-        pushOrderDTO.setResourceType(meetingProfitProductListPO.getResourceType());
-        pushOrderDTO.setDuration(meetingProfitProductListPO.getDuration());
+        pushOrderDTO.setPaidVmAmount(new BigDecimal(amount));
+        pushOrderDTO.setPaidRealAmount(new BigDecimal(amount));
+        pushOrderDTO.setResourceType(Integer.valueOf(resourceType));
+        pushOrderDTO.setDuration(buyMeetingProfitDTO.getLength());
 
         CommonResult result = pushOrder(pushOrderDTO);
         if (result.isError()) {

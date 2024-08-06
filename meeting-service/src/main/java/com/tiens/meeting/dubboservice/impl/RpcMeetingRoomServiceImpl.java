@@ -401,7 +401,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<MeetingResourcePO> finalResourceList = ObjectUtil.isEmpty(publicResourceList) ? paidResourceList :
             publicResourceList;
 
-        return BeanUtil.copyToList(finalResourceList, MeetingResourceVO.class);
+        return BeanUtil.copyToList(levelFreeResourceList, MeetingResourceVO.class);
     }
 
     /**
@@ -474,6 +474,30 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             if (!checkResult.isSuccess()) {
                 return checkResult;
             }
+            //判断是否需要购买
+            Boolean needPay = meetingRoomContextDTO.getNeedPay();
+
+            if (needPay) {
+                meetingRoomContextDTO.setPaidType(PaidTypeEnum.PAID.getState());
+                BuyMeetingProfitDTO buyMeetingProfitDTO = new BuyMeetingProfitDTO();
+                buyMeetingProfitDTO.setResourceType(meetingRoomContextDTO.getResourceType());
+                buyMeetingProfitDTO.setFinalUserId(meetingRoomContextDTO.getImUserId());
+                buyMeetingProfitDTO.setJoyoCode(meetingRoomContextDTO.getJoyoCode());
+//                buyMeetingProfitDTO.setNationId(meetingRoomContextDTO.get);
+                buyMeetingProfitDTO.setStartTime(meetingRoomContextDTO.getStartTime());
+                buyMeetingProfitDTO.setTimeZoneOffset(meetingRoomContextDTO.getTimeZoneOffset());
+                buyMeetingProfitDTO.setLength(meetingRoomContextDTO.getLength());
+                buyMeetingProfitDTO.setLeadTime(meetingRoomContextDTO.getLeadTime());
+
+                CommonResult buyResult = memberProfitService.buyMeetingProfit(buyMeetingProfitDTO);
+                if (buyResult.isError()) {
+                    return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
+                }
+
+            } else {
+                meetingRoomContextDTO.setPaidType(PaidTypeEnum.MEMBER_FREE.getState());
+            }
+
             Tuple2<MeetingResourcePO, MeetingTimeZoneConfigPO> of =
                 (Tuple2<MeetingResourcePO, MeetingTimeZoneConfigPO>)checkResult.getData();
 

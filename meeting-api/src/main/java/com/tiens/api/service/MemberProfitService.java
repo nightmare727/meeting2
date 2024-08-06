@@ -3,8 +3,6 @@ package com.tiens.api.service;
 import com.tiens.api.dto.*;
 import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
-import common.pojo.PageParam;
-import common.pojo.PageResult;
 
 import java.util.List;
 
@@ -121,22 +119,37 @@ public interface MemberProfitService {
      */
     CommonResult buyMeetingProfit(BuyMeetingProfitDTO buyMeetingProfitDTO);
 
-
     /**
      * 获取房间权益价格配置
-     *
      */
     CommonResult<List<MeetingPaidSettingVO>> getMeetingPaidSettingList();
 
     /**
      * 修改房间权益价格配置
-     *
      */
     CommonResult updMeetingPaidSetting(MeetingPaidSettingVO request);
 
     /**
      * 查询全部权益配置
+     *
      * @return
      */
     CommonResult<List<UserMemberProfitEntity>> getALlProfit();
+
+    /**
+     * 查询会员权益购买详情
+     *
+     * @param meetingProfitPurchaseDetailGetDTO
+     * @return
+     */
+    CommonResult<MeetingProfitPurchaseDetailVO> getMeetingProfitPurchaseDetail(
+        MeetingProfitPurchaseDetailGetDTO meetingProfitPurchaseDetailGetDTO);
+
+    /**
+     * 查询结算金额
+     *
+     * @param profitPaidCheckOutGetDTO
+     * @return
+     */
+    CommonResult<ProfitPaidCheckOutGetVO> getProfitPaidCheckOut(ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDTO);
 }
