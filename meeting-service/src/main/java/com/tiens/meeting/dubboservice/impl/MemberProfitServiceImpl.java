@@ -467,7 +467,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         List<UserMemberProfitEntity> collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))
             .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType)).collect(Collectors.toList());
-
+        log.info("【查询权益配置】 返回：{}", JSON.toJSONString(collect));
         return CommonResult.success(collect);
     }
 

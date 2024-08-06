@@ -125,4 +125,9 @@ public class CacheKeyUtil {
     public static String getSettleProfitKey(Long meetingId) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(SETTLE_PROFIT_PREFIX).append(meetingId).toString();
     }
+
+
+    public static String getBlackUserInfoKey(String userId) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append("blackUserInfo:").append(userId).toString();
+    }
 }

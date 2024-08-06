@@ -17,6 +17,7 @@ import com.huaweicloud.sdk.meeting.v1.model.BatchDeleteUsersRequest;
 import com.huaweicloud.sdk.meeting.v1.model.BatchDeleteUsersResponse;
 import com.tiens.api.dto.CommonProfitConfigSaveDTO;
 import com.tiens.api.dto.MeetingHostPageDTO;
+import com.tiens.api.dto.UserRequestDTO;
 import com.tiens.api.service.MemberProfitCacheService;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.*;
@@ -51,6 +52,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -390,12 +392,13 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                 .like(StrUtil.isNotBlank(condition.getCountryCode()), MeetingBlackUserPO::getCountryCode, condition.getUserId());
 
         //查询全部
-        List<MeetingBlackUserPO> list = meetingBlackUserDaoService.list(wrapper);
         Page<MeetingBlackUserPO> page = meetingBlackUserDaoService.page(meetingApprovePOPage, wrapper);
 
         //使用stream转成vo返回给前端
         List<MeetingBlackUserVO> meetingBlackUserVOList = page.getRecords().stream().map(meetingBlackRecordPO1 -> {
             MeetingBlackUserVO meetingBlackRecordVO = new MeetingBlackUserVO();
+            //设置操作人
+            //meetingBlackRecordVO.setOperator();
             BeanUtil.copyProperties(meetingBlackRecordPO1, meetingBlackRecordVO);
             return meetingBlackRecordVO;
         }).collect(Collectors.toList());
@@ -413,12 +416,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult deleteBlackUser(String userId) {
-        //根据id查询
-      /*  MeetingBlackUserPO meetingBlackUserPO = meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, userId).one();
-        //修改数据库
-        meetingBlackUserDaoService.updateById(meetingBlackUserPO);*/
         meetingBlackUserDaoService.lambdaUpdate().eq(MeetingBlackUserPO::getUserId, userId).remove();
-        //redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId)).delete();
+        redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).delete();
         return CommonResult.success(null);
     }
 
@@ -429,16 +428,10 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult deleteBlackUserAll(List<String> userIdList) {
-     /*   userIdList.forEach(
-                userId -> {
-                    MeetingBlackUserPO meetingBlackUserPO = meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, userId).one();
-                    meetingBlackUserDaoService.updateById(meetingBlackUserPO);
-                }
-        );*/
         meetingBlackUserDaoService.lambdaUpdate().in(MeetingBlackUserPO::getUserId, userIdList).remove();
-       /* userIdList.forEach(userId -> {
-            redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId)).delete();
-        });*/
+        userIdList.forEach(userId -> {
+            redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).delete();
+        });
         return  CommonResult.success(null);
     }
 
@@ -448,8 +441,10 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult addBlackUser(List<String> userIdList, Date endTime) {
+    public CommonResult addBlackUser(UserRequestDTO userRequestDTO) {
           MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
+        List<String> userIdList = userRequestDTO.getUserIdList();
+        Date endTime = userRequestDTO.getEndTime();
         userIdList.forEach(
                 userId -> {
                     MeetingBlackUserPO meetingBlackUserPO1 = new MeetingBlackUserPO();
@@ -461,9 +456,11 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                     }else {
                         meetingBlackUserPO1.setEndTime(null);
                     }
+                    redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserPO);
                 }
         );
             meetingBlackUserDaoService.save(meetingBlackUserPO);
+            //将用户黑名单添加到缓存中
             return CommonResult.success(meetingBlackUserPO);
     }
 

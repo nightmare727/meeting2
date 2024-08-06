@@ -68,4 +68,9 @@ public class MeetingBlackUserVO implements Serializable {
      */
     private String mobile;
 
+    /**
+     * 操作人
+     */
+    private String operator;
+
 }

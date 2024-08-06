@@ -2,12 +2,14 @@ package com.tiens.api.service;
 
 import com.tiens.api.dto.CommonProfitConfigSaveDTO;
 import com.tiens.api.dto.MeetingHostPageDTO;
+import com.tiens.api.dto.UserRequestDTO;
 import com.tiens.api.vo.*;
 import common.exception.ServiceException;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.Date;
 import java.util.List;
@@ -108,7 +110,7 @@ public interface RpcMeetingUserService {
      * @param
      * @return
      */
-    CommonResult addBlackUser(List<String> userIdList, Date endTime);
+    CommonResult addBlackUser(UserRequestDTO userRequestDTO);
 
     /**
      * 会议模版弹窗

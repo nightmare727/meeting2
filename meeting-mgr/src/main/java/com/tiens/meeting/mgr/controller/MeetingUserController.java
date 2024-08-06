@@ -2,6 +2,7 @@ package com.tiens.meeting.mgr.controller;
 
 import com.tiens.api.dto.CommonProfitConfigSaveDTO;
 import com.tiens.api.dto.MeetingHostPageDTO;
+import com.tiens.api.dto.UserRequestDTO;
 import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
@@ -12,7 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -111,8 +114,17 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/selectMeetingBlack")
-    public CommonResult<PageResult<MeetingBlackUserVO>> selectBlackUser(@RequestBody PageParam<MeetingBlackUserVO> bean)
+    public CommonResult<PageResult<MeetingBlackUserVO>> selectBlackUser(HttpServletRequest request,@RequestBody PageParam<MeetingBlackUserVO> bean)
             throws Exception {
+        String headerValue = request.getHeader("");
+
+        // 获取所有请求头的名称
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            String value = request.getHeader(headerName);
+            log.info("Header-Name: {}, value: {}", headerName, value);
+        }
         return rpcMeetingUserService.getBlackUserAll(bean);
     }
 
@@ -142,9 +154,9 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/addBlackMeeting")
-    public CommonResult addBlackUser(@RequestParam("userIdList") List<String> userIdList,@RequestParam("endTime") Date endTime)
+    public CommonResult addBlackUser(@RequestBody UserRequestDTO userRequestDTO)
             throws Exception {
-        return rpcMeetingUserService.addBlackUser(userIdList, endTime);
+        return rpcMeetingUserService.addBlackUser(userRequestDTO);
     }
 
     /**
