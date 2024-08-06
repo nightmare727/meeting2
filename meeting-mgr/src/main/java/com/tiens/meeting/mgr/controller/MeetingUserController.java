@@ -167,9 +167,9 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/upPopupWindowList")
-    public CommonResult<LaugeVO> getUserProfitConfig(@RequestBody List<LaugeVO> la)
+    public CommonResult<LaugeVO> getUserProfitConfig(@RequestBody List<String> countryCode)
             throws Exception {
-        return rpcMeetingUserService.upPopupWindowList(la);
+        return rpcMeetingUserService.upPopupWindowList(countryCode);
     }
 
     /**

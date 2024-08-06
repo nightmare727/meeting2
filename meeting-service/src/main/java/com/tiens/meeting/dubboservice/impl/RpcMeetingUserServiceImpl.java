@@ -456,14 +456,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                                 }
                                 meetingBlackUserVO.setOperator(account);
                                 redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserVO);
-
-                                try {
-                                    BeanUtils.copyProperties(meetingBlackUserVO, meetingBlackUserPO);
-                                } catch (IllegalAccessException e) {
-                                    throw new RuntimeException(e);
-                                } catch (InvocationTargetException e) {
-                                    throw new RuntimeException(e);
-                                }
+                                BeanUtil.copyProperties(meetingBlackUserVO, meetingBlackUserPO);
                                 meetingBlackUserDaoService.save(meetingBlackUserPO);
                 }
         );
@@ -555,12 +548,17 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult<LaugeVO> upPopupWindowList(List<LaugeVO> la) {
+    public CommonResult<LaugeVO> upPopupWindowList(List<String> countryCode) {
         LaugeVO laugeVO = new LaugeVO();
+        countryCode.forEach(
+                country -> {
+                    laugeVO.setLabel(Arrays.asList(country));
+                }
+        );
         List<String> label = laugeVO.getLabel();
         label.forEach(
-                countryCode -> {
-                    laugeVO.setValue((String) redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(countryCode)).get());
+                countryCode1 -> {
+                    laugeVO.setValue((String) redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(countryCode1)).get());
                 }
         );
       //前端没传值就设置语言为英语

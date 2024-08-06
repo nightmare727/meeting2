@@ -134,7 +134,7 @@ public interface RpcMeetingUserService {
      * 回显
      * @return
      */
-    CommonResult<LaugeVO> upPopupWindowList(List<LaugeVO> la);
+    CommonResult<LaugeVO> upPopupWindowList(List<String> countryCode);
 
     /**
      * 查询会员权益表
