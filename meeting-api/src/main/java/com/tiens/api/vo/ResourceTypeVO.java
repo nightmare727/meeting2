@@ -48,4 +48,10 @@ public class ResourceTypeVO implements Serializable {
      * 购买时长
      */
     private Integer duration;
+
+    /**
+     * 是否需要购买
+     */
+    private Boolean needBuy;
+
 }

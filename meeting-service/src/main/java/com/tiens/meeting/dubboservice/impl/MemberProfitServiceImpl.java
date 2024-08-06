@@ -54,7 +54,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-
 /**
  * @Author: 蔚文杰
  * @Date: 2024/7/4
@@ -93,9 +92,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     RpcMeetingUserService rpcMeetingUserService;
 
     private final MeetingBlackRecordDaoService meetingBlackRecordDaoService;
-
-
-
 
     /**
      * 校验用户权益
@@ -384,7 +380,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         return CommonResult.success(null);
     }
 
-
     @Override
     public CommonResult<List<MeetingPaidSettingVO>> getMeetingPaidSettingList() {
         List<MeetingPaidSettingPO> list = meetingPaidSettingService.list();
@@ -482,7 +477,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         userMemberProfitEntity.setFreeDayAppointCount(
             ObjectUtil.isNotNull(useCount) ? (int)Math.abs(freeDayAppointCount - useCount) : freeDayAppointCount);
         userMemberProfitEntity.setEveryLimitCount(t.getLimitCount());
-
+        userMemberProfitEntity.setGoTime(t.getGoTime());
         return userMemberProfitEntity;
 
     }

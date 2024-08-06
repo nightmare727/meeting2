@@ -162,7 +162,7 @@ public class HWResourceTask {
         meetingResourcePO.setVmrPkgName(queryOrgVmrResultDTO.getVmrPkgName());
         meetingResourcePO.setSize(maxSize);
         meetingResourcePO.setResourceStatus(MeetingNewResourceStateEnum.FREE.getState());
-        meetingResourcePO.setMeetingRoomType(MeetingNewRoomTypeEnum.PUBLIC.getState());
+        meetingResourcePO.setMeetingRoomType(MeetingNewRoomTypeEnum.INIT.getState());
         meetingResourcePO.setPreAllocation(MeetingNewResourceStateEnum.FREE.getState());
         meetingResourcePO.setExpireDate(DateUtil.date(queryOrgVmrResultDTO.getExpireDate()));
         //        meetingResourcePO.setOwnerImUserId();
