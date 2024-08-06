@@ -10,6 +10,7 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.http.param.MediaType;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
@@ -385,7 +386,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     @Override
     public CommonResult<List<MeetingPaidSettingVO>> getMeetingPaidSettingList() {
-        List<MeetingPaidSettingPO> list = meetingPaidSettingService.list();
+        List<MeetingPaidSettingPO> list = meetingPaidSettingService.list(new LambdaQueryWrapper<MeetingPaidSettingPO>().orderByAsc(MeetingPaidSettingPO::getResourceType));
         return CommonResult.success(BeanUtil.copyToList(list, MeetingPaidSettingVO.class));
     }
 
