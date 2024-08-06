@@ -33,4 +33,8 @@ public class MeetingResourceQueryDTO implements Serializable {
      * 会议室类型 2公有 3私有 4付费
      */
     private Integer meetingRoomType;
+    /**
+     * 云会议室的固定会议ID
+     */
+    private String vmrConferenceId;
 }
