@@ -136,5 +136,5 @@ public interface RpcMeetingUserService {
      * 回显
      * @return
      */
-    CommonResult<LaugeVO> upPopupWindowList();
+    CommonResult<LaugeVO> upPopupWindowList(List<LaugeVO> la);
 }

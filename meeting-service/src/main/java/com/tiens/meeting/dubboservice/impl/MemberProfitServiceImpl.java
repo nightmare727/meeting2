@@ -272,7 +272,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         String deviceSuggestion = null;
         CmsShowVO cmsShowVO = new CmsShowVO();
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
-
         if (!isCn) {
             deviceSuggestion = map.get(byTerminal.name() + "_" + defaultHwNation);
         } else {
@@ -374,6 +373,10 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
             meetingBlackUserVO.setMaxTime(blackUserConfig.getMaxTime());
             meetingBlackUserVO.setLockDay(blackUserConfig.getLockDay());
+            meetingBlackUserVO.setLastMeetingCode(meetingBlackUserPO.getLastMeetingCode());
+            meetingBlackUserVO.setNickName(meetingBlackUserPO.getNickName());
+            meetingBlackUserVO.setMobile(meetingBlackUserPO.getMobile());
+            meetingBlackUserVO.setCountryCode(meetingBlackUserPO.getCountryCode());
             return CommonResult.success(meetingBlackUserVO);
 
         }
@@ -456,10 +459,10 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<List<UserMemberProfitEntity>> queryUserProfitConfig() {
+        MeetingMemeberProfitConfigVO meetingMemeberProfitConfigVO = new MeetingMemeberProfitConfigVO();
         //先查数据库更新缓存
-        memberProfitCacheService.refreshMemberProfitCache();
-        RMap<Integer, MeetingMemeberProfitConfigPO> map =
-            redissonClient.getMap(CacheKeyUtil.getMemberProfitConfigKey());
+        Integer memberType = meetingMemeberProfitConfigVO.getMemberType();
+        RMap<Integer, MeetingMemeberProfitConfigPO> map = redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey(memberType));
         Collection<MeetingMemeberProfitConfigPO> values = map.values();
 
         List<UserMemberProfitEntity> collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))

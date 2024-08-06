@@ -52,12 +52,10 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -482,7 +480,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                                     redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(countryCode)).set(laugeVO.getValue());
                                 }
                         );
-
                     }
             );
                 return CommonResult.success( null);
@@ -510,6 +507,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                 meetingMemeberProfitConfigVOList.forEach(meetingMemeberProfitConfigVO -> {
                     MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = BeanUtil.copyProperties(meetingMemeberProfitConfigVO, MeetingMemeberProfitConfigPO.class);
                     meetingMemeberProfitConfigDaoService.updateById(meetingMemeberProfitConfigPO);
+                    //将数据存到redis中
+                    redissonClient.getBucket(CacheKeyUtil.getFreeReservationLimitKey(meetingMemeberProfitConfigVO.getMemberType())).set(meetingMemeberProfitConfigVO);
                 });
                 return CommonResult.success(null);
             }
@@ -547,10 +546,20 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult<LaugeVO> upPopupWindowList() {
+    public CommonResult<LaugeVO> upPopupWindowList(List<LaugeVO> la) {
         LaugeVO laugeVO = new LaugeVO();
-        RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
-        laugeVO.setValue(map.get(laugeVO.getLabel()));
+        List<String> label = laugeVO.getLabel();
+        label.forEach(
+                countryCode -> {
+                    laugeVO.setValue((String) redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(countryCode)).get());
+                }
+        );
+      //前端没传值就设置语言为英语
+        if (StringUtils.isBlank(laugeVO.getValue())){
+            laugeVO.setLabel(Arrays.asList("EN"));
+            laugeVO.setValue(redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey("EN")).get().toString());
+        }
+        //返回数据
         return CommonResult.success(laugeVO);
     }
 
