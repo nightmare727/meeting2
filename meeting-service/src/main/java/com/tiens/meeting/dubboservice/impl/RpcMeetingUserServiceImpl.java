@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -32,6 +33,7 @@ import com.tiens.meeting.repository.po.*;
 import com.tiens.meeting.repository.service.*;
 import common.constants.CommonProfitConfigConstants;
 import common.enums.MeetingResourceEnum;
+import common.exception.ErrorCode;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
@@ -55,7 +57,7 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.*;import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -437,27 +439,41 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult addBlackUser(String account,UserRequestDTO userRequestDTO) {
+    public CommonResult addBlackUser(String finalUserId,String account,UserRequestDTO userRequestDTO) {
         MeetingBlackUserVO meetingBlackUserVO = new MeetingBlackUserVO();
         MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
         List<String> userIdList = userRequestDTO.getUserIdList();
-            Date endTime = userRequestDTO.getEndTime();
+        Date endTime = userRequestDTO.getEndTime();
+       RBucket<VMUserVO> bucket = null;
+        if (StringUtils.isNotBlank(finalUserId)){
+            // 查询缓存
+            bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(finalUserId));
+        }
+        VMUserVO vmUserCacheVO = bucket.get();
+        //校验黑名单
        userIdList.forEach(
-                            userId -> {
-                                meetingBlackUserVO.setUserId(userId);
-                                meetingBlackUserVO.setJoyoCode(userId);
-                                meetingBlackUserVO.setLastMeetingCode("");
-                                meetingBlackUserVO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-                                meetingBlackUserVO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-                                if (endTime != null){
-                                    meetingBlackUserVO.setEndTime(endTime);
-                                }else {
-                                    meetingBlackUserVO.setEndTime(null);
-                                }
-                                meetingBlackUserVO.setOperator(account);
-                                redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserVO);
-                                BeanUtil.copyProperties(meetingBlackUserVO, meetingBlackUserPO);
-                                meetingBlackUserDaoService.save(meetingBlackUserPO);
+                userId -> {
+                    //用户id和finalUserId相同时取数据
+                    if (userId.equals(finalUserId)) {
+                        //根据userid去查用户的信息
+                        meetingBlackUserVO.setUserId(userId);
+                        meetingBlackUserVO.setJoyoCode(userId);
+                        meetingBlackUserVO.setLastMeetingCode("");
+                        meetingBlackUserVO.setMobile(vmUserCacheVO.getMobile());
+                        meetingBlackUserVO.setNickName(vmUserCacheVO.getNickName());
+                        meetingBlackUserVO.setCountryCode(vmUserCacheVO.getCountry());
+                        meetingBlackUserVO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                        meetingBlackUserVO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                        if (endTime != null) {
+                            meetingBlackUserVO.setEndTime(endTime);
+                        } else {
+                            meetingBlackUserVO.setEndTime(null);
+                        }
+                        meetingBlackUserVO.setOperator(account);
+                        redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserVO);
+                        BeanUtil.copyProperties(meetingBlackUserVO, meetingBlackUserPO);
+                        meetingBlackUserDaoService.save(meetingBlackUserPO);
+                    }
                 }
         );
             return CommonResult.success(meetingBlackUserPO);
@@ -472,20 +488,12 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
         String result = map.get(CommonProfitConfigConstants.CMS_SHOW_FLAG);
         if (StringUtils.isNotBlank(result) && "1".equals(result)) {
-                //将国家做为key文本做值存入redis中
             la.forEach(
                     laugeVO -> {
-                        List<String> label = laugeVO.getLabel();
-                        label.forEach(
-                                countryCode -> {
-                                   //往redis中存
-                                    redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(countryCode)).set(laugeVO.getValue());
-                                }
-                        );
+                        redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).set(laugeVO);
                     }
             );
-                return CommonResult.success( null);
-
+            return CommonResult.success( null);
         }
         if (StringUtils.isNotBlank(result) && "0".equals(result)) {
             //保留原来的数据,不做任何修改
@@ -548,24 +556,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult<LaugeVO> upPopupWindowList(List<String> countryCode) {
-        LaugeVO laugeVO = new LaugeVO();
-        countryCode.forEach(
-                country -> {
-                    laugeVO.setLabel(Arrays.asList(country));
-                }
-        );
-        List<String> label = laugeVO.getLabel();
-        label.forEach(
-                countryCode1 -> {
-                    laugeVO.setValue((String) redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(countryCode1)).get());
-                }
-        );
-      //前端没传值就设置语言为英语
-        if (StringUtils.isBlank(laugeVO.getValue())){
-            laugeVO.setLabel(Arrays.asList("EN"));
-            laugeVO.setValue(redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey("EN")).get().toString());
-        }
+    public CommonResult<LaugeVO> upPopupWindowList() {
+        //直接取redis中的数据
+        LaugeVO laugeVO = (LaugeVO)redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).get();
         //返回数据
         return CommonResult.success(laugeVO);
     }
@@ -580,5 +573,15 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     public CommonResult<List<MeetingMemeberProfitConfigVO>> queryCommonmeberProfitConfig(){
         List<MeetingMemeberProfitConfigPO> list = meetingMemeberProfitConfigDaoService.list();
        return CommonResult.success(BeanUtil.copyToList(list, MeetingMemeberProfitConfigVO.class));
+    }
+
+    @Override
+    public CommonResult queryMeetingBlackById(String userId) {
+        //根据id查询
+        MeetingBlackUserVO meetingBlackUserVO = (MeetingBlackUserVO)redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).get();
+        if (meetingBlackUserVO != null){
+            return CommonResult.errorMsg("该用户已被拉黑");
+        }
+        return null;
     }
 }

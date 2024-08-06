@@ -3,11 +3,13 @@ package com.tiens.meeting.dubboservice.impl;
 import cn.hutool.core.date.DateUtil;
 import com.tiens.api.dto.*;
 import com.tiens.api.service.MemberProfitService;
+import com.tiens.api.service.RpcMeetingUserService;
 import com.tiens.api.vo.CommonProfitConfigQueryVO;
 import com.tiens.api.vo.MeetingBlackUserVO;
 import com.tiens.api.vo.MeetingUserProfitVO;
 import com.tiens.meeting.ServiceApplication;
 import common.pojo.CommonResult;
+import org.apache.dubbo.config.annotation.Reference;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 
 /**
@@ -30,6 +33,9 @@ class MemberProfitServiceImplTest {
 
     @Autowired
     MemberProfitService memberProfitService;
+
+    @Reference
+    RpcMeetingUserService rpcMeetingUserService;
 
     @Test
     void checkProfit() {
@@ -130,5 +136,14 @@ class MemberProfitServiceImplTest {
     void settle() {
 
         memberProfitService.settleMemberProfit(1813506850217353218L, "672971edd0ce488b9af27b900cdb3f46", "6", "", 11);
+    }
+
+    @Test
+    void getMeetingPaidSettingList() {
+        try {
+            System.out.println("-------"+rpcMeetingUserService.queryCommonmeberProfitConfig());
+        } catch (Exception e) {
+
+        }
     }
 }

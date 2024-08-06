@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LaugeVO implements Serializable {
-    private List<String> label;
+    private String label;
+    private String locale;
     private String value;
 }

@@ -146,9 +146,9 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/addBlackMeeting")
-    public CommonResult addBlackUser(@RequestHeader("account") String account,@RequestBody UserRequestDTO userRequestDTO)
+    public CommonResult addBlackUser(@RequestHeader("finalUserId") String finalUserId, @RequestHeader("account") String account,@RequestBody UserRequestDTO userRequestDTO)
             throws Exception {
-        return rpcMeetingUserService.addBlackUser(account, userRequestDTO);
+        return rpcMeetingUserService.addBlackUser(finalUserId,account, userRequestDTO);
     }
 
     /**
@@ -167,9 +167,9 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/upPopupWindowList")
-    public CommonResult<LaugeVO> getUserProfitConfig(@RequestBody List<String> countryCode)
+    public CommonResult<LaugeVO> getUserProfitConfig()
             throws Exception {
-        return rpcMeetingUserService.upPopupWindowList(countryCode);
+        return rpcMeetingUserService.upPopupWindowList();
     }
 
     /**
@@ -204,5 +204,15 @@ public class MeetingUserController {
         return rpcMeetingUserService.queryCommonmeberProfitConfig();
     }
 
+
+    /**
+     * 根据id查数据
+     */
+    @ResponseBody
+    @GetMapping("/queryMeetingBlackById")
+    public CommonResult queryMeetingBlackById(String userId) {
+        rpcMeetingUserService.queryMeetingBlackById(userId);
+        return CommonResult.success(null);
+    }
 
 }
