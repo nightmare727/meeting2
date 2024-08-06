@@ -73,6 +73,11 @@ public class MeetingBlackUserPO implements Serializable {
      */
     private String mobile;
 
+    /**
+     * 操作人
+     */
+    private String operator;
+
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

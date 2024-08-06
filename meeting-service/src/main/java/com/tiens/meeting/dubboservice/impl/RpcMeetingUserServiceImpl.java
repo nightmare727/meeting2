@@ -438,13 +438,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult addBlackUser(String account,UserRequestDTO userRequestDTO) {
-        RBucket<VMUserVO> bucket = null;
-        if (StringUtils.isNotBlank(account)){
-            // 查询缓存
-            bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(account));
-        }
-        VMUserVO vmUserCacheVO = bucket.get();
-        String accid = vmUserCacheVO.getAccid();
         MeetingBlackUserVO meetingBlackUserVO = new MeetingBlackUserVO();
         MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
         List<String> userIdList = userRequestDTO.getUserIdList();
@@ -452,16 +445,18 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
        userIdList.forEach(
                             userId -> {
                                 meetingBlackUserVO.setUserId(userId);
+                                meetingBlackUserVO.setJoyoCode(userId);
                                 meetingBlackUserVO.setLastMeetingCode("");
                                 meetingBlackUserVO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
                                 meetingBlackUserVO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
                                 if (endTime != null){
-                                    meetingBlackUserVO.setEndTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                                    meetingBlackUserVO.setEndTime(endTime);
                                 }else {
                                     meetingBlackUserVO.setEndTime(null);
                                 }
-                                meetingBlackUserVO.setOperator(accid);
+                                meetingBlackUserVO.setOperator(account);
                                 redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserVO);
+
                                 try {
                                     BeanUtils.copyProperties(meetingBlackUserVO, meetingBlackUserPO);
                                 } catch (IllegalAccessException e) {
