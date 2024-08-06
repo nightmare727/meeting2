@@ -56,6 +56,10 @@ public class MeetingRoomInfoDTO implements Serializable {
 
     /** 预约人id */
     private String ownerImUserId;
+    /**
+     * 所有者 Joyo Code
+     */
+    private String ownerJoyoCode;
 
     /** 所在区域 */
     private String area;
