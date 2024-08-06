@@ -134,7 +134,7 @@ public class MeetingCacheServiceImpl implements MeetingCacheService {
 
         MeetingPaidSettingVO settingVo;
         if (one == null) {
-            // 防止缓存击穿
+            // 防止缓存穿透
             settingVo = new MeetingPaidSettingVO();
         } else {
             settingVo = BeanUtil.copyProperties(one, MeetingPaidSettingVO.class);

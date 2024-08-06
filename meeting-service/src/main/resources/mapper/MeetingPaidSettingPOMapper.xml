@@ -11,6 +11,8 @@
         <result property="money" column="money"/>
         <result property="baseLimitTime" column="base_limit_time"/>
         <result property="onceLimit" column="once_limit"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
     </resultMap>
 
 </mapper>
