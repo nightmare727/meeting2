@@ -1,5 +1,7 @@
 package com.tiens.api.service;
 
+import com.tiens.api.vo.MeetingMemeberProfitConfigVO;
+
 /**
  * @Author: 蔚文杰
  * @Date: 2024/7/9
@@ -25,5 +27,13 @@ public interface MemberProfitCacheService {
      * @return
      */
     Boolean getMemberProfitEnabled();
+
+    /**
+     * 查询会员权益
+     *
+     * @param memberType
+     * @return
+     */
+    MeetingMemeberProfitConfigVO getMemberProfitConfig(Integer memberType);
 
 }

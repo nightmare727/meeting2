@@ -358,7 +358,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         return lockedMeetingRoomList;
     }
 
-    private List<MeetingResourceVO> getPrivateResourceList(FreeResourceListDTO freeResourceListDTO, DateTime lockStartTime) {
+    private List<MeetingResourceVO> getPrivateResourceList(FreeResourceListDTO freeResourceListDTO,
+        DateTime lockStartTime) {
         String resourceType = freeResourceListDTO.getResourceType();
         String[] split = resourceType.split("-");
         String userId = split[0];
@@ -368,7 +369,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .eq(MeetingResourcePO::getOwnerImUserId, freeResourceListDTO.getImUserId())
             .eq(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
             .eq(MeetingResourcePO::getResourceType, relType)
-            .and(condition -> condition.isNull(MeetingResourcePO::getExpireDate).or().le(MeetingResourcePO::getExpireDate, lockStartTime)
+            .and(condition -> condition.isNull(MeetingResourcePO::getExpireDate).or()
+                .le(MeetingResourcePO::getExpireDate, lockStartTime)
             ).list();
         return BeanUtil.copyToList(list, MeetingResourceVO.class);
     }
@@ -380,16 +382,26 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     private List<MeetingResourceVO> getPublicResourceList(FreeResourceListDTO freeResourceListDTO) {
-        // 公池该用户等级相关空闲子资源与主持人绑定公池空闲资源 的【并集】
-        // 查询当前时段所有被使用的资源列表
 
         // 根据资源类型查询所有空闲资源
         List<MeetingResourcePO> levelFreeResourceList = meetingResourceDaoService.lambdaQuery()
-            .ne(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
-            .ne(MeetingResourcePO::getPreAllocation, MeetingNewResourceStateEnum.SUBSCRIBE.getState())
+            .in(MeetingResourcePO::getMeetingRoomType, Lists.newArrayList(MeetingNewRoomTypeEnum.PUBLIC.getState(),
+                MeetingNewRoomTypeEnum.PAID.getState()))
+            .eq(MeetingResourcePO::getPreAllocation, MeetingNewResourceStateEnum.FREE.getState())
             .eq(MeetingResourcePO::getResourceType, Integer.parseInt(freeResourceListDTO.getResourceType())).list();
+        //公共资源
+        List<MeetingResourcePO> publicResourceList = levelFreeResourceList.stream()
+            .filter(t -> MeetingNewRoomTypeEnum.PUBLIC.getState().equals(t.getMeetingRoomType())).collect(
+                Collectors.toList());
+        //付费资源
+        List<MeetingResourcePO> paidResourceList = levelFreeResourceList.stream()
+            .filter(t -> MeetingNewRoomTypeEnum.PAID.getState().equals(t.getMeetingRoomType())).collect(
+                Collectors.toList());
 
-        return BeanUtil.copyToList(levelFreeResourceList, MeetingResourceVO.class);
+        List<MeetingResourcePO> finalResourceList = ObjectUtil.isEmpty(publicResourceList) ? paidResourceList :
+            publicResourceList;
+
+        return BeanUtil.copyToList(finalResourceList, MeetingResourceVO.class);
     }
 
     /**

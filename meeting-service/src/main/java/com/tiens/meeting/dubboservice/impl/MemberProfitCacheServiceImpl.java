@@ -3,6 +3,7 @@ package com.tiens.meeting.dubboservice.impl;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.tiens.api.service.MemberProfitCacheService;
+import com.tiens.api.vo.MeetingMemeberProfitConfigVO;
 import com.tiens.meeting.repository.po.MeetingProfitCommonConfigPO;
 import com.tiens.meeting.repository.service.MeetingProfitCommonConfigDaoService;
 import common.constants.CommonProfitConfigConstants;
@@ -72,5 +73,20 @@ public class MemberProfitCacheServiceImpl implements MemberProfitCacheService {
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
         String result = map.get(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG);
         return StrUtil.isNotBlank(result) && "1".equals(result);
+    }
+
+    /**
+     * 查询会员权益
+     *
+     * @param memberType
+     * @return
+     */
+    @Override
+    public MeetingMemeberProfitConfigVO getMemberProfitConfig(Integer memberType) {
+        RMap<Integer, MeetingMemeberProfitConfigVO> map =
+            redissonClient.getMap(CacheKeyUtil.getMemberProfitConfigKey());
+        MeetingMemeberProfitConfigVO meetingMemeberProfitConfigVO = map.get(memberType);
+
+        return meetingMemeberProfitConfigVO;
     }
 }
