@@ -24,10 +24,7 @@ import com.tiens.meeting.repository.po.*;
 import com.tiens.meeting.repository.service.*;
 import com.tiens.meeting.util.VmUserUtil;
 import common.constants.CommonProfitConfigConstants;
-import common.enums.MemberLevelEnum;
-import common.enums.PaidTypeEnum;
-import common.enums.ProfitRecordStateEnum;
-import common.enums.TerminalEnum;
+import common.enums.*;
 import common.exception.ErrorCode;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
@@ -403,6 +400,17 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     }
 
     /**
+     * 查询全部权益配置
+     *
+     * @return
+     */
+    @Override
+    public CommonResult<List<UserMemberProfitEntity>> getALlProfit() {
+
+        return CommonResult.success(null);
+    }
+
+    /**
      * 查询用户权益
      *
      * @param finalUserId
@@ -432,8 +440,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         meetingUserProfitVO.setUserMemberProfit(
             this.packMeetingMemberProfitConfigPO(meetingMemeberProfitConfigPO, useCount));
 
-        List<UserPaidProfitEntity> userPaidProfits = getUserPaidProfit(finalUserId);
-        meetingUserProfitVO.setUserPaidProfits(userPaidProfits);
+       /* List<UserPaidProfitEntity> userPaidProfits = getUserPaidProfit(finalUserId);
+        meetingUserProfitVO.setUserPaidProfits(userPaidProfits);*/
 
         return CommonResult.success(meetingUserProfitVO);
     }
@@ -462,7 +470,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         MeetingMemeberProfitConfigVO meetingMemeberProfitConfigVO = new MeetingMemeberProfitConfigVO();
         //先查数据库更新缓存
         Integer memberType = meetingMemeberProfitConfigVO.getMemberType();
-        RMap<Integer, MeetingMemeberProfitConfigPO> map = redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey(memberType));
+        RMap<Integer, MeetingMemeberProfitConfigPO> map =
+            redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey(memberType));
         Collection<MeetingMemeberProfitConfigPO> values = map.values();
 
         List<UserMemberProfitEntity> collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))
@@ -481,6 +490,14 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             ObjectUtil.isNotNull(useCount) ? (int)Math.abs(freeDayAppointCount - useCount) : freeDayAppointCount);
         userMemberProfitEntity.setEveryLimitCount(t.getLimitCount());
         userMemberProfitEntity.setGoTime(t.getGoTime());
+        userMemberProfitEntity.setResourceType(t.getResourceType());
+
+        List<Integer> resourceSizeList = Arrays.asList(t.getResourceType().split(",")).stream()
+            .map(f -> MeetingResourceEnum.getByType(Integer.parseInt(f)).getValue())
+            .sorted().collect(Collectors.toList());
+
+        userMemberProfitEntity.setResourceSizeList(resourceSizeList);
+
         return userMemberProfitEntity;
 
     }

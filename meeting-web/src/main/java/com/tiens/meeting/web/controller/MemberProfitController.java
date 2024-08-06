@@ -1,15 +1,13 @@
 package com.tiens.meeting.web.controller;
 
-import com.tiens.api.dto.*;
+import com.tiens.api.dto.BuyMeetingProfitDTO;
+import com.tiens.api.dto.CmsShowGetDTO;
 import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.vo.*;
 import common.pojo.CommonResult;
-import common.pojo.PageParam;
-import common.pojo.PageResult;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,8 +26,6 @@ public class MemberProfitController {
 
     @Reference
     MemberProfitService memberProfitService;
-
-
 
     /**
      * 推送订单
@@ -92,6 +88,20 @@ public class MemberProfitController {
     }
 
     /**
+     * 查询全部权益
+     *
+     * @param
+     * @return
+     * @throws Exception
+     */
+    @ResponseBody
+    @GetMapping("/getALlProfit")
+    public CommonResult<List<UserMemberProfitEntity>> getALlProfit() throws Exception {
+
+        return memberProfitService.getALlProfit();
+    }
+
+    /**
      * 查询权益商品列表
      *
      * @param
@@ -120,9 +130,5 @@ public class MemberProfitController {
 
         return memberProfitService.buyMeetingProfit(buyMeetingProfitDTO);
     }
-
-
-
-
 
 }

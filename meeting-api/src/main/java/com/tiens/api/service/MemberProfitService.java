@@ -133,4 +133,10 @@ public interface MemberProfitService {
      *
      */
     CommonResult updMeetingPaidSetting(MeetingPaidSettingVO request);
+
+    /**
+     * 查询全部权益配置
+     * @return
+     */
+    CommonResult<List<UserMemberProfitEntity>> getALlProfit();
 }
