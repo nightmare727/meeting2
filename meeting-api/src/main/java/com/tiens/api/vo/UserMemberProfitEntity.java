@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -40,4 +41,9 @@ public class UserMemberProfitEntity implements Serializable {
      * 提前入会时间
      */
     private String goTime;
+    /**
+     * 资源规模数组
+     */
+    private List<Integer> resourceSizeList;
+
 }

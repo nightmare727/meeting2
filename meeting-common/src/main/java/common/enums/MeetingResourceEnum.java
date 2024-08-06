@@ -58,4 +58,14 @@ public enum MeetingResourceEnum implements Serializable {
         }
         return null;
     }
+
+    public static MeetingResourceEnum getByType(int resourceTypeId) {
+        for (MeetingResourceEnum value : values()) {
+            if (value.getCode() == resourceTypeId) {
+                return value;
+            }
+        }
+        return null;
+    }
+
 }
