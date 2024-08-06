@@ -1,5 +1,6 @@
 package com.tiens.api.service;
 
+import com.tiens.api.vo.MeetingPaidSettingVO;
 import com.tiens.china.circle.api.dto.DubboUserInfoDTO;
 import common.pojo.CommonResult;
 
@@ -39,4 +40,10 @@ public interface MeetingCacheService {
      */
     public CommonResult<DubboUserInfoDTO> refreshMeetingUserCache(String accId, String joyoCode);
 
+    /**
+     * 获取某个资源类型下的配置
+     *
+     * @param resourceType
+     */
+    CommonResult<MeetingPaidSettingVO> getMeetingPaidSettingByResourceType(Integer resourceType);
 }

@@ -31,6 +31,8 @@ public class CacheKeyUtil {
 
     private static final String SETTLE_PROFIT_PREFIX = "settle_profit:";
 
+    private static final String MEETING_PAID_SETTING = "meeting-paid-setting:";
+
     public static String getUserInfoKey(String imUserId) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(IM_USER_KEY_PREFIX).append(imUserId).toString();
     }
@@ -124,5 +126,14 @@ public class CacheKeyUtil {
 
     public static String getSettleProfitKey(Long meetingId) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(SETTLE_PROFIT_PREFIX).append(meetingId).toString();
+    }
+
+    /**
+     * 获取某一个会议室规格下的付费配置
+     *
+     * @param resourceType 会议室规格 1：10方 2：50方 3：100方  4：200方 5：500方 6：1000方 7：3000方
+     */
+    public static String getMeetingPaidSettingKey(Integer resourceType) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append(MEETING_PAID_SETTING).append(resourceType).toString();
     }
 }

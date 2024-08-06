@@ -1,6 +1,7 @@
 package com.tiens.meeting.mgr.controller;
 
 import com.tiens.api.dto.CommonProfitConfigSaveDTO;
+import com.tiens.api.service.MeetingCacheService;
 import com.tiens.api.service.MemberProfitService;
 import com.tiens.api.vo.CommonProfitConfigQueryVO;
 import com.tiens.api.vo.MeetingPaidSettingVO;
@@ -29,6 +30,9 @@ public class MeetingUserProfitController {
 
     @Reference
     MemberProfitService memberProfitService;
+
+    @Reference
+    MeetingCacheService meetingCacheService;
 
     /**
      * 查询Vmoment用户权益
@@ -86,17 +90,17 @@ public class MeetingUserProfitController {
      */
     @ResponseBody
     @PostMapping("updMeetingPaidSetting")
-    public CommonResult updMeetingPaidSetting(@RequestBody @Validated MeetingPaidSettingVO request) {
+    public CommonResult updMeetingPaidSetting(@RequestBody @Validated(value = CheckGroupEnum.Modify.class) MeetingPaidSettingVO request) {
         return memberProfitService.updMeetingPaidSetting(request);
     }
 
     /**
-     * 保存会议付费设置
+     * 获取某个资源类型下的配置
      */
     @ResponseBody
-    @PostMapping("saveMeetingPaidSetting")
-    public CommonResult saveMeetingPaidSetting(@RequestBody @Validated(value = CheckGroupEnum.Modify.class) MeetingPaidSettingVO request) {
-        return memberProfitService.updMeetingPaidSetting(request);
+    @GetMapping("getMeetingPaidSettingByResourceType")
+    public CommonResult updMeetingPaidSetting(Integer resourceType) {
+        return meetingCacheService.getMeetingPaidSettingByResourceType(resourceType);
     }
 
 }

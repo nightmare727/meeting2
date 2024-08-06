@@ -3,7 +3,6 @@ package com.tiens.api.vo;
 import common.enums.CheckGroupEnum;
 import lombok.Data;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
@@ -19,18 +18,18 @@ public class MeetingPaidSettingVO implements Serializable {
     private Integer resourceType;
 
     /** VM币 */
-    @Min(value = 1, message = "VM币最小值为 1")
+    @NotNull(message = "VM币不可以为空")
     private Integer vmCoin;
 
     /** 金额 */
-    @Min(value = 1, message = "金额最小值为 1")
+    @NotNull(message = "金额不可以为空")
     private Double money;
 
     /** 基础时限 */
-    @Min(value = 1, message = "基础时限最小值为 1")
-    private Integer baseLimitTime;
+    @NotNull(message = "基础时限不可以为空")
+    private Double baseLimitTime;
 
     /** 单次上限 */
-    @Min(value = 1, message = "单次上限最小值为 1")
-    private Integer onceLimit;
+    @NotNull(message = "单次上限不可以为空")
+    private Double onceLimit;
 }
