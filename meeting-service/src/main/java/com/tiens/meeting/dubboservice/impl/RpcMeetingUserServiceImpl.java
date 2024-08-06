@@ -57,7 +57,7 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.*;import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -444,7 +444,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
         List<String> userIdList = userRequestDTO.getUserIdList();
         Date endTime = userRequestDTO.getEndTime();
-        RBucket<VMUserVO> bucket = null;
+       RBucket<VMUserVO> bucket = null;
         if (StringUtils.isNotBlank(finalUserId)){
             // 查询缓存
             bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(finalUserId));
@@ -573,5 +573,15 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     public CommonResult<List<MeetingMemeberProfitConfigVO>> queryCommonmeberProfitConfig(){
         List<MeetingMemeberProfitConfigPO> list = meetingMemeberProfitConfigDaoService.list();
        return CommonResult.success(BeanUtil.copyToList(list, MeetingMemeberProfitConfigVO.class));
+    }
+
+    @Override
+    public CommonResult queryMeetingBlackById(String userId) {
+        //根据id查询
+        MeetingBlackUserVO meetingBlackUserVO = (MeetingBlackUserVO)redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).get();
+        if (meetingBlackUserVO != null){
+            return CommonResult.errorMsg("该用户已被拉黑");
+        }
+        return null;
     }
 }

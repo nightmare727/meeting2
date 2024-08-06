@@ -205,4 +205,14 @@ public class MeetingUserController {
     }
 
 
+    /**
+     * 根据id查数据
+     */
+    @ResponseBody
+    @GetMapping("/queryMeetingBlackById")
+    public CommonResult queryMeetingBlackById(String userId) {
+        rpcMeetingUserService.queryMeetingBlackById(userId);
+        return CommonResult.success(null);
+    }
+
 }
