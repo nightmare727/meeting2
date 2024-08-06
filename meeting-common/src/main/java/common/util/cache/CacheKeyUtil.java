@@ -141,4 +141,8 @@ public class CacheKeyUtil {
     public static String getMeetingPaidSettingKey(Integer resourceType) {
         return new StringBuilder(BASE_CACHE_PREFIX).append(MEETING_PAID_SETTING).append(resourceType).toString();
     }
+
+    public static String getPopupWindowListKey(String countryCode) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append("popupWindowList:").append(countryCode).toString();
+    }
 }
