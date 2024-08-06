@@ -106,10 +106,11 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
     public CommonResult<List<MeetingResourceVO>> queryMeetingResourceList(MeetingResourceQueryDTO meetingResourceQueryDTO) throws ServiceException {
         List<MeetingResourcePO> list =
             meetingResourceDaoService.lambdaQuery()
-                    .eq(StringUtils.isNotBlank(meetingResourceQueryDTO.getVmrName()),MeetingResourcePO::getVmrName,meetingResourceQueryDTO.getVmrName())
+                    .like(StringUtils.isNotBlank(meetingResourceQueryDTO.getVmrName()),MeetingResourcePO::getVmrName,meetingResourceQueryDTO.getVmrName())
                     .eq(meetingResourceQueryDTO.getResourceType()!=null,MeetingResourcePO::getResourceType,meetingResourceQueryDTO.getResourceType())
                     .eq(meetingResourceQueryDTO.getMeetingRoomType()!=null,MeetingResourcePO::getMeetingRoomType,meetingResourceQueryDTO.getMeetingRoomType())
                     .eq(meetingResourceQueryDTO.getResourceStatus()!=null,MeetingResourcePO::getResourceStatus,meetingResourceQueryDTO.getResourceStatus())
+                    .eq(meetingResourceQueryDTO.getVmrConferenceId()!=null,MeetingResourcePO::getVmrConferenceId,meetingResourceQueryDTO.getVmrConferenceId())
                     .orderByAsc(MeetingResourcePO::getSize).list();
         List<MeetingResourceVO> resourceVOS = list.stream().map(t -> {
             MeetingResourceVO meetingResourceVO = BeanUtil.copyProperties(t, MeetingResourceVO.class);
@@ -311,8 +312,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
         meetingResourceDaoService.lambdaUpdate()
                 .in(MeetingResourcePO::getId, changeMeetingRoomType.getResourceIds())
                 .set(MeetingResourcePO::getMeetingRoomType,changeMeetingRoomType.getTargetRoomType())
-                .ne(MeetingResourcePO::getMeetingRoomType,MeetingNewRoomTypeEnum.PRIVATE.getState())
-                .ne(MeetingResourcePO::getPreAllocation,MeetingNewResourceStateEnum.SUBSCRIBE.getState())
+                .eq(MeetingResourcePO::getResourceStatus,MeetingNewResourceStateEnum.FREE.getState())
                 .update();
         return CommonResult.success(null);
     }

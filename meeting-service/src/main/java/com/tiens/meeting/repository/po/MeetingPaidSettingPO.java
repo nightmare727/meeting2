@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 
 @TableName(value = "meeting_paid_setting")
@@ -38,4 +39,12 @@ public class MeetingPaidSettingPO implements Serializable {
     /** 单次上限 */
     @TableField(value = "once_limit")
     private Integer onceLimit;
+
+    /** 创建时间 */
+    @TableField(value = "create_time")
+    private Date createTime;
+
+    /** 更新时间 */
+    @TableField(value = "update_time")
+    private Date updateTime;
 }

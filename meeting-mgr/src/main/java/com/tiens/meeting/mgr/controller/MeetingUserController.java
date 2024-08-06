@@ -114,10 +114,10 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/selectMeetingBlack")
-    public CommonResult<PageResult<MeetingBlackUserVO>> selectBlackUser(@RequestHeader("finalUserId") String finalUserId,@RequestBody PageParam<MeetingBlackUserVO> bean)
+    public CommonResult<PageResult<MeetingBlackUserVO>> selectBlackUser(@RequestBody PageParam<MeetingBlackUserVO> bean)
             throws Exception {
 
-        return rpcMeetingUserService.getBlackUserAll(finalUserId,bean);
+        return rpcMeetingUserService.getBlackUserAll(bean);
     }
 
     /**
@@ -146,9 +146,9 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/addBlackMeeting")
-    public CommonResult addBlackUser(@RequestBody UserRequestDTO userRequestDTO)
+    public CommonResult addBlackUser(@RequestHeader("account") String account,@RequestBody UserRequestDTO userRequestDTO)
             throws Exception {
-        return rpcMeetingUserService.addBlackUser(userRequestDTO);
+        return rpcMeetingUserService.addBlackUser(account, userRequestDTO);
     }
 
     /**
@@ -167,9 +167,9 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/upPopupWindowList")
-    public CommonResult<LaugeVO> getUserProfitConfig(@RequestBody List<LaugeVO> la)
+    public CommonResult<LaugeVO> getUserProfitConfig(@RequestBody List<String> countryCode)
             throws Exception {
-        return rpcMeetingUserService.upPopupWindowList(la);
+        return rpcMeetingUserService.upPopupWindowList(countryCode);
     }
 
     /**
@@ -191,6 +191,17 @@ public class MeetingUserController {
     public CommonResult opoCommonProfitConfig(@RequestBody CommonProfitConfigSaveDTO commonProfitConfigSaveDTO)
             throws Exception {
         return rpcMeetingUserService.opoCommonProfitConfig(commonProfitConfigSaveDTO);
+    }
+
+
+    /**
+     * 查询会员权益表
+     */
+    @ResponseBody
+    @GetMapping("/queryCommonmeberProfitConfig")
+    public CommonResult<List<MeetingMemeberProfitConfigVO>> queryCommonmeberProfitConfig()
+            throws Exception {
+        return rpcMeetingUserService.queryCommonmeberProfitConfig();
     }
 
 

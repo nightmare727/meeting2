@@ -10,6 +10,7 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.http.param.MediaType;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
@@ -32,6 +33,7 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
@@ -42,7 +44,9 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
@@ -382,7 +386,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     @Override
     public CommonResult<List<MeetingPaidSettingVO>> getMeetingPaidSettingList() {
-        List<MeetingPaidSettingPO> list = meetingPaidSettingService.list();
+        List<MeetingPaidSettingPO> list = meetingPaidSettingService.list(new LambdaQueryWrapper<MeetingPaidSettingPO>().orderByAsc(MeetingPaidSettingPO::getResourceType));
         return CommonResult.success(BeanUtil.copyToList(list, MeetingPaidSettingVO.class));
     }
 
@@ -468,7 +472,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     @Override
     public CommonResult<List<UserMemberProfitEntity>> queryUserProfitConfig() {
         MeetingMemeberProfitConfigVO meetingMemeberProfitConfigVO = new MeetingMemeberProfitConfigVO();
-        //先查数据库更新缓存
+
         Integer memberType = meetingMemeberProfitConfigVO.getMemberType();
         RMap<Integer, MeetingMemeberProfitConfigPO> map =
             redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey(memberType));
@@ -476,6 +480,27 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         List<UserMemberProfitEntity> collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))
             .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType)).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(collect)){
+            //先查数据库更新缓存
+            try {
+                CommonResult<List<MeetingMemeberProfitConfigVO>> listCommonResult = rpcMeetingUserService.queryCommonmeberProfitConfig();
+                //将数据放到redis中
+                if (listCommonResult.isSuccess()) {
+                    List<MeetingMemeberProfitConfigVO> data = listCommonResult.getData();
+                    List<MeetingMemeberProfitConfigPO> meetingMemeberProfitConfigPOS =
+                        BeanUtil.copyToList(data, MeetingMemeberProfitConfigPO.class);
+                    meetingMemeberProfitConfigPOS.forEach(t -> {
+                        map.put(t.getMemberType(), t);
+                    });
+                    collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))
+                        .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType)).collect(Collectors.toList());
+                }
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
         log.info("【查询权益配置】 返回：{}", JSON.toJSONString(collect));
         return CommonResult.success(collect);
     }

@@ -69,7 +69,7 @@ public class MeetingMemeberProfitConfigVO implements Serializable {
      *
      */
     @TableField(value = "go_time")
-    private Date goTime;
+    private String goTime;
 
 
     @TableField(exist = false)

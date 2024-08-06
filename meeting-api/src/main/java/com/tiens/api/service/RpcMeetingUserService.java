@@ -8,10 +8,8 @@ import common.exception.ServiceException;
 import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
-import java.util.Date;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -89,7 +87,7 @@ public interface RpcMeetingUserService {
      * @param bean
      * @return
      */
-    CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(String finalUserId,PageParam<MeetingBlackUserVO> bean);
+    CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(PageParam<MeetingBlackUserVO> bean);
 
     /**
      * 解除黑名单用户
@@ -110,7 +108,7 @@ public interface RpcMeetingUserService {
      * @param
      * @return
      */
-    CommonResult addBlackUser(UserRequestDTO userRequestDTO);
+    CommonResult addBlackUser(String account, UserRequestDTO userRequestDTO);
 
     /**
      * 会议模版弹窗
@@ -136,5 +134,13 @@ public interface RpcMeetingUserService {
      * 回显
      * @return
      */
-    CommonResult<LaugeVO> upPopupWindowList(List<LaugeVO> la);
+    CommonResult<LaugeVO> upPopupWindowList(List<String> countryCode);
+
+    /**
+     * 查询会员权益表
+     *
+     * @return
+     */
+    CommonResult<List<MeetingMemeberProfitConfigVO>> queryCommonmeberProfitConfig() throws InvocationTargetException, IllegalAccessException;
+
 }
