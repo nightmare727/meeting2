@@ -114,18 +114,10 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/selectMeetingBlack")
-    public CommonResult<PageResult<MeetingBlackUserVO>> selectBlackUser(HttpServletRequest request,@RequestBody PageParam<MeetingBlackUserVO> bean)
+    public CommonResult<PageResult<MeetingBlackUserVO>> selectBlackUser(@RequestHeader("finalUserId") String finalUserId,@RequestBody PageParam<MeetingBlackUserVO> bean)
             throws Exception {
-        String headerValue = request.getHeader("");
 
-        // 获取所有请求头的名称
-        Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            String value = request.getHeader(headerName);
-            log.info("Header-Name: {}, value: {}", headerName, value);
-        }
-        return rpcMeetingUserService.getBlackUserAll(bean);
+        return rpcMeetingUserService.getBlackUserAll(finalUserId,bean);
     }
 
     /**

@@ -89,7 +89,7 @@ public interface RpcMeetingUserService {
      * @param bean
      * @return
      */
-    CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(PageParam<MeetingBlackUserVO> bean);
+    CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(String finalUserId,PageParam<MeetingBlackUserVO> bean);
 
     /**
      * 解除黑名单用户

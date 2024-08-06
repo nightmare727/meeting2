@@ -378,10 +378,16 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(PageParam<MeetingBlackUserVO> bean) {
+    public CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(String finalUserId,PageParam<MeetingBlackUserVO> bean) {
         Page<MeetingBlackUserPO> meetingApprovePOPage =
                 new Page<>(bean.getPageNum(), bean.getPageSize());
-
+        RBucket<VMUserVO> bucket = null;
+        if (StringUtils.isNotBlank(finalUserId)){
+            // 查询缓存
+            bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(finalUserId));
+        }
+        VMUserVO vmUserCacheVO = bucket.get();
+        String accid = vmUserCacheVO.getAccid();
         MeetingBlackUserVO condition = bean.getCondition();
         Wrapper<MeetingBlackUserPO> wrapper = Wrappers.lambdaQuery(MeetingBlackUserPO.class)
                 .like(StrUtil.isNotBlank(condition.getUserId()), MeetingBlackUserPO::getUserId, condition.getUserId())
@@ -396,7 +402,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         List<MeetingBlackUserVO> meetingBlackUserVOList = page.getRecords().stream().map(meetingBlackRecordPO1 -> {
             MeetingBlackUserVO meetingBlackRecordVO = new MeetingBlackUserVO();
             //设置操作人
-            //meetingBlackRecordVO.setOperator();
+            meetingBlackRecordVO.setOperator(accid);
             BeanUtil.copyProperties(meetingBlackRecordPO1, meetingBlackRecordVO);
             return meetingBlackRecordVO;
         }).collect(Collectors.toList());
