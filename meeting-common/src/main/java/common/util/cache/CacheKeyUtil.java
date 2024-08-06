@@ -1,5 +1,11 @@
 package common.util.cache;
 
+import cn.hutool.cache.CacheUtil;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class CacheKeyUtil {
 
     /**
@@ -148,5 +154,10 @@ public class CacheKeyUtil {
 
     public static String getFreeReservationLimitKey(Integer memberType) {
         return new StringBuilder(BASE_CACHE_PREFIX).append("freeReservationLimit:").append(memberType).toString();
+    }
+
+
+    public static String getPopupWindowListKeys(String countlange) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append("popupWindowList:").append(countlange).toString();
     }
 }

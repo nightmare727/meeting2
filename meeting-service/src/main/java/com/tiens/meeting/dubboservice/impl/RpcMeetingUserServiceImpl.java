@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -487,16 +488,12 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
         String result = map.get(CommonProfitConfigConstants.CMS_SHOW_FLAG);
         if (StringUtils.isNotBlank(result) && "1".equals(result)) {
-                //将国家做为key文本做值存入redis中
             la.forEach(
                     laugeVO -> {
-                        List<String> label = laugeVO.getLabel();
-                        //将所有国家做为key文本做值为list存入redis中
-                        redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey(label.toString())).set(laugeVO.getValue());
+                        redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).set(laugeVO);
                     }
             );
-                return CommonResult.success( null);
-
+            return CommonResult.success( null);
         }
         if (StringUtils.isNotBlank(result) && "0".equals(result)) {
             //保留原来的数据,不做任何修改
@@ -561,7 +558,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     @Override
     public CommonResult<LaugeVO> upPopupWindowList() {
         //直接取redis中的数据
-        LaugeVO laugeVO = (LaugeVO) redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKey( "")).get();
+        LaugeVO laugeVO = (LaugeVO)redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).get();
         //返回数据
         return CommonResult.success(laugeVO);
     }
