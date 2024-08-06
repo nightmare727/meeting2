@@ -442,22 +442,21 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult addBlackUser(UserRequestDTO userRequestDTO) {
-          MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
-        List<String> userIdList = userRequestDTO.getUserIdList();
-        Date endTime = userRequestDTO.getEndTime();
-        userIdList.forEach(
-                userId -> {
-                    MeetingBlackUserPO meetingBlackUserPO1 = new MeetingBlackUserPO();
-                    meetingBlackUserPO1.setUserId(userId);
-                    meetingBlackUserPO1.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-                    meetingBlackUserPO1.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-                    if (endTime != null){
-                        meetingBlackUserPO1.setEndTime(DateUtil.convertTimeZone(endTime, DateUtils.TIME_ZONE_GMT));
-                    }else {
-                        meetingBlackUserPO1.setEndTime(null);
-                    }
-                    redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserPO);
-                    meetingBlackUserDaoService.save(meetingBlackUserPO);
+            MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
+            List<String> userIdList = userRequestDTO.getUserIdList();
+            Date endTime = userRequestDTO.getEndTime();
+       userIdList.forEach(
+                            userId -> {
+                                meetingBlackUserPO.setUserId(userId);
+                                meetingBlackUserPO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                                meetingBlackUserPO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
+                                if (endTime != null){
+                                    meetingBlackUserPO.setEndTime(DateUtil.convertTimeZone(endTime, DateUtils.TIME_ZONE_GMT));
+                                }else {
+                                    meetingBlackUserPO.setEndTime(null);
+                                }
+                                redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserPO);
+                                meetingBlackUserDaoService.save(meetingBlackUserPO);
                 }
         );
             return CommonResult.success(meetingBlackUserPO);

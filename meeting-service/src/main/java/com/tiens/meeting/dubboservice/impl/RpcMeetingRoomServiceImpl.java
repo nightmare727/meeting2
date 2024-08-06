@@ -301,7 +301,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             result = getPublicResourceList(freeResourceListDTO);
         } else {
             // 1、查询用户私池资源
-            result = getPrivateResourceList(freeResourceListDTO);
+            result = getPrivateResourceList(freeResourceListDTO, lockStartTime);
         }
         //        log.info("空闲资源列表【1】初始过滤资源池结果：{}", result);
 
@@ -358,7 +358,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         return lockedMeetingRoomList;
     }
 
-    private List<MeetingResourceVO> getPrivateResourceList(FreeResourceListDTO freeResourceListDTO) {
+    private List<MeetingResourceVO> getPrivateResourceList(FreeResourceListDTO freeResourceListDTO, DateTime lockStartTime) {
         String resourceType = freeResourceListDTO.getResourceType();
         String[] split = resourceType.split("-");
         String userId = split[0];
@@ -367,7 +367,9 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<MeetingResourcePO> list = meetingResourceDaoService.lambdaQuery()
             .eq(MeetingResourcePO::getOwnerImUserId, freeResourceListDTO.getImUserId())
             .eq(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
-            .eq(MeetingResourcePO::getResourceType, relType).list();
+            .eq(MeetingResourcePO::getResourceType, relType)
+            .and(condition -> condition.isNull(MeetingResourcePO::getExpireDate).or().le(MeetingResourcePO::getExpireDate, lockStartTime)
+            ).list();
         return BeanUtil.copyToList(list, MeetingResourceVO.class);
     }
 
