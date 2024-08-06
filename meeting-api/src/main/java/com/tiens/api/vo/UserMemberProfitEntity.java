@@ -1,12 +1,10 @@
 package com.tiens.api.vo;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * @Author: 蔚文杰
@@ -39,7 +37,7 @@ public class UserMemberProfitEntity implements Serializable {
     private String resourceType;
 
     /**
-     * 时间
+     * 提前入会时间
      */
-    private String  goTime;
+    private String goTime;
 }

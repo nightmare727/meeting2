@@ -31,7 +31,7 @@ public enum MeetingResourceEnum implements Serializable {
 
     public static String specialResourceKey = "moment_meeting_back_027";
     @Getter
-    private int code;
+    private Integer code;
     @Getter
     private int value;
     @Getter
