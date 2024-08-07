@@ -156,7 +156,7 @@ public class MemberProfitController {
      *
      * @param finalUserId
      * @param memberType
-     * @param profitPaidCheckOutGetDTO
+     * @param profitPaidCheckOutGetDto
      * @return
      */
     @ResponseBody
@@ -164,8 +164,8 @@ public class MemberProfitController {
     public CommonResult<ProfitPaidCheckOutGetVO> getProfitPaidCheckOut(
         @RequestHeader("finalUserId") String finalUserId,
         @RequestHeader("memberType") Integer memberType,
-        @RequestBody ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDTO) {
-        return memberProfitService.getProfitPaidCheckOut(profitPaidCheckOutGetDTO);
+        @RequestBody ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDto) {
+        return memberProfitService.getProfitPaidCheckOut(profitPaidCheckOutGetDto);
     }
 
 }
