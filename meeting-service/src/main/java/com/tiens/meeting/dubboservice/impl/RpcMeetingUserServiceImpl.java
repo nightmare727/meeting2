@@ -437,6 +437,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @param
      * @return
      */
+    @Transactional
     @Override
     public CommonResult addBlackUser(String account, UserRequestDTO userRequestDto) {
         List<String> userIdList = userRequestDto.getUserIdList();
@@ -448,6 +449,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         List<Boolean> result = new ArrayList<>();
         userIdList.forEach(
                 userId -> {
+                    // 删除旧的
+                    meetingBlackUserDaoService.remove(new LambdaQueryWrapper<MeetingBlackUserPO>().eq(MeetingBlackUserPO::getUserId, userId));
 
                     // 从缓存中获取被加入黑名单人的信息
                     RBucket<VMUserVO> vorBucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId));
