@@ -414,20 +414,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         List<UserMemberProfitEntity> userMemberProfitList =
             commonProfitConfigQueryVOCommonResult.getData().getUserMemberProfitList();
 
-        for (UserMemberProfitEntity userMemberProfitEntity : userMemberProfitList) {
-            String resourceType = userMemberProfitEntity.getResourceType();
-            String goTime = userMemberProfitEntity.getGoTime();
-            List<Integer> resourceSizeList = Arrays.asList(resourceType.split(",")).stream()
-                .map(t -> MeetingResourceEnum.getByType(Integer.parseInt(t)).getValue()).collect(Collectors.toList());
-
-            userMemberProfitEntity.setResourceSizeList(resourceSizeList);
-
-            List<Integer> leadTimeList = Arrays.asList(goTime.split("/")).stream()
-                .map(t -> Integer.parseInt(t)).collect(Collectors.toList());
-
-            userMemberProfitEntity.setLeadTimeList(leadTimeList);
-        }
-
         return CommonResult.success(userMemberProfitList);
     }
 
@@ -845,6 +831,21 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         List<MeetingProfitCommonConfigPO> list = meetingProfitCommonConfigDaoService.lambdaQuery().list();
 
         CommonProfitConfigQueryVO commonProfitConfigQueryVO = new CommonProfitConfigQueryVO();
+
+        for (UserMemberProfitEntity userMemberProfitEntity : userMemberProfitList) {
+            String resourceType = userMemberProfitEntity.getResourceType();
+            String goTime = userMemberProfitEntity.getGoTime();
+            List<Integer> resourceSizeList = Arrays.asList(resourceType.split(",")).stream()
+                    .map(t -> MeetingResourceEnum.getByType(Integer.parseInt(t)).getValue()).collect(Collectors.toList());
+
+            userMemberProfitEntity.setResourceSizeList(resourceSizeList);
+
+            List<Integer> leadTimeList = Arrays.asList(goTime.split(",")).stream()
+                    .map(t -> MeetingResoyrceDateEnum.getHandlerNameByVmrMode(Integer.parseInt(t))).collect(Collectors.toList());
+
+            userMemberProfitEntity.setLeadTimeList(leadTimeList);
+        }
+
         commonProfitConfigQueryVO.setUserMemberProfitList(userMemberProfitList);
         commonProfitConfigQueryVO.setCmsShowFlag(
             list.stream().filter(t -> CommonProfitConfigConstants.CMS_SHOW_FLAG.equals(t.getConfigKey())).findAny()
