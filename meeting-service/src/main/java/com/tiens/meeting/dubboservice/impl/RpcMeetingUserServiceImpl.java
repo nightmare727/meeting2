@@ -531,6 +531,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                 meetingMemeberProfitConfigVOList.forEach(meetingMemeberProfitConfigVO -> {
                     MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = BeanUtil.copyProperties(meetingMemeberProfitConfigVO, MeetingMemeberProfitConfigPO.class);
                     meetingMemeberProfitConfigDaoService.updateById(meetingMemeberProfitConfigPO);
+                    //先将之前的缓存删除
+                    redissonClient.getBucket(CacheKeyUtil.getFreeReservationLimitKey(meetingMemeberProfitConfigVO.getMemberType())).delete();
                     //将数据存到redis中
                     redissonClient.getBucket(CacheKeyUtil.getFreeReservationLimitKey(meetingMemeberProfitConfigVO.getMemberType())).set(meetingMemeberProfitConfigVO);
                 });
@@ -573,14 +575,17 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
     /**
      * 回显弹窗内容
+     *
      * @return
      */
     @Override
-    public CommonResult<LaugeVO> upPopupWindowList() {
+    public CommonResult<List<LaugeVO>> upPopupWindowList() {
         //直接取redis中的数据
         LaugeVO laugeVO = (LaugeVO)redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).get();
+        List<LaugeVO> objects = new ArrayList<>();
+        objects.add(laugeVO);
         //返回数据
-        return CommonResult.success(laugeVO);
+        return CommonResult.success(objects);
     }
 
 

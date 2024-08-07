@@ -133,9 +133,10 @@ public interface RpcMeetingUserService {
 
     /**
      * 回显
+     *
      * @return
      */
-    CommonResult<LaugeVO> upPopupWindowList();
+    CommonResult<List<LaugeVO>> upPopupWindowList();
 
     /**
      * 查询会员权益表

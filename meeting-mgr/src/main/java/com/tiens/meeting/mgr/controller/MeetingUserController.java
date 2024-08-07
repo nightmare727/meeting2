@@ -163,7 +163,7 @@ public class MeetingUserController {
      */
     @ResponseBody
     @PostMapping("/upPopupWindowList")
-    public CommonResult<LaugeVO> getUserProfitConfig()
+    public CommonResult<List<LaugeVO>> getUserProfitConfig()
             throws Exception {
         return rpcMeetingUserService.upPopupWindowList();
     }
