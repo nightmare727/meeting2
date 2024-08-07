@@ -34,11 +34,11 @@ public class MeetingPaidSettingPO implements Serializable {
 
     /** 基础时限 */
     @TableField(value = "base_limit_time")
-    private Integer baseLimitTime;
+    private Double baseLimitTime;
 
     /** 单次上限 */
     @TableField(value = "once_limit")
-    private Integer onceLimit;
+    private Double onceLimit;
 
     /** 创建时间 */
     @TableField(value = "create_time")
