@@ -46,10 +46,10 @@ public class BuyMeetingProfitDTO implements Serializable {
     /**
      * (需要)会议持续时长，单位分钟。默认 30分钟。 最大1440分钟（24小时），最 小15分钟。
      */
-    private Integer length;
+    private Integer length = 60;
 
     /**
      * 前置时间
      */
-    private Integer leadTime = 30;
+    private Integer leadTime;
 }
