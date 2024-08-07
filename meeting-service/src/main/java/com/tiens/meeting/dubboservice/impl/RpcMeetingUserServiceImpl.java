@@ -1,12 +1,10 @@
 package com.tiens.meeting.dubboservice.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -446,6 +444,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         List<String> userIdList = userRequestDto.getUserIdList();
         Date endTime = userRequestDto.getEndTime();
         Date startTime= DateUtil.date();
+        log.info("userRequestDto.getEndTime:{}",endTime);
         if(endTime!=null){
             endTime = DateUtil.convertTimeZone(endTime, DateUtils.TIME_ZONE_GMT);
             if (endTime.before(startTime)) {
@@ -454,6 +453,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         }
         Date expire = endTime;
         List<Boolean> result = new ArrayList<>();
+        log.info("endTime:{}，startTime：{}，expire：{}",endTime,startTime,expire);
         meetingBlackUserDaoService.remove(new LambdaQueryWrapper<MeetingBlackUserPO>().in(MeetingBlackUserPO::getUserId, userIdList));
 
         List<MeetingBlackUserPO> batchData = userIdList.stream().map(
