@@ -559,14 +559,14 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<ProfitPaidCheckOutGetVO> getProfitPaidCheckOut(
-        ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDTO) {
+            ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDTO) {
         String resourceType = profitPaidCheckOutGetDTO.getResourceType();
         if (NumberUtil.isNumber(resourceType)) {
             return CommonResult.success(null);
         }
 
         CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
-            meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
+                meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
         MeetingPaidSettingVO meetingPaidSettingVO = meetingPaidSettingByResourceType.getData();
 
         Integer duration = profitPaidCheckOutGetDTO.getDuration();
@@ -578,8 +578,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         Double money = meetingPaidSettingVO.getMoney();
         ProfitPaidCheckOutGetVO profitPaidCheckOutGetVO = new ProfitPaidCheckOutGetVO();
 
-        profitPaidCheckOutGetVO.setNeedPayVMAmount(BigDecimal.valueOf((long)(finalTime / 30) * vmCoin));
-        profitPaidCheckOutGetVO.setNeedPayAmount(BigDecimal.valueOf((long)(finalTime / 30) * money));
+        profitPaidCheckOutGetVO.setNeedPayVMAmount(BigDecimal.valueOf((long) (finalTime / 30) * vmCoin));
+        profitPaidCheckOutGetVO.setNeedPayAmount(BigDecimal.valueOf((long) (finalTime / 30) * money));
 
         return CommonResult.success(profitPaidCheckOutGetVO);
     }

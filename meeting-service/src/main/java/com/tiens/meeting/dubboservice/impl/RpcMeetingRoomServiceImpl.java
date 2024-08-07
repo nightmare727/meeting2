@@ -483,7 +483,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 buyMeetingProfitDTO.setResourceType(meetingRoomContextDTO.getResourceType());
                 buyMeetingProfitDTO.setFinalUserId(meetingRoomContextDTO.getImUserId());
                 buyMeetingProfitDTO.setJoyoCode(meetingRoomContextDTO.getJoyoCode());
-//                buyMeetingProfitDTO.setNationId(meetingRoomContextDTO.get);
                 buyMeetingProfitDTO.setStartTime(meetingRoomContextDTO.getStartTime());
                 buyMeetingProfitDTO.setTimeZoneOffset(meetingRoomContextDTO.getTimeZoneOffset());
                 buyMeetingProfitDTO.setLength(meetingRoomContextDTO.getLength());
@@ -506,7 +505,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
             meetingRoomContextDTO.setVmrId(meetingResourcePO.getVmrId());
             meetingRoomContextDTO.setVmrMode(meetingResourcePO.getVmrMode());
-//          meetingRoomContextDTO.setResourceStatus(meetingResourcePO.getStatus());
             meetingRoomContextDTO.setTimeZoneID(meetingTimeZoneConfigPO.getTimeZoneId());
 
             // 查询是否该资源已分配，
@@ -626,7 +624,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .vmrMode(meetingRoomContextDTO.getVmrMode()).ownerUserName(meetingRoomContextDTO.getImUserName())
             .subject(meetingRoomContextDTO.getSubject()).remark(meetingRoomContextDTO.getRemark())
             .languageId(meetingRoomContextDTO.getLanguageId()).leadTime(leadTime)
-            .ownerJoyoCode(meetingRoomContextDTO.getJoyoCode()).build();
+            .ownerJoyoCode(meetingRoomContextDTO.getJoyoCode())
+                .area(meetingRoomContextDTO.getNationId()).build();
         if (ObjectUtil.isNotNull(meetingRoom)) {
             build.setHwMeetingId(meetingRoom.getHwMeetingId());
             build.setHwMeetingCode(meetingRoom.getHwMeetingCode());

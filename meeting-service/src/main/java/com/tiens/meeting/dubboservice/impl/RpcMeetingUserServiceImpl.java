@@ -1,6 +1,7 @@
 package com.tiens.meeting.dubboservice.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -57,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -465,12 +467,18 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                     meetingBlackUserVo.setMobile(vmUserVo == null ? null : vmUserVo.getMobile());
                     meetingBlackUserVo.setNickName(vmUserVo == null ? null : vmUserVo.getNickName());
                     meetingBlackUserVo.setCountryCode(vmUserVo == null ? null : vmUserVo.getCountry());
-                    meetingBlackUserVo.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_DEFAULT));
+                    DateTime startTime = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_DEFAULT);
+                    meetingBlackUserVo.setStartTime(startTime);
                     meetingBlackUserVo.setEndTime(endTime);
                     meetingBlackUserVo.setOperator(account);
 
                     // 缓存设置
-                    redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserVo);
+                    RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId));
+                    bucket.set(meetingBlackUserVo);
+                    // 设置过期时间
+                    long differenceInMilliSeconds = endTime.getTime() - startTime.getTime();
+                    // 将毫秒转换为秒
+                    bucket.expire(differenceInMilliSeconds / 1000, TimeUnit.SECONDS);
 
                     MeetingBlackUserPO blackUserPo = BeanUtil.copyProperties(meetingBlackUserVo, MeetingBlackUserPO.class);
                     result.add(meetingBlackUserDaoService.save(blackUserPo));

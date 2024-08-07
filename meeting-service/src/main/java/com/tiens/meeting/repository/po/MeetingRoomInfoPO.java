@@ -210,6 +210,9 @@ public class MeetingRoomInfoPO implements Serializable {
     @TableField(value = "language_id")
     private String languageId;
 
+    @TableField(value = "area")
+    private String area;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 

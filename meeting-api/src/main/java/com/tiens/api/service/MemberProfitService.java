@@ -142,8 +142,7 @@ public interface MemberProfitService {
      * @param meetingProfitPurchaseDetailGetDTO
      * @return
      */
-    CommonResult<MeetingProfitPurchaseDetailVO> getMeetingProfitPurchaseDetail(
-        MeetingProfitPurchaseDetailGetDTO meetingProfitPurchaseDetailGetDTO);
+    CommonResult<MeetingProfitPurchaseDetailVO> getMeetingProfitPurchaseDetail(MeetingProfitPurchaseDetailGetDTO meetingProfitPurchaseDetailGetDTO);
 
     /**
      * 查询结算金额

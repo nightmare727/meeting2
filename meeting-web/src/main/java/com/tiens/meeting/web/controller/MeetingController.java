@@ -99,23 +99,25 @@ public class MeetingController {
     /**
      * 创建、预约会议
      *
-     * @param meetingRoomContextDTO
+     * @param meetingRoomContextDto
      * @return
      */
     @ResponseBody
     @PostMapping("/createMeetingRoom")
     CommonResult<MeetingRoomDetailDTO> createMeetingRoom(@RequestHeader("finalUserId") String finalUserId,
-        @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
-        @RequestHeader(value = "language_id", defaultValue = "zh-CN") String languageId,
-        @RequestHeader(value = "joyoCode") String joyoCode, @RequestHeader(value = "memberType") Integer memberType,
-        @RequestBody MeetingRoomContextDTO meetingRoomContextDTO) throws Exception {
-        meetingRoomContextDTO.setImUserId(finalUserId);
-        meetingRoomContextDTO.setLevelCode(levelCode);
-        meetingRoomContextDTO.setImUserName(userName);
-        meetingRoomContextDTO.setLanguageId(languageId);
-        meetingRoomContextDTO.setJoyoCode(joyoCode);
-        meetingRoomContextDTO.setMemberType(memberType);
-        return rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDTO);
+                                                         @RequestHeader("levelCode") Integer levelCode, @RequestHeader("userName") String userName,
+                                                         @RequestHeader(value = "language_id", defaultValue = "zh-CN") String languageId,
+                                                         @RequestHeader(value = "joyoCode") String joyoCode, @RequestHeader(value = "memberType") Integer memberType,
+                                                         @RequestHeader(value = "nation_id") String nationId,
+                                                         @RequestBody MeetingRoomContextDTO meetingRoomContextDto) throws Exception {
+        meetingRoomContextDto.setImUserId(finalUserId);
+        meetingRoomContextDto.setLevelCode(levelCode);
+        meetingRoomContextDto.setImUserName(userName);
+        meetingRoomContextDto.setLanguageId(languageId);
+        meetingRoomContextDto.setJoyoCode(joyoCode);
+        meetingRoomContextDto.setMemberType(memberType);
+        meetingRoomContextDto.setNationId(nationId);
+        return rpcMeetingRoomService.createMeetingRoom(meetingRoomContextDto);
     }
 
     /**

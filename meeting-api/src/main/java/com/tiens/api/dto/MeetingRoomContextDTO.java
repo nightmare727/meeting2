@@ -125,6 +125,12 @@ public class MeetingRoomContextDTO implements Serializable {
      * 卓越卡号
      */
     private String joyoCode;
+
+    /**
+     * 国家
+     */
+    private String nationId;
+
     /**
      * 是否需要购买付款
      */
