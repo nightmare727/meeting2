@@ -425,13 +425,15 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<MeetingProfitPurchaseDetailVO> getMeetingProfitPurchaseDetail(
-            MeetingProfitPurchaseDetailGetDTO meetingProfitPurchaseDetailGetDto) {
+        MeetingProfitPurchaseDetailGetDTO meetingProfitPurchaseDetailGetDto) {
         log.info("【查询会员权益购买详情】入参：{}", JSON.toJSONString(meetingProfitPurchaseDetailGetDto));
 
-        if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(meetingProfitPurchaseDetailGetDto.getResourceType())) {
+        if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(
+            meetingProfitPurchaseDetailGetDto.getResourceType())) {
             // 构建返回值
             MeetingProfitPurchaseDetailVO meetingProfitPurchaseDetailVo = new MeetingProfitPurchaseDetailVO();
-            meetingProfitPurchaseDetailVo.setPurchaseStatus(MeetingProfitPurchaseDetailStatusEnum.NOT_ENABLE.getState());
+            meetingProfitPurchaseDetailVo.setPurchaseStatus(
+                MeetingProfitPurchaseDetailStatusEnum.NOT_ENABLE.getState());
             meetingProfitPurchaseDetailVo.setLeadTimeList(Arrays.asList(30, 60));
             meetingProfitPurchaseDetailVo.setDurationList(Arrays.asList(60, 90, 120, 150, 180));
             return CommonResult.success(meetingProfitPurchaseDetailVo);
@@ -440,10 +442,13 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         Integer purchaseStatus;
 
         //是否是会员
-        boolean isNormalMember = meetingProfitPurchaseDetailGetDto.getMemberType().equals(MemberLevelEnum.NORMAL.getState());
+        boolean isNormalMember =
+            meetingProfitPurchaseDetailGetDto.getMemberType().equals(MemberLevelEnum.NORMAL.getState());
 
         //查询权益配置
-        CommonResult<MeetingUserProfitVO> userProfit = this.getUserProfit(meetingProfitPurchaseDetailGetDto.getFinalUserId(), meetingProfitPurchaseDetailGetDto.getMemberType());
+        CommonResult<MeetingUserProfitVO> userProfit =
+            this.getUserProfit(meetingProfitPurchaseDetailGetDto.getFinalUserId(),
+                meetingProfitPurchaseDetailGetDto.getMemberType());
 
         MeetingUserProfitVO data = userProfit.getData();
         //会员权益
@@ -466,19 +471,18 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         freeResourceListDto.setLeadTime(meetingProfitPurchaseDetailGetDto.getLeadTime());
 
         CommonResult<List<MeetingResourceVO>> freeResourceList =
-                rpcMeetingRoomService.getFreeResourceList(freeResourceListDto);
+            rpcMeetingRoomService.getFreeResourceList(freeResourceListDto);
         List<MeetingResourceVO> freeResourceListData = freeResourceList.getData();
 
         //公有空闲资源列表
         List<MeetingResourceVO> publicFreeList = freeResourceListData.stream()
-                .filter(t -> MeetingRoomTypeEnum.PUBLIC_SUBSCRIBE.getState().equals(t.getMeetingRoomType()))
-                .collect(Collectors.toList());
-
+            .filter(t -> MeetingRoomTypeEnum.PUBLIC_SUBSCRIBE.getState().equals(t.getMeetingRoomType()))
+            .collect(Collectors.toList());
 
         //付费空闲资源列表
         List<MeetingResourceVO> paidFreeList = freeResourceListData.stream()
-                .filter(t -> MeetingRoomTypeEnum.PAID_SUBSCRIBE.getState().equals(t.getMeetingRoomType()))
-                .collect(Collectors.toList());
+            .filter(t -> MeetingRoomTypeEnum.PAID_SUBSCRIBE.getState().equals(t.getMeetingRoomType()))
+            .collect(Collectors.toList());
 
         //超出所有规格，设置购买
         if (!userMemberProfit.getResourceType().contains(meetingProfitPurchaseDetailGetDto.getResourceType())) {
@@ -543,7 +547,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             case 1:
             case 5:
                 // 取会员权益
-                meetingProfitPurchaseDetailVo.setDurationList(generateDurationList(userMemberProfit.getEveryLimitCount()));
+                meetingProfitPurchaseDetailVo.setDurationList(
+                    generateDurationList(userMemberProfit.getEveryLimitCount()));
                 break;
             case 2:
             case 3:
@@ -551,12 +556,12 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                 // 取付费权益（单次上限输入规则为0.5小时的倍数）
                 // 付费权益
                 CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
-                        meetingCacheService.getMeetingPaidSettingByResourceType
-                                (Integer.parseInt(meetingProfitPurchaseDetailGetDto.getResourceType()));
+                    meetingCacheService.getMeetingPaidSettingByResourceType
+                        (Integer.parseInt(meetingProfitPurchaseDetailGetDto.getResourceType()));
                 MeetingPaidSettingVO meetingPaidSettingVo = meetingPaidSettingByResourceType.getData();
 
                 double limitTime = meetingPaidSettingVo.getOnceLimit() * 60;
-                meetingProfitPurchaseDetailVo.setDurationList(generateDurationList((int) limitTime));
+                meetingProfitPurchaseDetailVo.setDurationList(generateDurationList((int)limitTime));
         }
 
         return CommonResult.success(meetingProfitPurchaseDetailVo);
@@ -564,6 +569,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
     /**
      * 根据步长生成list
+     *
      * @param end
      * @return
      */
@@ -584,14 +590,15 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      * @return
      */
     @Override
-    public CommonResult<ProfitPaidCheckOutGetVO> getProfitPaidCheckOut(ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDto) {
+    public CommonResult<ProfitPaidCheckOutGetVO> getProfitPaidCheckOut(
+        ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDto) {
         String resourceType = profitPaidCheckOutGetDto.getResourceType();
         if (!NumberUtil.isNumber(resourceType)) {
             return CommonResult.success(null);
         }
 
         CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
-                meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
+            meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
         MeetingPaidSettingVO meetingPaidSettingVO = meetingPaidSettingByResourceType.getData();
 
         Integer duration = profitPaidCheckOutGetDto.getDuration();
@@ -603,8 +610,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         Double money = meetingPaidSettingVO.getMoney();
         ProfitPaidCheckOutGetVO profitPaidCheckOutGetVO = new ProfitPaidCheckOutGetVO();
 
-        profitPaidCheckOutGetVO.setNeedPayVMAmount(BigDecimal.valueOf((long) (finalTime / 30) * vmCoin));
-        profitPaidCheckOutGetVO.setNeedPayAmount(BigDecimal.valueOf((long) (finalTime / 30) * money));
+        profitPaidCheckOutGetVO.setNeedPayVMAmount(BigDecimal.valueOf((long)(finalTime / 30) * vmCoin));
+        profitPaidCheckOutGetVO.setNeedPayAmount(BigDecimal.valueOf((long)(finalTime / 30) * money));
 
         return CommonResult.success(profitPaidCheckOutGetVO);
     }
@@ -723,6 +730,11 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         userMemberProfitEntity.setResourceSizeList(resourceSizeList);
 
+        List<Integer> leadTimeList = Arrays.asList(t.getGoTime().split(",")).stream()
+            .map(Integer::parseInt).sorted()
+            .collect(Collectors.toList());
+
+        userMemberProfitEntity.setLeadTimeList(leadTimeList);
         return userMemberProfitEntity;
 
     }
@@ -875,12 +887,13 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             String resourceType = userMemberProfitEntity.getResourceType();
             String goTime = userMemberProfitEntity.getGoTime();
             List<Integer> resourceSizeList = Arrays.asList(resourceType.split(",")).stream()
-                    .map(t -> MeetingResourceEnum.getByType(Integer.parseInt(t)).getValue()).collect(Collectors.toList());
+                .map(t -> MeetingResourceEnum.getByType(Integer.parseInt(t)).getValue()).collect(Collectors.toList());
 
             userMemberProfitEntity.setResourceSizeList(resourceSizeList);
 
             List<Integer> leadTimeList = Arrays.asList(goTime.split(",")).stream()
-                    .map(t -> MeetingResoyrceDateEnum.getHandlerNameByVmrMode(Integer.parseInt(t))).collect(Collectors.toList());
+                .map(t -> MeetingResoyrceDateEnum.getHandlerNameByVmrMode(Integer.parseInt(t)))
+                .collect(Collectors.toList());
 
             userMemberProfitEntity.setLeadTimeList(leadTimeList);
         }
@@ -1005,7 +1018,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         }
     }
-
 
     static String getProfitOrderNewNo() {
         //MT202407110932+6位随机
