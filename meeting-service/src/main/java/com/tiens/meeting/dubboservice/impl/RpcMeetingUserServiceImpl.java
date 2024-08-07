@@ -53,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -447,7 +448,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         Date startTime= DateUtil.date();
         log.info("userRequestDto.getEndTime:{}",endTime);
         if(endTime!=null){
-            endTime = DateUtil.convertTimeZone(endTime, DateUtils.TIME_ZONE_GMT);
+            ZoneId userZoneId = ZoneId.of("Asia/Shanghai");
+            // 用户当前时间
+            endTime = DateUtils.convertTimeZone(endTime, userZoneId, DateUtils.TIME_ZONE_GMT);
             if (endTime.before(startTime)) {
                 return CommonResult.errorMsg("结束时间不可以小于当前~");
             }
