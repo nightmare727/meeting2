@@ -410,7 +410,25 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     @Override
     public CommonResult<List<UserMemberProfitEntity>> getALlProfit() {
         CommonResult<CommonProfitConfigQueryVO> commonProfitConfigQueryVOCommonResult = queryCommonProfitConfig();
-        return CommonResult.success(commonProfitConfigQueryVOCommonResult.getData().getUserMemberProfitList());
+
+        List<UserMemberProfitEntity> userMemberProfitList =
+            commonProfitConfigQueryVOCommonResult.getData().getUserMemberProfitList();
+
+        for (UserMemberProfitEntity userMemberProfitEntity : userMemberProfitList) {
+            String resourceType = userMemberProfitEntity.getResourceType();
+            String goTime = userMemberProfitEntity.getGoTime();
+            List<Integer> resourceSizeList = Arrays.asList(resourceType.split(",")).stream()
+                .map(t -> MeetingResourceEnum.getByType(Integer.parseInt(t)).getValue()).collect(Collectors.toList());
+
+            userMemberProfitEntity.setResourceSizeList(resourceSizeList);
+
+            List<Integer> leadTimeList = Arrays.asList(goTime.split(",")).stream()
+                .map(t -> MeetingResourceEnum.getByType(Integer.parseInt(t)).getValue()).collect(Collectors.toList());
+
+            userMemberProfitEntity.setLeadTimeList(leadTimeList);
+        }
+
+        return CommonResult.success(userMemberProfitList);
     }
 
     /**
