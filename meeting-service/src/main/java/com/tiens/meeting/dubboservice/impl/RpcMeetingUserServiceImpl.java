@@ -1,10 +1,12 @@
 package com.tiens.meeting.dubboservice.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -457,6 +459,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         List<MeetingBlackUserPO> batchData = userIdList.stream().map(
                 userId -> {
                     // 删除旧的
+                    meetingBlackUserDaoService.remove(new LambdaQueryWrapper<MeetingBlackUserPO>().eq(MeetingBlackUserPO::getUserId, userId));
 
                     // 从缓存中获取被加入黑名单人的信息
                     RBucket<VMUserVO> vorBucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId));
@@ -499,17 +502,14 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
         String result = map.get(CommonProfitConfigConstants.CMS_SHOW_FLAG);
         if (StringUtils.isNotBlank(result) && "1".equals(result)) {
+            LaugeVO laugeVO = la.get(0);
+            LaugeVO laugeVO1 = la.get(1);
             //如果集合为空设置默认值
-            la.forEach(
-                    laugeVO -> {
-                        //如果为空添加默认语言
-                        if (la.size() == 0){
-                            la.add(new LaugeVO("en-US", "US", laugeVO.getValue()));
-                            la.add(new LaugeVO("en-ZN", "ZN", laugeVO.getValue()));
-                        }
-                        redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).set(laugeVO);
-                    }
-            );
+            if (la.size() == 0){
+                la.add(new LaugeVO("en-US", "US", laugeVO.getValue()));
+                la.add(new LaugeVO("en-ZN", "ZN", laugeVO1.getValue()));
+            }
+            redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).set(la);
             return CommonResult.success( null);
         }
         if (StringUtils.isNotBlank(result) && "0".equals(result)) {
@@ -533,7 +533,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             if (meetingMemeberProfitConfigVOList != null && !meetingMemeberProfitConfigVOList.isEmpty()) {
                 meetingMemeberProfitConfigVOList.forEach(meetingMemeberProfitConfigVO -> {
                     MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = BeanUtil.copyProperties(meetingMemeberProfitConfigVO, MeetingMemeberProfitConfigPO.class);
-                    meetingMemeberProfitConfigDaoService.updateById(meetingMemeberProfitConfigPO);
+                    //根据membertype修改数据库
+                    meetingMemeberProfitConfigDaoService.update(meetingMemeberProfitConfigPO,new LambdaQueryWrapper<MeetingMemeberProfitConfigPO>().eq(MeetingMemeberProfitConfigPO::getMemberType,meetingMemeberProfitConfigVO.getMemberType()));
                     //先将之前的缓存删除
                     redissonClient.getBucket(CacheKeyUtil.getFreeReservationLimitKey(meetingMemeberProfitConfigVO.getMemberType())).delete();
                     //将数据存到redis中
@@ -584,9 +585,11 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     @Override
     public CommonResult<List<LaugeVO>> upPopupWindowList() {
         //直接取redis中的数据
-        LaugeVO laugeVO = (LaugeVO)redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).get();
-        List<LaugeVO> objects = new ArrayList<>();
-        objects.add(laugeVO);
+        Object countenance = redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countenance")).get();
+        //将数据转成json字符串
+        String json = JSON.toJSONString(countenance);
+        //再将字符串转成list集合
+        List<LaugeVO> objects = JSON.parseArray(json, LaugeVO.class);
         //返回数据
         return CommonResult.success(objects);
     }
@@ -603,13 +606,4 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
        return CommonResult.success(BeanUtil.copyToList(list, MeetingMemeberProfitConfigVO.class));
     }
 
-    @Override
-    public CommonResult queryMeetingBlackById(String userId) {
-        //根据id查询
-        MeetingBlackUserVO meetingBlackUserVO = (MeetingBlackUserVO)redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).get();
-        if (meetingBlackUserVO != null){
-            return CommonResult.errorMsg("该用户已被拉黑");
-        }
-        return null;
-    }
 }

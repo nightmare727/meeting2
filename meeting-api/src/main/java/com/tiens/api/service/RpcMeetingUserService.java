@@ -145,5 +145,4 @@ public interface RpcMeetingUserService {
      */
     CommonResult<List<MeetingMemeberProfitConfigVO>> queryCommonmeberProfitConfig() throws InvocationTargetException, IllegalAccessException;
 
-    CommonResult queryMeetingBlackById(String userId);
 }
