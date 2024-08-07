@@ -54,10 +54,7 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -549,12 +546,19 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                     //将数据存到redis中
                     redissonClient.getBucket(CacheKeyUtil.getFreeReservationLimitKey("rese")).set
                     (meetingMemeberProfitConfigVO);*/
-
-                    RMap<Integer, MeetingMemeberProfitConfigPO> cacheMap =
-                        redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey("rese"));
-
-                    cacheMap.put(meetingMemeberProfitConfigPO.getMemberType(), meetingMemeberProfitConfigPO);
                 });
+
+                List<MeetingMemeberProfitConfigPO> list = meetingMemeberProfitConfigDaoService.list();
+
+                Map<Integer, MeetingMemeberProfitConfigPO> cacheData = list.stream().collect(
+                    Collectors.groupingBy(MeetingMemeberProfitConfigPO::getMemberType,
+                        Collectors.collectingAndThen(Collectors.toList(), value -> value.get(0))));
+
+                RMap<Integer, MeetingMemeberProfitConfigPO> cacheMap =
+                    redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey("rese"));
+
+                cacheMap.putAll(cacheData);
+
                 return CommonResult.success(null);
             }
         }
