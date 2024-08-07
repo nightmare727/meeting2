@@ -152,8 +152,8 @@ public class CacheKeyUtil {
         return new StringBuilder(BASE_CACHE_PREFIX).append("popupWindowList:").append(countryCode).toString();
     }
 
-    public static String getFreeReservationLimitKey(Integer memberType) {
-        return new StringBuilder(BASE_CACHE_PREFIX).append("freeReservationLimit:").append(memberType).toString();
+    public static String getFreeReservationLimitKey(String rese) {
+        return new StringBuilder(BASE_CACHE_PREFIX).append("freeReservationLimit:").append(rese).toString();
     }
 
 
