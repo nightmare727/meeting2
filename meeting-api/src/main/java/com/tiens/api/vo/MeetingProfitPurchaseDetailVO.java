@@ -3,6 +3,7 @@ package com.tiens.api.vo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @Author: 蔚文杰
@@ -11,8 +12,6 @@ import java.io.Serializable;
  * @Company: tiens
  */
 @Data
-
-//MeetingProfitPurchaseDetailStatusEnum
 public class MeetingProfitPurchaseDetailVO implements Serializable {
 
     /**
@@ -20,9 +19,12 @@ public class MeetingProfitPurchaseDetailVO implements Serializable {
      */
     private Integer purchaseStatus;
 
-    /**
-     * 最大持续时长
-     */
-    private Integer maxDuration;
+    /** 会议时长 */
+    private List<Integer> durationList;
+
+    // 30 60 90 120
+
+    /** 提前入会时长，免费权益的，就返回上面那个数组        付费权益的，就找下面那个 */
+    private List<Integer> leadTimeList;
 
 }
