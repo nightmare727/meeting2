@@ -12,7 +12,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.http.param.MediaType;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.google.common.collect.Lists;
@@ -429,6 +428,15 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             MeetingProfitPurchaseDetailGetDTO meetingProfitPurchaseDetailGetDto) {
         log.info("【查询会员权益购买详情】入参：{}", JSON.toJSONString(meetingProfitPurchaseDetailGetDto));
 
+        if (!memberProfitCacheService.getMemberProfitEnabled() || !NumberUtil.isNumber(meetingProfitPurchaseDetailGetDto.getResourceType())) {
+            // 构建返回值
+            MeetingProfitPurchaseDetailVO meetingProfitPurchaseDetailVo = new MeetingProfitPurchaseDetailVO();
+            meetingProfitPurchaseDetailVo.setPurchaseStatus(MeetingProfitPurchaseDetailStatusEnum.NOT_ENABLE.getState());
+            meetingProfitPurchaseDetailVo.setLeadTimeList(Arrays.asList(30, 60));
+            meetingProfitPurchaseDetailVo.setDurationList(Arrays.asList(60, 90, 120, 150, 180));
+            return CommonResult.success(meetingProfitPurchaseDetailVo);
+        }
+
         Integer purchaseStatus;
 
         //是否是会员
@@ -442,12 +450,12 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         UserMemberProfitEntity userMemberProfit = data.getUserMemberProfit();
 
         //查询空闲资源列表
-        FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
-        freeResourceListDTO.setImUserId(meetingProfitPurchaseDetailGetDto.getFinalUserId());
-        freeResourceListDTO.setStartTime(meetingProfitPurchaseDetailGetDto.getStartTime());
-        freeResourceListDTO.setTimeZoneOffset(meetingProfitPurchaseDetailGetDto.getTimeZoneOffset());
-        freeResourceListDTO.setLength(meetingProfitPurchaseDetailGetDto.getLength());
-        freeResourceListDTO.setResourceType(meetingProfitPurchaseDetailGetDto.getResourceType());
+        FreeResourceListDTO freeResourceListDto = new FreeResourceListDTO();
+        freeResourceListDto.setImUserId(meetingProfitPurchaseDetailGetDto.getFinalUserId());
+        freeResourceListDto.setStartTime(meetingProfitPurchaseDetailGetDto.getStartTime());
+        freeResourceListDto.setTimeZoneOffset(meetingProfitPurchaseDetailGetDto.getTimeZoneOffset());
+        freeResourceListDto.setLength(meetingProfitPurchaseDetailGetDto.getLength());
+        freeResourceListDto.setResourceType(meetingProfitPurchaseDetailGetDto.getResourceType());
 
         // 如果前端没传，那么取最小的那个
         if (meetingProfitPurchaseDetailGetDto.getLeadTime() == null) {
@@ -455,10 +463,10 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             meetingProfitPurchaseDetailGetDto.setLeadTime(Collections.min(leadTimeList));
         }
 
-        freeResourceListDTO.setLeadTime(meetingProfitPurchaseDetailGetDto.getLeadTime());
+        freeResourceListDto.setLeadTime(meetingProfitPurchaseDetailGetDto.getLeadTime());
 
         CommonResult<List<MeetingResourceVO>> freeResourceList =
-                rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO);
+                rpcMeetingRoomService.getFreeResourceList(freeResourceListDto);
         List<MeetingResourceVO> freeResourceListData = freeResourceList.getData();
 
         //公有空闲资源列表
