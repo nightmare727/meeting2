@@ -445,12 +445,18 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     public CommonResult addBlackUser(String account, UserRequestDTO userRequestDto) {
         List<String> userIdList = userRequestDto.getUserIdList();
         Date endTime = userRequestDto.getEndTime();
-
-        if (endTime.before(new Date())) {
-            return CommonResult.errorMsg("结束时间不可以小于当前~");
+        Date startTime = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+        if(endTime!=null){
+            endTime = DateUtil.convertTimeZone(endTime, DateUtils.TIME_ZONE_GMT);
+            if (endTime.before(startTime)) {
+                return CommonResult.errorMsg("结束时间不可以小于当前~");
+            }
         }
+        Date expire = endTime;
         List<Boolean> result = new ArrayList<>();
-        userIdList.forEach(
+        meetingBlackUserDaoService.remove(new LambdaQueryWrapper<MeetingBlackUserPO>().in(MeetingBlackUserPO::getUserId, userIdList));
+
+        List<MeetingBlackUserPO> batchData = userIdList.stream().map(
                 userId -> {
                     // 删除旧的
                     meetingBlackUserDaoService.remove(new LambdaQueryWrapper<MeetingBlackUserPO>().eq(MeetingBlackUserPO::getUserId, userId));
@@ -468,24 +474,22 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                     meetingBlackUserVo.setMobile(vmUserVo == null ? null : vmUserVo.getMobile());
                     meetingBlackUserVo.setNickName(vmUserVo == null ? null : vmUserVo.getNickName());
                     meetingBlackUserVo.setCountryCode(vmUserVo == null ? null : vmUserVo.getCountry());
-                    DateTime startTime = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_DEFAULT);
                     meetingBlackUserVo.setStartTime(startTime);
-                    DateTime dateTime = DateUtil.convertTimeZone(endTime, DateUtils.TIME_ZONE_DEFAULT);
-                    meetingBlackUserVo.setEndTime(dateTime);
+                    meetingBlackUserVo.setEndTime(expire);
                     meetingBlackUserVo.setOperator(account);
-
                     // 缓存设置
                     RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId));
                     bucket.set(meetingBlackUserVo);
-                    // 设置过期时间
-                    long differenceInMilliSeconds = endTime.getTime() - startTime.getTime();
-                    // 将毫秒转换为秒
-                    bucket.expire(differenceInMilliSeconds / 1000, TimeUnit.SECONDS);
-
-                    MeetingBlackUserPO blackUserPo = BeanUtil.copyProperties(meetingBlackUserVo, MeetingBlackUserPO.class);
-                    result.add(meetingBlackUserDaoService.save(blackUserPo));
+                    if (expire != null) {
+                        // 设置过期时间
+                        long differenceInMilliSeconds = expire.getTime() - startTime.getTime();
+                        // 将毫秒转换为秒
+                        bucket.expire(differenceInMilliSeconds / 1000, TimeUnit.SECONDS);
+                    }
+                    return BeanUtil.copyProperties(meetingBlackUserVo, MeetingBlackUserPO.class);
                 }
-        );
+        ).collect(Collectors.toList());
+        meetingBlackUserDaoService.saveBatch(batchData);
         return CommonResult.success(result);
     }
 
