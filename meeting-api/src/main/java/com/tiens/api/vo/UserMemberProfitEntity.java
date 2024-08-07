@@ -29,7 +29,7 @@ public class UserMemberProfitEntity implements Serializable {
     private Integer surPlusCount;
 
     /**
-     * 每天每次免费剩余预约次数
+     * 每天每次免费预约次数
      */
     private Integer freeDayAppointCount;
 
@@ -39,17 +39,21 @@ public class UserMemberProfitEntity implements Serializable {
     private Integer everyLimitCount;
 
     /**
-     * 规格
+     * 规格数组逗号拼接，1，2，3，4等
      */
     private String resourceType;
 
     /**
-     * 提前入会时间
+     * 提前入会时间，逗号拼接，30.60等
      */
     private String goTime;
     /**
-     * 资源规模数组
+     * 资源规模方数数组
      */
     private List<Integer> resourceSizeList;
 
+    /**
+     * 提前开始时间数组
+     */
+    private List<Integer> leadTimeList;
 }
