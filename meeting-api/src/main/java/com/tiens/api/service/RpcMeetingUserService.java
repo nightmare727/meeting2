@@ -105,10 +105,11 @@ public interface RpcMeetingUserService {
 
     /**
      * 添加黑名单用户
+     *
      * @param
      * @return
      */
-    CommonResult addBlackUser( String finalUserId,String account, UserRequestDTO userRequestDTO);
+    CommonResult addBlackUser(String account, UserRequestDTO userRequestDto);
 
     /**
      * 会议模版弹窗

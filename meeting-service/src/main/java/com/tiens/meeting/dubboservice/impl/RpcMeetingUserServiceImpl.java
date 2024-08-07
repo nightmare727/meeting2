@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -33,7 +32,6 @@ import com.tiens.meeting.repository.po.*;
 import com.tiens.meeting.repository.service.*;
 import common.constants.CommonProfitConfigConstants;
 import common.enums.MeetingResourceEnum;
-import common.exception.ErrorCode;
 import common.exception.ServiceException;
 import common.exception.enums.GlobalErrorCodeConstants;
 import common.pojo.CommonResult;
@@ -43,7 +41,6 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
@@ -56,8 +53,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -439,44 +438,42 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      * @return
      */
     @Override
-    public CommonResult addBlackUser(String finalUserId,String account,UserRequestDTO userRequestDTO) {
-        MeetingBlackUserVO meetingBlackUserVO = new MeetingBlackUserVO();
-        MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
-        List<String> userIdList = userRequestDTO.getUserIdList();
-        Date endTime = userRequestDTO.getEndTime();
-       RBucket<VMUserVO> bucket = null;
-        if (StringUtils.isNotBlank(finalUserId)){
-            // 查询缓存
-            bucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(finalUserId));
+    public CommonResult addBlackUser(String account, UserRequestDTO userRequestDto) {
+        List<String> userIdList = userRequestDto.getUserIdList();
+        Date endTime = userRequestDto.getEndTime();
+
+        if (endTime.before(new Date())) {
+            return CommonResult.errorMsg("结束时间不可以小于当前~");
         }
-        VMUserVO vmUserCacheVO = bucket.get();
-        //校验黑名单
-       userIdList.forEach(
+        List<Boolean> result = new ArrayList<>();
+        userIdList.forEach(
                 userId -> {
-                    //用户id和finalUserId相同时取数据
-                    if (userId.equals(finalUserId)) {
-                        //根据userid去查用户的信息
-                        meetingBlackUserVO.setUserId(userId);
-                        meetingBlackUserVO.setJoyoCode(userId);
-                        meetingBlackUserVO.setLastMeetingCode("");
-                        meetingBlackUserVO.setMobile(vmUserCacheVO.getMobile());
-                        meetingBlackUserVO.setNickName(vmUserCacheVO.getNickName());
-                        meetingBlackUserVO.setCountryCode(vmUserCacheVO.getCountry());
-                        meetingBlackUserVO.setCreateTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-                        meetingBlackUserVO.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT));
-                        if (endTime != null) {
-                            meetingBlackUserVO.setEndTime(endTime);
-                        } else {
-                            meetingBlackUserVO.setEndTime(null);
-                        }
-                        meetingBlackUserVO.setOperator(account);
-                        redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserVO);
-                        BeanUtil.copyProperties(meetingBlackUserVO, meetingBlackUserPO);
-                        meetingBlackUserDaoService.save(meetingBlackUserPO);
-                    }
+
+                    // 从缓存中获取被加入黑名单人的信息
+                    RBucket<VMUserVO> vorBucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId));
+                    VMUserVO vmUserVo = vorBucket.get();
+
+                    MeetingBlackUserVO meetingBlackUserVo = new MeetingBlackUserVO();
+                    meetingBlackUserVo.setUserId(userId);
+                    meetingBlackUserVo.setJoyoCode(vmUserVo == null ? null : vmUserVo.getJoyoCode());
+
+                    // 不知道去哪里取？
+                    meetingBlackUserVo.setLastMeetingCode("");
+                    meetingBlackUserVo.setMobile(vmUserVo == null ? null : vmUserVo.getMobile());
+                    meetingBlackUserVo.setNickName(vmUserVo == null ? null : vmUserVo.getNickName());
+                    meetingBlackUserVo.setCountryCode(vmUserVo == null ? null : vmUserVo.getCountry());
+                    meetingBlackUserVo.setStartTime(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_DEFAULT));
+                    meetingBlackUserVo.setEndTime(endTime);
+                    meetingBlackUserVo.setOperator(account);
+
+                    // 缓存设置
+                    redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).set(meetingBlackUserVo);
+
+                    MeetingBlackUserPO blackUserPo = BeanUtil.copyProperties(meetingBlackUserVo, MeetingBlackUserPO.class);
+                    result.add(meetingBlackUserDaoService.save(blackUserPo));
                 }
         );
-            return CommonResult.success(meetingBlackUserPO);
+        return CommonResult.success(result);
     }
 
     /**
