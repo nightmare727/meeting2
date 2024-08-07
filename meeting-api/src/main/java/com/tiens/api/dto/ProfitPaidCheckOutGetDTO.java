@@ -13,22 +13,12 @@ import java.io.Serializable;
 @Data
 public class ProfitPaidCheckOutGetDTO implements Serializable {
 
-    /**
-     * 资源id
-     */
-    private Integer resourceId;
-
-    /**
-     * 资源类型
-     */
+    /** 资源类型 */
     private String resourceType;
 
-    /**
-     * 持续时长
-     */
+    /**  持续时长 */
     private Integer duration;
-    /**
-     * 前置时间
-     */
+
+    /** 前置时间 */
     private Integer leadTime;
 }
