@@ -421,60 +421,59 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     /**
      * 查询会员权益购买详情
      *
-     * @param meetingProfitPurchaseDetailGetDTO
+     * @param meetingProfitPurchaseDetailGetDto
      * @return
      */
     @Override
     public CommonResult<MeetingProfitPurchaseDetailVO> getMeetingProfitPurchaseDetail(
-        MeetingProfitPurchaseDetailGetDTO meetingProfitPurchaseDetailGetDTO) {
-        log.info("【查询会员权益购买详情】入参：{}", JSON.toJSONString(meetingProfitPurchaseDetailGetDTO));
+            MeetingProfitPurchaseDetailGetDTO meetingProfitPurchaseDetailGetDto) {
+        log.info("【查询会员权益购买详情】入参：{}", JSON.toJSONString(meetingProfitPurchaseDetailGetDto));
 
         Integer purchaseStatus;
 
         //是否是会员
-        boolean isNormalMember = meetingProfitPurchaseDetailGetDTO.getMemberType().equals(MemberLevelEnum.NORMAL.getState());
+        boolean isNormalMember = meetingProfitPurchaseDetailGetDto.getMemberType().equals(MemberLevelEnum.NORMAL.getState());
 
         //查询权益配置
-        CommonResult<MeetingUserProfitVO> userProfit = this.getUserProfit(meetingProfitPurchaseDetailGetDTO.getFinalUserId(), meetingProfitPurchaseDetailGetDTO.getMemberType());
-
-        //查询空闲资源列表
-        FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
-        freeResourceListDTO.setImUserId(meetingProfitPurchaseDetailGetDTO.getFinalUserId());
-        freeResourceListDTO.setStartTime(meetingProfitPurchaseDetailGetDTO.getStartTime());
-        freeResourceListDTO.setTimeZoneOffset(meetingProfitPurchaseDetailGetDTO.getTimeZoneOffset());
-        freeResourceListDTO.setLength(meetingProfitPurchaseDetailGetDTO.getLength());
-        freeResourceListDTO.setResourceType(meetingProfitPurchaseDetailGetDTO.getResourceType());
-        freeResourceListDTO.setLeadTime(meetingProfitPurchaseDetailGetDTO.getLeadTime());
-
-        CommonResult<List<MeetingResourceVO>> freeResourceList =
-            rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO);
-        List<MeetingResourceVO> freeResourceListData = freeResourceList.getData();
-
-        //公有空闲资源列表
-        List<MeetingResourceVO> publicFreeList = freeResourceListData.stream()
-            .filter(t -> MeetingRoomTypeEnum.PUBLIC_SUBSCRIBE.getState().equals(t.getMeetingRoomType()))
-            .collect(Collectors.toList());
-
-
-        //付费空闲资源列表
-        List<MeetingResourceVO> paidFreeList = freeResourceListData.stream()
-            .filter(t -> MeetingRoomTypeEnum.PAID_SUBSCRIBE.getState().equals(t.getMeetingRoomType()))
-            .collect(Collectors.toList());
-
-        //查询付费权益
-//        CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
-//            meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
-        //MeetingPaidSettingVO meetingPaidSettingVO = meetingPaidSettingByResourceType.getData();
+        CommonResult<MeetingUserProfitVO> userProfit = this.getUserProfit(meetingProfitPurchaseDetailGetDto.getFinalUserId(), meetingProfitPurchaseDetailGetDto.getMemberType());
 
         MeetingUserProfitVO data = userProfit.getData();
         //会员权益
         UserMemberProfitEntity userMemberProfit = data.getUserMemberProfit();
-        //剩余次数
-        Integer surPlusCount = userMemberProfit.getSurPlusCount();
 
+        //查询空闲资源列表
+        FreeResourceListDTO freeResourceListDTO = new FreeResourceListDTO();
+        freeResourceListDTO.setImUserId(meetingProfitPurchaseDetailGetDto.getFinalUserId());
+        freeResourceListDTO.setStartTime(meetingProfitPurchaseDetailGetDto.getStartTime());
+        freeResourceListDTO.setTimeZoneOffset(meetingProfitPurchaseDetailGetDto.getTimeZoneOffset());
+        freeResourceListDTO.setLength(meetingProfitPurchaseDetailGetDto.getLength());
+        freeResourceListDTO.setResourceType(meetingProfitPurchaseDetailGetDto.getResourceType());
+
+        // 如果前端没传，那么取最小的那个
+        if (meetingProfitPurchaseDetailGetDto.getLeadTime() == null) {
+            List<Integer> leadTimeList = userMemberProfit.getLeadTimeList();
+            meetingProfitPurchaseDetailGetDto.setLeadTime(Collections.min(leadTimeList));
+        }
+
+        freeResourceListDTO.setLeadTime(meetingProfitPurchaseDetailGetDto.getLeadTime());
+
+        CommonResult<List<MeetingResourceVO>> freeResourceList =
+                rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO);
+        List<MeetingResourceVO> freeResourceListData = freeResourceList.getData();
+
+        //公有空闲资源列表
+        List<MeetingResourceVO> publicFreeList = freeResourceListData.stream()
+                .filter(t -> MeetingRoomTypeEnum.PUBLIC_SUBSCRIBE.getState().equals(t.getMeetingRoomType()))
+                .collect(Collectors.toList());
+
+
+        //付费空闲资源列表
+        List<MeetingResourceVO> paidFreeList = freeResourceListData.stream()
+                .filter(t -> MeetingRoomTypeEnum.PAID_SUBSCRIBE.getState().equals(t.getMeetingRoomType()))
+                .collect(Collectors.toList());
 
         //超出所有规格，设置购买
-        if (!userMemberProfit.getResourceType().contains(meetingProfitPurchaseDetailGetDTO.getResourceType())) {
+        if (!userMemberProfit.getResourceType().contains(meetingProfitPurchaseDetailGetDto.getResourceType())) {
 
             // 共有资源，付费资源2者中1个不为空，说明可以购买
             if (!ObjectUtil.isAllEmpty(paidFreeList, publicFreeList)) {
@@ -484,7 +483,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             }
 
         } else {
-            if (surPlusCount > 0) {
+            if (userMemberProfit.getSurPlusCount() > 0) {
                 //有剩余次数
                 if (isNormalMember) {
                     //普通会员，查询当前是否有公有预约资源
@@ -527,14 +526,47 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             }
         }
 
+        // 构建返回值
+        MeetingProfitPurchaseDetailVO meetingProfitPurchaseDetailVo = new MeetingProfitPurchaseDetailVO();
+        meetingProfitPurchaseDetailVo.setPurchaseStatus(purchaseStatus);
+        meetingProfitPurchaseDetailVo.setLeadTimeList(userMemberProfit.getLeadTimeList());
 
+        switch (purchaseStatus) {
+            case 1:
+            case 5:
+                // 取会员权益
+                meetingProfitPurchaseDetailVo.setDurationList(generateDurationList(userMemberProfit.getEveryLimitCount()));
+                break;
+            case 2:
+            case 3:
+            case 4:
+                // 取付费权益（单次上限输入规则为0.5小时的倍数）
+                // 付费权益
+                CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
+                        meetingCacheService.getMeetingPaidSettingByResourceType
+                                (Integer.parseInt(meetingProfitPurchaseDetailGetDto.getResourceType()));
+                MeetingPaidSettingVO meetingPaidSettingVo = meetingPaidSettingByResourceType.getData();
 
+                double limitTime = meetingPaidSettingVo.getOnceLimit() * 60;
+                meetingProfitPurchaseDetailVo.setDurationList(generateDurationList((int) limitTime));
+        }
 
+        return CommonResult.success(meetingProfitPurchaseDetailVo);
+    }
 
-        MeetingProfitPurchaseDetailVO meetingProfitPurchaseDetailVO = new MeetingProfitPurchaseDetailVO();
-        meetingProfitPurchaseDetailVO.setPurchaseStatus(purchaseStatus);
-
-        return CommonResult.success(meetingProfitPurchaseDetailVO);
+    /**
+     * 根据步长生成list
+     * @param end
+     * @return
+     */
+    private static List<Integer> generateDurationList(int end) {
+        int start = 60;
+        int step = 30;
+        List<Integer> resultList = new ArrayList<>();
+        for (int i = start; i <= end; i += step) {
+            resultList.add(i);
+        }
+        return resultList;
     }
 
     /**
@@ -966,9 +998,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         }
     }
 
-    public static void main(String[] args) {
-        System.out.println(getProfitOrderNewNo());
-    }
 
     static String getProfitOrderNewNo() {
         //MT202407110932+6位随机
