@@ -392,7 +392,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
         //查询全部
         Page<MeetingBlackUserPO> page = meetingBlackUserDaoService.page(meetingApprovePOPage, wrapper);
-
+        log.info("page:{}",page.getRecords());
         //使用stream转成vo返回给前端
         List<MeetingBlackUserVO> meetingBlackUserVOList = page.getRecords().stream().map(meetingBlackRecordPO1 -> {
             MeetingBlackUserVO meetingBlackRecordVO = new MeetingBlackUserVO();
@@ -400,6 +400,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             BeanUtil.copyProperties(meetingBlackRecordPO1, meetingBlackRecordVO);
             return meetingBlackRecordVO;
         }).collect(Collectors.toList());
+        log.info("volist:{}",meetingBlackUserVOList);
 
         PageResult<MeetingBlackUserVO> meetingpage =  new PageResult<>();
         meetingpage.setList(meetingBlackUserVOList);
