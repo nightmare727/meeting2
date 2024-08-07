@@ -673,11 +673,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<List<UserMemberProfitEntity>> queryUserProfitConfig() {
-        MeetingMemeberProfitConfigVO meetingMemeberProfitConfigVO = new MeetingMemeberProfitConfigVO();
-
-        Integer memberType = meetingMemeberProfitConfigVO.getMemberType();
-        RMap<Integer, MeetingMemeberProfitConfigPO> map =
-            redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey(memberType));
+        RMap<Integer, MeetingMemeberProfitConfigPO> map = redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey("rese"));
         Collection<MeetingMemeberProfitConfigPO> values = map.values();
 
         List<UserMemberProfitEntity> collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))
@@ -699,11 +695,9 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                         .sorted(Comparator.comparing(UserMemberProfitEntity::getMemberType))
                         .collect(Collectors.toList());
                 }
-
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-
         }
         log.info("【查询权益配置】 返回：{}", JSON.toJSONString(collect));
         return CommonResult.success(collect);
