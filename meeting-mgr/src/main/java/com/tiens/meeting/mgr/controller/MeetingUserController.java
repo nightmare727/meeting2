@@ -210,7 +210,7 @@ public class MeetingUserController {
      */
     @ResponseBody
     @GetMapping("/queryMeetingBlackById")
-    public CommonResult queryMeetingBlackById(String userId) {
+    public CommonResult queryMeetingBlackById(@RequestParam("userId") String userId) {
         rpcMeetingUserService.queryMeetingBlackById(userId);
         return CommonResult.success(null);
     }

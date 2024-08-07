@@ -488,8 +488,14 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
         String result = map.get(CommonProfitConfigConstants.CMS_SHOW_FLAG);
         if (StringUtils.isNotBlank(result) && "1".equals(result)) {
+            //如果集合为空设置默认值
             la.forEach(
                     laugeVO -> {
+                        //如果为空添加默认语言
+                        if (la.size() == 0){
+                            la.add(new LaugeVO("en-US", "US", laugeVO.getValue()));
+                            la.add(new LaugeVO("en-ZN", "ZN", laugeVO.getValue()));
+                        }
                         redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).set(laugeVO);
                     }
             );
