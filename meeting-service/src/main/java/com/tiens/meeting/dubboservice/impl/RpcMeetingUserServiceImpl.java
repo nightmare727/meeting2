@@ -443,7 +443,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     public CommonResult addBlackUser(String account, UserRequestDTO userRequestDto) {
         List<String> userIdList = userRequestDto.getUserIdList();
         Date endTime = userRequestDto.getEndTime();
-        Date startTime = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
+        Date startTime= DateUtil.date();
         if(endTime!=null){
             endTime = DateUtil.convertTimeZone(endTime, DateUtils.TIME_ZONE_GMT);
             if (endTime.before(startTime)) {
