@@ -540,6 +540,12 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     @Override
     public CommonResult opoCommonProfitConfig(CommonProfitConfigSaveDTO commonProfitConfigSaveDTO) {
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
+        if (commonProfitConfigSaveDTO.getMemberProfitFlag()==null){
+            map.put(CommonProfitConfigConstants.CMS_SHOW_FLAG,"0");
+        }
+        if (commonProfitConfigSaveDTO.getCmsShowFlag()==null){
+            map.put(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG,"0");
+        }
         //redis重新赋值
         map.put(CommonProfitConfigConstants.CMS_SHOW_FLAG,commonProfitConfigSaveDTO.getCmsShowFlag());
         map.put(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG,commonProfitConfigSaveDTO.getMemberProfitFlag());
