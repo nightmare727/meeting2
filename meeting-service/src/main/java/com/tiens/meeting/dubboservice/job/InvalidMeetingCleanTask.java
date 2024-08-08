@@ -26,7 +26,6 @@ import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.redisson.api.RLock;
-import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -159,7 +158,7 @@ public class InvalidMeetingCleanTask {
 
                 }
             }
-//            cleanExpirePrivateResource();
+            cleanExpirePrivateResource();
         } catch (Exception e) {
             log.error("【定时清理无效会议】 执行异常", e);
         } finally {
