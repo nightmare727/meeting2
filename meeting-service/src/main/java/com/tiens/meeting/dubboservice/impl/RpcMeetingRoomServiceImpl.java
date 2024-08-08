@@ -373,8 +373,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .eq(MeetingResourcePO::getOwnerImUserId, freeResourceListDTO.getImUserId())
             .eq(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
             .eq(MeetingResourcePO::getResourceType, relType)
-            .and(condition -> condition.isNull(MeetingResourcePO::getExpireDate).or()
-                .le(MeetingResourcePO::getExpireDate, lockStartTime)
+            .and(condition -> condition.isNull(MeetingResourcePO::getOwnerExpireDate).or()
+                .ge(MeetingResourcePO::getOwnerExpireDate, lockStartTime)
             ).list();
         return BeanUtil.copyToList(list, MeetingResourceVO.class);
     }
