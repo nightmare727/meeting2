@@ -460,13 +460,14 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             new LambdaQueryWrapper<MeetingBlackUserPO>().in(MeetingBlackUserPO::getUserId, userIdList));
 
         List<MeetingBlackUserPO> batchData = userIdList.stream().map(userId -> {
-            // 删除旧的
-            meetingBlackUserDaoService.remove(
-                new LambdaQueryWrapper<MeetingBlackUserPO>().eq(MeetingBlackUserPO::getUserId, userId));
-
             // 从缓存中获取被加入黑名单人的信息
             RBucket<VMUserVO> vorBucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId));
             VMUserVO vmUserVo = vorBucket.get();
+
+            // 删除旧的
+            meetingBlackUserDaoService.remove(
+                new LambdaQueryWrapper<MeetingBlackUserPO>().eq(MeetingBlackUserPO::getUserId, vmUserVo.getAccid()));
+
 
             log.info("缓存中获取：{}", vmUserVo.toString());
 
