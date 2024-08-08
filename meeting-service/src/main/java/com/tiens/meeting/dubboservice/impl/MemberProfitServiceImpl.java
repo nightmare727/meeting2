@@ -270,21 +270,26 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         String deviceSuggestion = null;
         CmsShowVO cmsShowVO = new CmsShowVO();
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
+        String s = map.get(byTerminal.name() + "_" + defaultHwNation);
+        System.out.println("---===="+s);
         CommonResult<List<UserMemberProfitEntity>> listCommonResult = queryUserProfitConfig();
         //获取弹窗内容
         CommonResult<List<LaugeVO>> listCommonResult1 = rpcMeetingUserService.upPopupWindowList();
         List<LaugeVO> data = listCommonResult1.getData();
-
         data.stream().forEach(b -> {
             if (b.getLocale().equals(cmsShowGetDTO.getLanguageId())) {
-                cmsShowVO.setDeviceSuggestion(b.getValue());
-                if (!isCn) {
-                    cmsShowVO.setDeviceSuggestion(map.get(byTerminal.name() + "_" + defaultHwNation));
-                } else {
-                    cmsShowVO.setDeviceSuggestion(map.get(byTerminal.name() + "_" + defaultZhNation));
+                cmsShowVO.setDeviceSuggestion("<meta name=\"viewport\" content='width=device-width,initial-scale=1.0'/>"+b.getValue());
+            }else if(!cmsShowGetDTO.getLanguageId().equals("en-US") && !cmsShowGetDTO.getLanguageId().equals("zh-CN")){
+                //默认取英文的值
+                log.info("当前语言包不存在，默认取英文的值");
+                cmsShowGetDTO.setLanguageId("en-US");
+                //获取英文的值
+               if (cmsShowGetDTO.getLanguageId().equals("en-US")){
+                       cmsShowVO.setDeviceSuggestion("<meta name=\"viewport\" content='width=device-width,initial-scale=1.0'/>"+b.getValue());
                 }
             }
         });
+
       /*  //遍历取值
         data.stream().forEach(b -> {
             if (b.getLocale().equals(cmsShowGetDTO.getLanguageId())) {
