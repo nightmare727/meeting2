@@ -445,8 +445,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("【创建、预约会议】开始，参数为：{}", meetingRoomContextDTO);
         // 判断是否在黑名单
         RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
-        MeetingBlackUserVO vo = bucket.get();
-        if (vo != null) {
+        if (bucket.isExists()) {
             return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
         }
 
@@ -900,8 +899,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         log.info("【编辑会议】开始，参数为：{}", meetingRoomContextDTO);
         // 判断是否在黑名单
         RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
-        MeetingBlackUserVO vo = bucket.get();
-        if (vo != null) {
+        if (bucket.isExists()) {
             return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
         }
 
