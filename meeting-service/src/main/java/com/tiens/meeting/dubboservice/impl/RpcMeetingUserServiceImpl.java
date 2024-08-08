@@ -54,10 +54,7 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -91,8 +88,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     private final MeetingProfitCommonConfigDaoService meetingProfitCommonConfigDaoService;
 
     private final MemberProfitCacheService memberProfitCacheService;
-
-
 
     /**
      * 通过卓越卡号查询用户
@@ -373,7 +368,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         return CommonResult.success(typeVOS);
     }
 
-
     /**
      * 会议黑名单
      *
@@ -382,18 +376,18 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult<PageResult<MeetingBlackUserVO>> getBlackUserAll(PageParam<MeetingBlackUserVO> bean) {
-        Page<MeetingBlackUserPO> meetingApprovePOPage =
-                new Page<>(bean.getPageNum(), bean.getPageSize());
+        Page<MeetingBlackUserPO> meetingApprovePOPage = new Page<>(bean.getPageNum(), bean.getPageSize());
         MeetingBlackUserVO condition = bean.getCondition();
         Wrapper<MeetingBlackUserPO> wrapper = Wrappers.lambdaQuery(MeetingBlackUserPO.class)
-                .like(StrUtil.isNotBlank(condition.getUserId()), MeetingBlackUserPO::getUserId, condition.getUserId())
-                .like(StrUtil.isNotBlank(condition.getNickName()), MeetingBlackUserPO::getNickName, condition.getNickName())
-                .like(StrUtil.isNotBlank(condition.getMobile()), MeetingBlackUserPO::getMobile, condition.getMobile())
-                .like(StrUtil.isNotBlank(condition.getCountryCode()), MeetingBlackUserPO::getCountryCode, condition.getUserId());
+            .like(StrUtil.isNotBlank(condition.getUserId()), MeetingBlackUserPO::getUserId, condition.getUserId())
+            .like(StrUtil.isNotBlank(condition.getNickName()), MeetingBlackUserPO::getNickName, condition.getNickName())
+            .like(StrUtil.isNotBlank(condition.getMobile()), MeetingBlackUserPO::getMobile, condition.getMobile())
+            .like(StrUtil.isNotBlank(condition.getCountryCode()), MeetingBlackUserPO::getCountryCode,
+                condition.getUserId());
 
         //查询全部
         Page<MeetingBlackUserPO> page = meetingBlackUserDaoService.page(meetingApprovePOPage, wrapper);
-        log.info("page:{}",page.getRecords());
+        log.info("page:{}", page.getRecords());
         //使用stream转成vo返回给前端
         List<MeetingBlackUserVO> meetingBlackUserVOList = page.getRecords().stream().map(meetingBlackRecordPO1 -> {
             MeetingBlackUserVO meetingBlackRecordVO = new MeetingBlackUserVO();
@@ -401,9 +395,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             BeanUtil.copyProperties(meetingBlackRecordPO1, meetingBlackRecordVO);
             return meetingBlackRecordVO;
         }).collect(Collectors.toList());
-        log.info("volist:{}",meetingBlackUserVOList);
+        log.info("volist:{}", meetingBlackUserVOList);
 
-        PageResult<MeetingBlackUserVO> meetingpage =  new PageResult<>();
+        PageResult<MeetingBlackUserVO> meetingpage = new PageResult<>();
         meetingpage.setList(meetingBlackUserVOList);
         meetingpage.setTotal(page.getTotal());
         return CommonResult.success(meetingpage);
@@ -411,6 +405,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
     /**
      * 解除黑名单用户
+     *
      * @param userId
      * @return
      */
@@ -423,6 +418,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
     /**
      * 批量解除黑名单用户
+     *
      * @param userIdList
      * @return
      */
@@ -432,11 +428,12 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         userIdList.forEach(userId -> {
             redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).delete();
         });
-        return  CommonResult.success(null);
+        return CommonResult.success(null);
     }
 
     /**
      * 添加黑名单用户
+     *
      * @param
      * @return
      */
@@ -445,9 +442,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     public CommonResult addBlackUser(String account, UserRequestDTO userRequestDto) {
         List<String> userIdList = userRequestDto.getUserIdList();
         Date endTime = userRequestDto.getEndTime();
-        Date startTime= DateUtil.date();
-        log.info("userRequestDto.getEndTime:{}",endTime);
-        if(endTime!=null){
+        Date startTime = DateUtil.date();
+        log.info("userRequestDto.getEndTime:{}", endTime);
+        if (endTime != null) {
             ZoneId userZoneId = ZoneId.of("Asia/Shanghai");
             // 用户当前时间
             endTime = DateUtils.convertTimeZone(endTime, userZoneId, DateUtils.TIME_ZONE_GMT);
@@ -457,48 +454,49 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         }
         Date expire = endTime;
         List<Boolean> result = new ArrayList<>();
-        log.info("endTime:{}，startTime：{}，expire：{}",endTime,startTime,expire);
-        meetingBlackUserDaoService.remove(new LambdaQueryWrapper<MeetingBlackUserPO>().in(MeetingBlackUserPO::getUserId, userIdList));
+        log.info("endTime:{}，startTime：{}，expire：{}", endTime, startTime, expire);
+        meetingBlackUserDaoService.remove(
+            new LambdaQueryWrapper<MeetingBlackUserPO>().in(MeetingBlackUserPO::getUserId, userIdList));
 
-        List<MeetingBlackUserPO> batchData = userIdList.stream().map(
-                userId -> {
-                    // 删除旧的
-                    meetingBlackUserDaoService.remove(new LambdaQueryWrapper<MeetingBlackUserPO>().eq(MeetingBlackUserPO::getUserId, userId));
+        List<MeetingBlackUserPO> batchData = userIdList.stream().map(userId -> {
+            // 删除旧的
+            meetingBlackUserDaoService.remove(
+                new LambdaQueryWrapper<MeetingBlackUserPO>().eq(MeetingBlackUserPO::getUserId, userId));
 
-                    // 从缓存中获取被加入黑名单人的信息
-                    RBucket<VMUserVO> vorBucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId));
-                    VMUserVO vmUserVo = vorBucket.get();
+            // 从缓存中获取被加入黑名单人的信息
+            RBucket<VMUserVO> vorBucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId));
+            VMUserVO vmUserVo = vorBucket.get();
 
-                    MeetingBlackUserVO meetingBlackUserVo = new MeetingBlackUserVO();
-                    meetingBlackUserVo.setUserId(userId);
-                    meetingBlackUserVo.setJoyoCode(vmUserVo == null ? null : vmUserVo.getJoyoCode());
+            MeetingBlackUserVO meetingBlackUserVo = new MeetingBlackUserVO();
+            meetingBlackUserVo.setUserId(userId);
+            meetingBlackUserVo.setJoyoCode(vmUserVo == null ? null : vmUserVo.getJoyoCode());
 
-                    // 不知道去哪里取？
-                    meetingBlackUserVo.setLastMeetingCode("");
-                    meetingBlackUserVo.setMobile(vmUserVo == null ? null : vmUserVo.getMobile());
-                    meetingBlackUserVo.setNickName(vmUserVo == null ? null : vmUserVo.getNickName());
-                    meetingBlackUserVo.setCountryCode(vmUserVo == null ? null : vmUserVo.getCountry());
-                    meetingBlackUserVo.setStartTime(startTime);
-                    meetingBlackUserVo.setEndTime(expire);
-                    meetingBlackUserVo.setOperator(account);
-                    // 缓存设置
-                    RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId));
-                    bucket.set(meetingBlackUserVo);
-                    if (expire != null) {
-                        // 设置过期时间
-                        long differenceInMilliSeconds = expire.getTime() - startTime.getTime();
-                        // 将毫秒转换为秒
-                        bucket.expire(differenceInMilliSeconds / 1000, TimeUnit.SECONDS);
-                    }
-                    return BeanUtil.copyProperties(meetingBlackUserVo, MeetingBlackUserPO.class);
-                }
-        ).collect(Collectors.toList());
+            // 不知道去哪里取？
+            meetingBlackUserVo.setLastMeetingCode("");
+            meetingBlackUserVo.setMobile(vmUserVo == null ? null : vmUserVo.getMobile());
+            meetingBlackUserVo.setNickName(vmUserVo == null ? null : vmUserVo.getNickName());
+            meetingBlackUserVo.setCountryCode(vmUserVo == null ? null : vmUserVo.getCountry());
+            meetingBlackUserVo.setStartTime(startTime);
+            meetingBlackUserVo.setEndTime(expire);
+            meetingBlackUserVo.setOperator(account);
+            // 缓存设置
+            RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId));
+            bucket.set(meetingBlackUserVo);
+            if (expire != null) {
+                // 设置过期时间
+                long differenceInMilliSeconds = expire.getTime() - startTime.getTime();
+                // 将毫秒转换为秒
+                bucket.expire(differenceInMilliSeconds / 1000, TimeUnit.SECONDS);
+            }
+            return BeanUtil.copyProperties(meetingBlackUserVo, MeetingBlackUserPO.class);
+        }).collect(Collectors.toList());
         meetingBlackUserDaoService.saveBatch(batchData);
         return CommonResult.success(result);
     }
 
     /**
      * 会议模版弹窗
+     *
      * @return
      */
     @Override
@@ -514,17 +512,18 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                 la.add(new LaugeVO("en-ZN", "ZN", laugeVO1.getValue()));
             }*/
             redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).set(la);
-            return CommonResult.success( null);
+            return CommonResult.success(null);
         }
         if (StringUtils.isNotBlank(result) && "0".equals(result)) {
             //保留原来的数据,不做任何修改
             return CommonResult.success(null);
         }
-        return  CommonResult.errorMsg("未成功");
+        return CommonResult.errorMsg("未成功");
     }
 
     /**
      * 免费预约限制
+     *
      * @param meetingMemeberProfitConfigVOList
      * @return
      */
@@ -536,14 +535,30 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             //根据传来的数据进行修改表中数据
             if (meetingMemeberProfitConfigVOList != null && !meetingMemeberProfitConfigVOList.isEmpty()) {
                 meetingMemeberProfitConfigVOList.forEach(meetingMemeberProfitConfigVO -> {
-                    MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = BeanUtil.copyProperties(meetingMemeberProfitConfigVO, MeetingMemeberProfitConfigPO.class);
+                    MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO =
+                        BeanUtil.copyProperties(meetingMemeberProfitConfigVO, MeetingMemeberProfitConfigPO.class);
                     //根据membertype修改数据库
-                    meetingMemeberProfitConfigDaoService.update(meetingMemeberProfitConfigPO,new LambdaQueryWrapper<MeetingMemeberProfitConfigPO>().eq(MeetingMemeberProfitConfigPO::getMemberType,meetingMemeberProfitConfigVO.getMemberType()));
-                    //先将之前的缓存删除
+                    meetingMemeberProfitConfigDaoService.update(meetingMemeberProfitConfigPO,
+                        new LambdaQueryWrapper<MeetingMemeberProfitConfigPO>().eq(
+                            MeetingMemeberProfitConfigPO::getMemberType, meetingMemeberProfitConfigVO.getMemberType()));
+                   /* //先将之前的缓存删除
                     redissonClient.getBucket(CacheKeyUtil.getFreeReservationLimitKey("rese")).delete();
                     //将数据存到redis中
-                    redissonClient.getBucket(CacheKeyUtil.getFreeReservationLimitKey("rese")).set(meetingMemeberProfitConfigVO);
+                    redissonClient.getBucket(CacheKeyUtil.getFreeReservationLimitKey("rese")).set
+                    (meetingMemeberProfitConfigVO);*/
                 });
+
+                List<MeetingMemeberProfitConfigPO> list = meetingMemeberProfitConfigDaoService.list();
+
+                Map<Integer, MeetingMemeberProfitConfigPO> cacheData = list.stream().collect(
+                    Collectors.groupingBy(MeetingMemeberProfitConfigPO::getMemberType,
+                        Collectors.collectingAndThen(Collectors.toList(), value -> value.get(0))));
+
+                RMap<Integer, MeetingMemeberProfitConfigPO> cacheMap =
+                    redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey("rese"));
+
+                cacheMap.putAll(cacheData);
+
                 return CommonResult.success(null);
             }
         }
@@ -552,23 +567,25 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
 
     /**
      * 开关接口
+     *
      * @param commonProfitConfigSaveDTO
      * @return
      */
     @Override
     public CommonResult opoCommonProfitConfig(CommonProfitConfigSaveDTO commonProfitConfigSaveDTO) {
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
-        if (commonProfitConfigSaveDTO.getMemberProfitFlag()==null){
-            map.put(CommonProfitConfigConstants.CMS_SHOW_FLAG,"0");
+        if (commonProfitConfigSaveDTO.getMemberProfitFlag() == null) {
+            map.put(CommonProfitConfigConstants.CMS_SHOW_FLAG, "0");
         }
-        if (commonProfitConfigSaveDTO.getCmsShowFlag()==null){
-            map.put(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG,"0");
+        if (commonProfitConfigSaveDTO.getCmsShowFlag() == null) {
+            map.put(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG, "0");
         }
         //redis重新赋值
-        map.put(CommonProfitConfigConstants.CMS_SHOW_FLAG,commonProfitConfigSaveDTO.getCmsShowFlag());
-        map.put(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG,commonProfitConfigSaveDTO.getMemberProfitFlag());
+        map.put(CommonProfitConfigConstants.CMS_SHOW_FLAG, commonProfitConfigSaveDTO.getCmsShowFlag());
+        map.put(CommonProfitConfigConstants.MEMBER_PROFIT_FLAG, commonProfitConfigSaveDTO.getMemberProfitFlag());
         //同步修改数据库中的数据
-        meetingProfitCommonConfigDaoService.updateById(BeanUtil.copyProperties(commonProfitConfigSaveDTO, MeetingProfitCommonConfigPO.class));
+        meetingProfitCommonConfigDaoService.updateById(
+            BeanUtil.copyProperties(commonProfitConfigSaveDTO, MeetingProfitCommonConfigPO.class));
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
             @Override
             public void afterCommit() {
@@ -590,6 +607,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     public CommonResult<List<LaugeVO>> upPopupWindowList() {
         //直接取redis中的数据
         Object countenance = redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).get();
+        if (ObjectUtil.isEmpty(countenance)){
+            return CommonResult.success(null);
+        }
         //将数据转成json字符串
         String json = JSON.toJSONString(countenance);
         //再将字符串转成list集合
@@ -598,16 +618,15 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         return CommonResult.success(objects);
     }
 
-
     /**
      * 查询会员权益表
      *
      * @return
      */
     @Override
-    public CommonResult<List<MeetingMemeberProfitConfigVO>> queryCommonmeberProfitConfig(){
+    public CommonResult<List<MeetingMemeberProfitConfigVO>> queryCommonmeberProfitConfig() {
         List<MeetingMemeberProfitConfigPO> list = meetingMemeberProfitConfigDaoService.list();
-       return CommonResult.success(BeanUtil.copyToList(list, MeetingMemeberProfitConfigVO.class));
+        return CommonResult.success(BeanUtil.copyToList(list, MeetingMemeberProfitConfigVO.class));
     }
 
 }
