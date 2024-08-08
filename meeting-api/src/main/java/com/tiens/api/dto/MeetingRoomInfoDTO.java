@@ -3,6 +3,7 @@ package com.tiens.api.dto;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <p>
@@ -49,7 +50,7 @@ public class MeetingRoomInfoDTO implements Serializable {
     private Integer size;
 
     /** 预约时间 */
-    private String createTime;
+    private Date createTime;
 
     /** 预约人 */
     private String ownerUserName;
@@ -65,16 +66,16 @@ public class MeetingRoomInfoDTO implements Serializable {
     private String area;
 
     /** 计划开始时间 */
-    private String showStartTime;
+    private Date showStartTime;
 
     /** 时长 */
     private Integer duration;
 
     /** 实际开始时间 */
-    private String relStartTime;
+    private Date relStartTime;
 
     /** 实际结束时间 */
-    private String relEndTime;
+    private Date relEndTime;
 
     /** 参会人数 */
     private Integer persons;
