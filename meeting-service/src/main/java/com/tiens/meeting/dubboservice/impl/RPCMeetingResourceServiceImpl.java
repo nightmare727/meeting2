@@ -110,7 +110,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                     .eq(meetingResourceQueryDTO.getResourceType()!=null,MeetingResourcePO::getResourceType,meetingResourceQueryDTO.getResourceType())
                     .eq(meetingResourceQueryDTO.getMeetingRoomType()!=null,MeetingResourcePO::getMeetingRoomType,meetingResourceQueryDTO.getMeetingRoomType())
                     .eq(meetingResourceQueryDTO.getResourceStatus()!=null,MeetingResourcePO::getResourceStatus,meetingResourceQueryDTO.getResourceStatus())
-                    .eq(meetingResourceQueryDTO.getVmrConferenceId()!=null,MeetingResourcePO::getVmrConferenceId,meetingResourceQueryDTO.getVmrConferenceId())
+                    .eq(StringUtils.isNotBlank(meetingResourceQueryDTO.getVmrConferenceId()),MeetingResourcePO::getVmrConferenceId,meetingResourceQueryDTO.getVmrConferenceId())
                     .orderByAsc(MeetingResourcePO::getSize).list();
         List<MeetingResourceVO> resourceVOS = list.stream().map(t -> {
             MeetingResourceVO meetingResourceVO = BeanUtil.copyProperties(t, MeetingResourceVO.class);
