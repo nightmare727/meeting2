@@ -1233,11 +1233,16 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Integer status = meetingResourcePO.getResourceStatus();
             if (MeetingNewRoomTypeEnum.PRIVATE.getState().equals(type)) {
                 log.info("【资源挂起释放】当前资源：{} 为私有资源，无需进行挂起释放操作", resourceId);
+                // 当前状态为公有空闲，可以置为有预约
+                meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
+                        .eq(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.FREE.getState())
+                        .set(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.SUBSCRIBE.getState())
+                        .update();
                 return Boolean.FALSE;
             }
 
             boolean subscribeFlag = MeetingNewResourceStateEnum.SUBSCRIBE.getState()
-                .equals(status) && MeetingNewRoomTypeEnum.PRIVATE.getState().equals(type);
+                .equals(status);
             switch (meetingResourceHandleEnum) {
                 case HOLD_UP:
                     if (subscribeFlag) {

@@ -270,8 +270,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         String deviceSuggestion = null;
         CmsShowVO cmsShowVO = new CmsShowVO();
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
-        String s = map.get(byTerminal.name() + "_" + defaultHwNation);
-        System.out.println("---===="+s);
         CommonResult<List<UserMemberProfitEntity>> listCommonResult = queryUserProfitConfig();
         //获取弹窗内容
         CommonResult<List<LaugeVO>> listCommonResult1 = rpcMeetingUserService.upPopupWindowList();
@@ -289,13 +287,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                 }
             }
         });
-
-      /*  //遍历取值
-        data.stream().forEach(b -> {
-            if (b.getLocale().equals(cmsShowGetDTO.getLanguageId())) {
-                cmsShowVO.setDeviceSuggestion(b.getValue());
-            }
-        });*/
         //cmsShowVO.setUserMemberProfitEntityList(listCommonResult.getData());
         //cmsShowVO.setDeviceSuggestion(deviceSuggestion);
         return CommonResult.success(cmsShowVO);
@@ -405,7 +396,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             new LambdaQueryWrapper<MeetingPaidSettingPO>().orderByAsc(MeetingPaidSettingPO::getResourceType));
         return CommonResult.success(BeanUtil.copyToList(list, MeetingPaidSettingVO.class));
     }
-
     @Override
     public CommonResult updMeetingPaidSetting(MeetingPaidSettingVO request) {
         MeetingPaidSettingPO settingPo = BeanUtil.copyProperties(request, MeetingPaidSettingPO.class);
@@ -418,7 +408,6 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         }
         return CommonResult.success(res);
     }
-
     /**
      * 查询全部权益配置
      *
