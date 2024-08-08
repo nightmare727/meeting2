@@ -607,6 +607,9 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
     public CommonResult<List<LaugeVO>> upPopupWindowList() {
         //直接取redis中的数据
         Object countenance = redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).get();
+        if (ObjectUtil.isEmpty(countenance)){
+            return CommonResult.success(null);
+        }
         //将数据转成json字符串
         String json = JSON.toJSONString(countenance);
         //再将字符串转成list集合
