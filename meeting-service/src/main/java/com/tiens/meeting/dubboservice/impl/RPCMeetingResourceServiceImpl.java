@@ -290,7 +290,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
             List<Map<String, Object>> roomList = meetingAttendeeDaoService.queryPersonsByRoomIds(roomIds);
             records.forEach((item) -> {
                 Optional<Object> first = roomList.stream()
-                        .filter(room -> room.get("roomId").equals(item.getId()))
+                        .filter(room -> String.valueOf(room.get("roomId")).equals(item.getId()))
                         .map(room -> room.get("persons"))
                         .findFirst();
                 first.ifPresent(o -> item.setPersons(Integer.parseInt(String.valueOf(o))));
