@@ -140,13 +140,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     @Override
     public CommonResult enterMeetingRoomCheck(EnterMeetingRoomCheckDTO enterMeetingRoomCheckDTO) {
-        // 判断是否在黑名单
-        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(enterMeetingRoomCheckDTO.getImUserId()));
-        MeetingBlackUserVO vo = bucket.get();
-        if (vo != null) {
-            return CommonResult.errorMsg("您已被加入黑名单~");
-        }
-
         // 若不在则 tos 提示，请在 XXXX年XX月XX日 XX:XX后进入会议。
         String meetRoomCode = enterMeetingRoomCheckDTO.getMeetRoomCode();
         String timeZoneOffset = enterMeetingRoomCheckDTO.getTimeZoneOffset();
@@ -373,8 +366,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .eq(MeetingResourcePO::getOwnerImUserId, freeResourceListDTO.getImUserId())
             .eq(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
             .eq(MeetingResourcePO::getResourceType, relType)
-            .and(condition -> condition.isNull(MeetingResourcePO::getExpireDate).or()
-                .le(MeetingResourcePO::getExpireDate, lockStartTime)
+            .and(condition -> condition.isNull(MeetingResourcePO::getOwnerExpireDate).or()
+                .ge(MeetingResourcePO::getOwnerExpireDate, lockStartTime)
             ).list();
         return BeanUtil.copyToList(list, MeetingResourceVO.class);
     }
@@ -451,11 +444,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO){
         log.info("【创建、预约会议】开始，参数为：{}", meetingRoomContextDTO);
         // 判断是否在黑名单
-        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getImUserId()));
+        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
         MeetingBlackUserVO vo = bucket.get();
         if (vo != null) {
-            return CommonResult.errorMsg("您已被加入黑名单~");
+            return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
         }
+
         if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset())) {
             meetingRoomContextDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
             if (ObjectUtil.isNotEmpty(meetingRoomContextDTO.getStartTime())) {
@@ -653,6 +647,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     private CommonResult checkCreateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
+
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         Integer leadTime = meetingRoomContextDTO.getLeadTime();
 
@@ -904,10 +899,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     public CommonResult updateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         log.info("【编辑会议】开始，参数为：{}", meetingRoomContextDTO);
         // 判断是否在黑名单
-        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getImUserId()));
+        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
         MeetingBlackUserVO vo = bucket.get();
         if (vo != null) {
-            return CommonResult.errorMsg("您已被加入黑名单~");
+            return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
         }
 
         if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset())) {

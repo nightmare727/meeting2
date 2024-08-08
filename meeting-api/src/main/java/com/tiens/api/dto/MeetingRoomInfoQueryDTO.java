@@ -1,8 +1,10 @@
 package com.tiens.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <p>
@@ -22,10 +24,12 @@ public class MeetingRoomInfoQueryDTO implements Serializable {
     private String hwMeetingCode;
 
     /** 会议开始时间 */
-    private String relStartTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date relStartTime;
 
     /** 会议结束时间 */
-    private String relEndTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date relEndTime;
 
     /** 资源大小 */
     private Integer resourceSize;
@@ -40,10 +44,12 @@ public class MeetingRoomInfoQueryDTO implements Serializable {
     private String resourceId;
 
     /** 会议开始时间 */
-    private String showStartTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date showStartTime;
 
     /** 会议结束时间 */
-    private String showEndTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date showEndTime;
 
     public boolean getExport() {
         return export;

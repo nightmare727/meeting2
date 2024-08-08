@@ -68,7 +68,7 @@
                 and mri.hw_meeting_code like concat('%', #{params.hwMeetingCode}, '%')
             </if>
 
-            <if test="params.relStartTime!=null and params.relStartTime!='' and params.relEndTime!=null and params.relEndTime!=''">
+            <if test="params.relStartTime!=null and params.relEndTime!=null">
                 and mri.rel_start_time &gt;= #{params.relStartTime} and mri.rel_end_time &lt;= #{params.relEndTime}
             </if>
 
@@ -88,7 +88,7 @@
                 and mri.resource_id = #{params.resourceId}
             </if>
 
-            <if test="params.showStartTime!=null and params.showStartTime!='' and params.showEndTime!=null and params.showEndTime!=''">
+            <if test="params.showStartTime!=null and params.showEndTime!=null">
                 and mri.show_start_time between #{params.showStartTime} and #{params.showEndTime}
             </if>
         </where>

@@ -1,5 +1,6 @@
 package com.tiens.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -20,5 +21,6 @@ public class ResourceAllocateDTO implements Serializable {
     /**
      * 私有资源到期日期
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date ownerExpireDate;
 }
