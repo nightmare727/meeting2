@@ -424,6 +424,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult deleteBlackUserAll(List<String> userIdList) {
+        meetingBlackUserDaoService.lambdaUpdate().in(MeetingBlackUserPO::getUserId, userIdList).remove();
+        // 实际上是accid
         userIdList.forEach(userId -> {
             redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).delete();
         });
