@@ -1,5 +1,6 @@
 package com.tiens.meeting.mgr.controller;
 
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tiens.api.dto.*;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 
@@ -107,11 +109,16 @@ public class MeetingResourceController {
     @ResponseBody
     @PostMapping("/allocate")
     public CommonResult allocate(@RequestBody ResourceAllocateDTO resourceAllocateDTO) {
-        if (resourceAllocateDTO.getOwnerExpireDate() != null &&
-                DateUtil.convertTimeZone(resourceAllocateDTO.getOwnerExpireDate(), DateUtils.TIME_ZONE_GMT).isBefore(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT))) {
-            //分配资源的过期时间早于了当前时间
-            log.error("【分配资源】分配资源的过期时间早于了当前时间:{}", resourceAllocateDTO);
-            return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_ALLOCATE_RESOURCE);
+        if (resourceAllocateDTO.getOwnerExpireDate() != null) {
+            ZoneId userZoneId = ZoneId.of("Asia/Shanghai");
+            // 用户当前时间
+            DateTime dateTime = DateUtils.convertTimeZone(resourceAllocateDTO.getOwnerExpireDate(), userZoneId, DateUtils.TIME_ZONE_GMT);
+            resourceAllocateDTO.setOwnerExpireDate(dateTime);
+            if (dateTime.isBefore(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT))) {
+                //分配资源的过期时间早于了当前时间
+                log.error("【分配资源】分配资源的过期时间早于了当前时间:{}", resourceAllocateDTO);
+                return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_ALLOCATE_RESOURCE);
+            }
         }
         return rpcMeetingResourceService.allocate(resourceAllocateDTO);
     }
