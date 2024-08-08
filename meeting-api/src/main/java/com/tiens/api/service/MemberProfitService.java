@@ -50,7 +50,7 @@ public interface MemberProfitService {
      * @param finalUserId
      * @return
      */
-    CommonResult<MeetingBlackUserVO> getBlackUser(String finalUserId, String joyoCode);
+    CommonResult<MeetingBlackUserVO> getBlackUser(String finalUserId);
 
     /**
      * 查询用户权益

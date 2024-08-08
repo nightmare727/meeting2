@@ -373,12 +373,12 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      * @return
      */
     @Override
-    public CommonResult<MeetingBlackUserVO> getBlackUser(String finalUserId, String joyoCode) {
+    public CommonResult<MeetingBlackUserVO> getBlackUser(String finalUserId) {
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
 
         //校验黑名单
         List<MeetingBlackUserPO> blackUserPOList =
-            meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getJoyoCode, joyoCode)
+            meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, finalUserId)
                 .le(MeetingBlackUserPO::getStartTime, now).ge(MeetingBlackUserPO::getEndTime, now).list();
 
         if (ObjectUtil.isNotEmpty(blackUserPOList)) {
