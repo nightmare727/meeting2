@@ -443,11 +443,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @NewComerTasks
     public CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO){
         log.info("【创建、预约会议】开始，参数为：{}", meetingRoomContextDTO);
-        // 判断是否在黑名单
-        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
-        if (bucket.isExists()) {
-            return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
-        }
 
         if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset())) {
             meetingRoomContextDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
@@ -647,6 +642,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     private CommonResult checkCreateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
 
+        // 判断是否在黑名单
+        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
+        if (bucket.isExists()) {
+            return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
+        }
+
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         Integer leadTime = meetingRoomContextDTO.getLeadTime();
 
@@ -779,6 +780,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     private CommonResult checkUpdateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
+        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
+        if (bucket.isExists()) {
+            return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
+        }
         Integer resourceId = meetingRoomContextDTO.getResourceId();
 
         Integer leadTime = meetingRoomContextDTO.getLeadTime();
@@ -897,11 +902,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Transactional
     public CommonResult updateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         log.info("【编辑会议】开始，参数为：{}", meetingRoomContextDTO);
-        // 判断是否在黑名单
-        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
-        if (bucket.isExists()) {
-            return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
-        }
 
         if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset())) {
             meetingRoomContextDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);

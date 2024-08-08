@@ -368,12 +368,12 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      * @return
      */
     @Override
-    public CommonResult<MeetingBlackUserVO> getBlackUser(String finalUserId) {
+    public CommonResult<MeetingBlackUserVO> getBlackUser(String finalUserId, String joyoCode) {
         DateTime now = DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT);
 
         //校验黑名单
         List<MeetingBlackUserPO> blackUserPOList =
-            meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, finalUserId)
+            meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getJoyoCode, joyoCode)
                 .le(MeetingBlackUserPO::getStartTime, now).ge(MeetingBlackUserPO::getEndTime, now).list();
 
         if (ObjectUtil.isNotEmpty(blackUserPOList)) {
@@ -603,27 +603,24 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<ProfitPaidCheckOutGetVO> getProfitPaidCheckOut(
-        ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDto) {
+            ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDto) {
         String resourceType = profitPaidCheckOutGetDto.getResourceType();
         if (!NumberUtil.isNumber(resourceType)) {
             return CommonResult.success(null);
         }
 
         CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
-            meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
+                meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
         MeetingPaidSettingVO meetingPaidSettingVO = meetingPaidSettingByResourceType.getData();
 
         Integer duration = profitPaidCheckOutGetDto.getDuration();
-        Integer leadTime = profitPaidCheckOutGetDto.getLeadTime();
-
-        Integer finalTime = duration + leadTime;
 
         Integer vmCoin = meetingPaidSettingVO.getVmCoin();
         Double money = meetingPaidSettingVO.getMoney();
         ProfitPaidCheckOutGetVO profitPaidCheckOutGetVO = new ProfitPaidCheckOutGetVO();
 
-        profitPaidCheckOutGetVO.setNeedPayVMAmount(BigDecimal.valueOf((long)(finalTime / 30) * vmCoin));
-        profitPaidCheckOutGetVO.setNeedPayAmount(BigDecimal.valueOf((long)(finalTime / 30) * money));
+        profitPaidCheckOutGetVO.setNeedPayVMAmount(BigDecimal.valueOf((long) (duration / 30) * vmCoin));
+        profitPaidCheckOutGetVO.setNeedPayAmount(BigDecimal.valueOf((long) (duration / 30) * money));
 
         return CommonResult.success(profitPaidCheckOutGetVO);
     }
