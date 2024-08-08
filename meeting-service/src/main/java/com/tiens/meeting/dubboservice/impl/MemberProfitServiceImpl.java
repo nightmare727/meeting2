@@ -285,9 +285,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                 cmsShowVO.setDeviceSuggestion(b.getValue());
             }
         });
-        cmsShowVO.setUserMemberProfitEntityList(listCommonResult.getData());
-
-        cmsShowVO.setDeviceSuggestion(deviceSuggestion);
+        //cmsShowVO.setUserMemberProfitEntityList(listCommonResult.getData());
+        //cmsShowVO.setDeviceSuggestion(deviceSuggestion);
         return CommonResult.success(cmsShowVO);
     }
 
