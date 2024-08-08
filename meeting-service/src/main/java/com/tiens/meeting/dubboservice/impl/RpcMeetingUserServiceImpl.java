@@ -424,7 +424,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
      */
     @Override
     public CommonResult deleteBlackUserAll(List<String> userIdList) {
-        meetingBlackUserDaoService.lambdaUpdate().in(MeetingBlackUserPO::getUserId, userIdList).remove();
         userIdList.forEach(userId -> {
             redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId)).delete();
         });
@@ -470,19 +469,19 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             log.info("缓存中获取：{}", vmUserVo.toString());
 
             MeetingBlackUserVO meetingBlackUserVo = new MeetingBlackUserVO();
-            meetingBlackUserVo.setUserId(userId);
-            meetingBlackUserVo.setJoyoCode(vmUserVo == null ? null : vmUserVo.getJoyoCode());
+            meetingBlackUserVo.setUserId(vmUserVo.getAccid());
+            meetingBlackUserVo.setJoyoCode(vmUserVo.getJoyoCode());
 
             // 不知道去哪里取？
             meetingBlackUserVo.setLastMeetingCode("");
-            meetingBlackUserVo.setMobile(vmUserVo == null ? null : vmUserVo.getMobile());
-            meetingBlackUserVo.setNickName(vmUserVo == null ? null : vmUserVo.getNickName());
-            meetingBlackUserVo.setCountryCode(vmUserVo == null ? null : vmUserVo.getCountry());
+            meetingBlackUserVo.setMobile(vmUserVo.getMobile());
+            meetingBlackUserVo.setNickName(vmUserVo.getNickName());
+            meetingBlackUserVo.setCountryCode(vmUserVo.getCountry());
             meetingBlackUserVo.setStartTime(startTime);
             meetingBlackUserVo.setEndTime(expire);
             meetingBlackUserVo.setOperator(account);
             // 缓存设置
-            RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(userId));
+            RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(vmUserVo.getAccid()));
             bucket.set(meetingBlackUserVo);
             if (expire != null) {
                 // 设置过期时间
