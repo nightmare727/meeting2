@@ -718,7 +718,10 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         userMemberProfitEntity.setFreeDayAppointCount(freeDayAppointCount);
 
         userMemberProfitEntity.setSurPlusCount(
-            ObjectUtil.isNotNull(useCount) ? (int)Math.abs(freeDayAppointCount - useCount) : freeDayAppointCount);
+            ObjectUtil.isNotNull(useCount) ?
+                    (freeDayAppointCount - useCount.intValue())<0?0:(freeDayAppointCount - useCount.intValue())
+                    :
+                    freeDayAppointCount);
 
         userMemberProfitEntity.setEveryLimitCount(t.getLimitCount());
         userMemberProfitEntity.setGoTime(t.getGoTime());
