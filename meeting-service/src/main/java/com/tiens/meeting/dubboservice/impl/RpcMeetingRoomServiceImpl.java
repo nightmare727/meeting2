@@ -48,7 +48,6 @@ import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuple3;
@@ -92,8 +91,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     private final HwMeetingCommonService hwMeetingCommonService;
 
     private final RedissonClient redissonClient;
-
-    private final RedisTemplate redisTemplate;
 
     private final RoomAsyncTaskService roomAsyncTaskService;
 
@@ -446,6 +443,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @NewComerTasks
     public CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO){
         log.info("【创建、预约会议】开始，参数为：{}", meetingRoomContextDTO);
+        // 判断是否在黑名单
+        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
+        MeetingBlackUserVO vo = bucket.get();
+        if (vo != null) {
+            return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
+        }
+
         if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset())) {
             meetingRoomContextDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
             if (ObjectUtil.isNotEmpty(meetingRoomContextDTO.getStartTime())) {
@@ -643,11 +647,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     private CommonResult checkCreateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
-        // 判断是否在黑名单
-        Object o = redisTemplate.opsForValue().get(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
-        if (o != null) {
-            return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
-        }
 
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         Integer leadTime = meetingRoomContextDTO.getLeadTime();
@@ -899,10 +898,10 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Transactional
     public CommonResult updateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         log.info("【编辑会议】开始，参数为：{}", meetingRoomContextDTO);
-
         // 判断是否在黑名单
-        Object o = redisTemplate.opsForValue().get(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
-        if (o != null) {
+        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getJoyoCode()));
+        MeetingBlackUserVO vo = bucket.get();
+        if (vo != null) {
             return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
         }
 
