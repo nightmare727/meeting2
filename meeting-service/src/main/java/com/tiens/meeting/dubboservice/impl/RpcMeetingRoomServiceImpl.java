@@ -45,10 +45,7 @@ import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
-import org.redisson.api.RLock;
-import org.redisson.api.RLongAdder;
-import org.redisson.api.RMap;
-import org.redisson.api.RedissonClient;
+import org.redisson.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
@@ -143,6 +140,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      */
     @Override
     public CommonResult enterMeetingRoomCheck(EnterMeetingRoomCheckDTO enterMeetingRoomCheckDTO) {
+        // 判断是否在黑名单
+        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(enterMeetingRoomCheckDTO.getImUserId()));
+        MeetingBlackUserVO vo = bucket.get();
+        if (vo != null) {
+            return CommonResult.errorMsg("您已被加入黑名单~");
+        }
+
         // 若不在则 tos 提示，请在 XXXX年XX月XX日 XX:XX后进入会议。
         String meetRoomCode = enterMeetingRoomCheckDTO.getMeetRoomCode();
         String timeZoneOffset = enterMeetingRoomCheckDTO.getTimeZoneOffset();
@@ -444,9 +448,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Transactional
     @Override
     @NewComerTasks
-    public CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO)
-        throws Exception {
+    public CommonResult<MeetingRoomDetailDTO> createMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO){
         log.info("【创建、预约会议】开始，参数为：{}", meetingRoomContextDTO);
+        // 判断是否在黑名单
+        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getImUserId()));
+        MeetingBlackUserVO vo = bucket.get();
+        if (vo != null) {
+            return CommonResult.errorMsg("您已被加入黑名单~");
+        }
         if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset())) {
             meetingRoomContextDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
             if (ObjectUtil.isNotEmpty(meetingRoomContextDTO.getStartTime())) {
@@ -894,6 +903,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     @Transactional
     public CommonResult updateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
         log.info("【编辑会议】开始，参数为：{}", meetingRoomContextDTO);
+        // 判断是否在黑名单
+        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getImUserId()));
+        MeetingBlackUserVO vo = bucket.get();
+        if (vo != null) {
+            return CommonResult.errorMsg("您已被加入黑名单~");
+        }
+
         if (ObjectUtil.isEmpty(meetingRoomContextDTO.getTimeZoneOffset())) {
             meetingRoomContextDTO.setTimeZoneOffset(DateUtils.ZONE_STR_DEFAULT);
             if (ObjectUtil.isNotEmpty(meetingRoomContextDTO.getStartTime())) {

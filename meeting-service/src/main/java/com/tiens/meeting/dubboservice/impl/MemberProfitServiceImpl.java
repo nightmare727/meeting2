@@ -270,14 +270,21 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         String deviceSuggestion = null;
         CmsShowVO cmsShowVO = new CmsShowVO();
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
-        if (!isCn) {
+       /* if (!isCn) {
             deviceSuggestion = map.get(byTerminal.name() + "_" + defaultHwNation);
         } else {
             deviceSuggestion = map.get(byTerminal.name() + "_" + defaultZhNation);
-        }
-
+        }*/
         CommonResult<List<UserMemberProfitEntity>> listCommonResult = queryUserProfitConfig();
-
+        //获取弹窗内容
+        CommonResult<List<LaugeVO>> listCommonResult1 = rpcMeetingUserService.upPopupWindowList();
+        List<LaugeVO> data = listCommonResult1.getData();
+        //遍历取值
+        data.stream().forEach(b -> {
+            if (b.getLocale().equals(cmsShowGetDTO.getLanguageId())) {
+                cmsShowVO.setDeviceSuggestion(b.getValue());
+            }
+        });
         cmsShowVO.setUserMemberProfitEntityList(listCommonResult.getData());
 
         cmsShowVO.setDeviceSuggestion(deviceSuggestion);
@@ -725,7 +732,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         userMemberProfitEntity.setResourceSizeList(resourceSizeList);
 
         List<Integer> leadTimeList = Arrays.asList(t.getGoTime().split(",")).stream()
-            .map(Integer::parseInt).sorted()
+            .map(f ->MeetingResoyrceDateEnum.getHandlerNameByVmrMode(Integer.parseInt(f))).sorted()
             .collect(Collectors.toList());
 
         userMemberProfitEntity.setLeadTimeList(leadTimeList);
