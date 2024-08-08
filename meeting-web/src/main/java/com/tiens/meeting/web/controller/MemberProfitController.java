@@ -68,9 +68,8 @@ public class MemberProfitController {
      */
     @ResponseBody
     @GetMapping("/isBlackUser")
-    public CommonResult<MeetingBlackUserVO> isBlackUser(@RequestHeader("finalUserId") String finalUserId,
-                                                        @RequestHeader(value = "joyoCode") String joyoCode) {
-        return memberProfitService.getBlackUser(finalUserId, joyoCode);
+    public CommonResult<MeetingBlackUserVO> isBlackUser(@RequestHeader("finalUserId") String finalUserId) {
+        return memberProfitService.getBlackUser(finalUserId);
     }
 
     /**
