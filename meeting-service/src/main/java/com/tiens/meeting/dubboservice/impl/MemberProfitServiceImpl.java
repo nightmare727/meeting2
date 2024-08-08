@@ -725,7 +725,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         userMemberProfitEntity.setResourceSizeList(resourceSizeList);
 
         List<Integer> leadTimeList = Arrays.asList(t.getGoTime().split(",")).stream()
-            .map(Integer::parseInt).sorted()
+            .map(f ->MeetingResoyrceDateEnum.getHandlerNameByVmrMode(Integer.parseInt(f))).sorted()
             .collect(Collectors.toList());
 
         userMemberProfitEntity.setLeadTimeList(leadTimeList);
