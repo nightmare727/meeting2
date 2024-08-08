@@ -63,9 +63,8 @@
         FROM meeting_room_info mri
         left join meeting_resource mr on mri.resource_id = mr.id -- 使用资源id关联
         <where>
-                mri.is_deleted = 0
             <if test="params.hwMeetingCode!=null and params.hwMeetingCode!=''">
-                and mri.hw_meeting_code like concat('%', #{params.hwMeetingCode}, '%')
+                 mri.hw_meeting_code like concat('%', #{params.hwMeetingCode}, '%')
             </if>
 
             <if test="params.relStartTime!=null and params.relEndTime!=null">

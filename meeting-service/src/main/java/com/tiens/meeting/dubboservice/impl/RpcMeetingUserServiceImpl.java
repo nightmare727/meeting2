@@ -467,6 +467,8 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             RBucket<VMUserVO> vorBucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(userId));
             VMUserVO vmUserVo = vorBucket.get();
 
+            log.info("缓存中获取：{}", vmUserVo.toString());
+
             MeetingBlackUserVO meetingBlackUserVo = new MeetingBlackUserVO();
             meetingBlackUserVo.setUserId(userId);
             meetingBlackUserVo.setJoyoCode(vmUserVo == null ? null : vmUserVo.getJoyoCode());
