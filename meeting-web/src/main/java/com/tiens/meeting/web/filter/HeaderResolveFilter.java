@@ -112,7 +112,7 @@ public class HeaderResolveFilter implements Filter {
         if (memberType == null || levelCode == null) {
             log.info("[VM等级或会员类型为空，accid:{}vmUserVO:{}]",finalUserId,vmUserVO);
         }
-        wrapperRequest.addHeader("levelCode",levelCode!=null?String.valueOf(levelCode):null);
+        wrapperRequest.addHeader("levelCode",levelCode!=null?String.valueOf(levelCode):"0");
         wrapperRequest.addHeader("joyoCode", joyoCode);
         wrapperRequest.addHeader("userName", nickName);
         wrapperRequest.addHeader("phone", mobile);
