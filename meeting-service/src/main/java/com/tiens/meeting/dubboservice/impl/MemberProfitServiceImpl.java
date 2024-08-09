@@ -388,12 +388,12 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                 String messageKey="";
                 if(StringUtils.isNotBlank(meetingBlackUserPO.getOperator())){
                     if(meetingBlackUserPO.getEndTime() == null){
-                        messageKey=GlobalErrorCodeConstants.ALLOCATION__TIME_LATE_2.getWordKey();
+                        messageKey=GlobalErrorCodeConstants.Permanent_Ban_In_The_Background.getWordKey();
                     }else {
-                        messageKey=GlobalErrorCodeConstants.ALLOCATION__TIME_LATE_3.getWordKey();
+                        messageKey=GlobalErrorCodeConstants.Backend_Time_Limited_Ban.getWordKey();
                     }
                 }else {
-                    messageKey=GlobalErrorCodeConstants.ALLOCATION__TIME_LATE.getWordKey();
+                    messageKey=GlobalErrorCodeConstants.Three_Time_Breach_Limit.getWordKey();
                 }
                 MeetingBlackUserVO meetingBlackUserVO =
                         BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackUserVO.class);
