@@ -33,6 +33,7 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
@@ -377,6 +378,23 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
             // 永久封号或者还未到解禁时间
             if (meetingBlackUserPO.getEndTime() == null || meetingBlackUserPO.getEndTime().after(now)) {
+               // 调整返回值 message包含词条key  data赋值endTime
+//                1、三次失约限制：简化一下
+//                您最近3场会议未按规则正常开启，预约会议/快速会议受限，解禁时间:2024/09/19 16:00
+//                2、后台永久封禁：
+//                用户受限，不用使用会议功能。
+//                3、后台限时封禁：
+//                用户受限，解禁时间:2024/09/19 16:00
+                String messageKey="";
+                if(StringUtils.isNotBlank(meetingBlackUserPO.getOperator())){
+                    if(meetingBlackUserPO.getEndTime() == null){
+                        messageKey="moment_newmeeting_092";
+                    }else {
+                        messageKey="moment_newmeeting_093";
+                    }
+                }else {
+                    messageKey="moment_newmeeting_091";
+                }
                 MeetingBlackUserVO meetingBlackUserVO =
                         BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackUserVO.class);
                 MeetingConfig.BlackUserConfigInner blackUserConfig = meetingConfig.getBlackUserConfig();
@@ -387,7 +405,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                 meetingBlackUserVO.setNickName(meetingBlackUserPO.getNickName());
                 meetingBlackUserVO.setMobile(meetingBlackUserPO.getMobile());
                 meetingBlackUserVO.setCountryCode(meetingBlackUserPO.getCountryCode());
-                return CommonResult.success(meetingBlackUserVO);
+
+                return CommonResult.success(GlobalErrorCodeConstants.SUCCESS.getCode(),meetingBlackUserVO,messageKey);
             }
         }
         return CommonResult.success(null);

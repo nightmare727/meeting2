@@ -100,8 +100,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     private final MeetingWhiteUserDaoService meetingWhiteUserDaoService;
 
-    private final MeetingBlackUserDaoService meetingBlackUserDaoService;
-
     @Autowired
     MemberProfitService memberProfitService;
 
@@ -469,6 +467,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             lock.lock(10, TimeUnit.SECONDS);
             CommonResult checkResult = checkCreateMeetingRoom(meetingRoomContextDTO);
             if (!checkResult.isSuccess()) {
+                log.error("【创建、预约会议】检查不通过，资源id:{},checkResult:{}", resourceId,JSON.toJSONString(checkResult));
                 return checkResult;
             }
             //判断是否需要购买
@@ -1223,7 +1222,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Integer type = meetingResourcePO.getMeetingRoomType();
             Integer status = meetingResourcePO.getResourceStatus();
             if (MeetingNewRoomTypeEnum.PRIVATE.getState().equals(type)) {
-                log.info("【资源挂起释放】当前资源：{} 为私有资源，无需进行挂起释放操作", resourceId);
+                log.info("【资源挂起释放】当前资源：{} 为私有资源，无需进行挂起释放操作(已设置为有预约)", resourceId);
                 // 当前状态为公有空闲，可以置为有预约
                 meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
                         .eq(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.FREE.getState())

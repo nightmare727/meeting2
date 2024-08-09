@@ -211,6 +211,7 @@ public class InvalidMeetingCleanTask {
             MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
             meetingBlackUserPO.setUserId(meetingRoomInfoPO.getOwnerImUserId());
 //            meetingBlackUserPO.setJoyoCode();
+//            meetingBlackUserPO.setOperator();不能设置操作人用于区分与管理端设置区别
             meetingBlackUserPO.setLastMeetingCode(meetingRoomInfoPO.getConferenceId());
             meetingBlackUserPO.setStartTime(startTime);
             meetingBlackUserPO.setEndTime(endTime);
