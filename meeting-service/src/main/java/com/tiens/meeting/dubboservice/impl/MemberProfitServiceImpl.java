@@ -574,9 +574,9 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         switch (purchaseStatus) {
             case 1:
             case 5:
-                // 取会员权益
+                // 取会员权益，这里默认60份起步
                 meetingProfitPurchaseDetailVo.setDurationList(
-                    generateDurationList(userMemberProfit.getEveryLimitCount()));
+                    generateDurationList(60, userMemberProfit.getEveryLimitCount()));
                 break;
             case 2:
             case 3:
@@ -588,8 +588,9 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                         (Integer.parseInt(meetingProfitPurchaseDetailGetDto.getResourceType()));
                 MeetingPaidSettingVO meetingPaidSettingVo = meetingPaidSettingByResourceType.getData();
 
+                double baseTime = meetingPaidSettingVo.getBaseLimitTime() * 60;
                 double limitTime = meetingPaidSettingVo.getOnceLimit() * 60;
-                meetingProfitPurchaseDetailVo.setDurationList(generateDurationList((int)limitTime));
+                meetingProfitPurchaseDetailVo.setDurationList(generateDurationList((int) baseTime, (int) limitTime));
         }
 
         return CommonResult.success(meetingProfitPurchaseDetailVo);
@@ -598,11 +599,11 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     /**
      * 根据步长生成list
      *
+     * @param start
      * @param end
      * @return
      */
-    private static List<Integer> generateDurationList(int end) {
-        int start = 60;
+    private static List<Integer> generateDurationList(int start, int end) {
         int step = 30;
         List<Integer> resultList = new ArrayList<>();
         for (int i = start; i <= end; i += step) {
