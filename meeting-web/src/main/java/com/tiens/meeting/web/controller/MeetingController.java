@@ -281,9 +281,8 @@ public class MeetingController {
     @ResponseBody
     @GetMapping("/getMeetingResourceTypeList")
     CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(@RequestHeader("finalUserId") String finalUserId,
-        @RequestHeader("levelCode") Integer levelCode, @RequestHeader("nation_id") String nationId,
         @RequestHeader("memberType") Integer memberType) {
-        return rpcMeetingRoomService.getMeetingResourceTypeList(finalUserId, levelCode, nationId,memberType);
+        return rpcMeetingRoomService.getMeetingResourceTypeList(finalUserId, memberType);
     }
 
     /**

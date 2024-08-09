@@ -118,8 +118,7 @@ public interface RpcMeetingRoomService {
      *
      * @return
      */
-    CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode, String nationId,
-        Integer memberType);
+    CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer memberType);
 
     /**
      * 获取某会议类型下所有会议列表

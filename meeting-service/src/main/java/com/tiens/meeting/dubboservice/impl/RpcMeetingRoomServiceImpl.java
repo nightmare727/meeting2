@@ -1640,15 +1640,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * 会议类型返回
      *
      * @param imUserId
-     * @param levelCode
      * @param memberType
      * @return
      */
     @Override
-    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer levelCode,
-        String nationId, Integer memberType) {
+    public CommonResult<List<ResourceTypeVO>> getMeetingResourceTypeList(String imUserId, Integer memberType) {
         // 获取最大资源类型
-        Integer maxResourceType = getMaxLevel(levelCode, imUserId, nationId, memberType);
+        Integer maxResourceType = 6;
 
         //获取会员权益缓存
         RMap<Integer, MeetingMemeberProfitConfigPO> map =
