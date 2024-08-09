@@ -56,10 +56,11 @@
         mri.owner_im_user_id, -- 预约人id
         mri.owner_joyo_code, -- 预约人卓越卡号
         mri.area, -- 所在区域
-        mri.show_start_time, -- 计划开始时间
+        CONVERT_TZ(mri.show_start_time, 'UTC', 'Asia/Shanghai') as show_start_time,  -- 计划开始时间
         mri.duration, -- 时长
-        mri.rel_start_time, -- 实际开始时间
-        mri.rel_end_time -- 实际结束时间
+        CONVERT_TZ(mri.rel_start_time, 'UTC', 'Asia/Shanghai') as rel_start_time, -- 实际开始时间
+        CONVERT_TZ(mri.rel_end_time, 'UTC', 'Asia/Shanghai') as rel_end_time -- 实际结束时间
+
         FROM meeting_room_info mri
         left join meeting_resource mr on mri.resource_id = mr.id -- 使用资源id关联
         <where>

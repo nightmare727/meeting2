@@ -369,23 +369,26 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         //校验黑名单
         List<MeetingBlackUserPO> blackUserPOList =
-            meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, finalUserId)
-                .le(MeetingBlackUserPO::getStartTime, now).ge(MeetingBlackUserPO::getEndTime, now).list();
+                meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, finalUserId)
+                        .le(MeetingBlackUserPO::getStartTime, now).list();
 
         if (ObjectUtil.isNotEmpty(blackUserPOList)) {
             MeetingBlackUserPO meetingBlackUserPO = blackUserPOList.get(0);
-            MeetingBlackUserVO meetingBlackUserVO =
-                BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackUserVO.class);
-            MeetingConfig.BlackUserConfigInner blackUserConfig = meetingConfig.getBlackUserConfig();
 
-            meetingBlackUserVO.setMaxTime(blackUserConfig.getMaxTime());
-            meetingBlackUserVO.setLockDay(blackUserConfig.getLockDay());
-            meetingBlackUserVO.setLastMeetingCode(meetingBlackUserPO.getLastMeetingCode());
-            meetingBlackUserVO.setNickName(meetingBlackUserPO.getNickName());
-            meetingBlackUserVO.setMobile(meetingBlackUserPO.getMobile());
-            meetingBlackUserVO.setCountryCode(meetingBlackUserPO.getCountryCode());
-            return CommonResult.success(meetingBlackUserVO);
+            // 永久封号或者还未到解禁时间
+            if (meetingBlackUserPO.getEndTime() == null || meetingBlackUserPO.getEndTime().after(now)) {
+                MeetingBlackUserVO meetingBlackUserVO =
+                        BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackUserVO.class);
+                MeetingConfig.BlackUserConfigInner blackUserConfig = meetingConfig.getBlackUserConfig();
 
+                meetingBlackUserVO.setMaxTime(blackUserConfig.getMaxTime());
+                meetingBlackUserVO.setLockDay(blackUserConfig.getLockDay());
+                meetingBlackUserVO.setLastMeetingCode(meetingBlackUserPO.getLastMeetingCode());
+                meetingBlackUserVO.setNickName(meetingBlackUserPO.getNickName());
+                meetingBlackUserVO.setMobile(meetingBlackUserPO.getMobile());
+                meetingBlackUserVO.setCountryCode(meetingBlackUserPO.getCountryCode());
+                return CommonResult.success(meetingBlackUserVO);
+            }
         }
         return CommonResult.success(null);
     }
