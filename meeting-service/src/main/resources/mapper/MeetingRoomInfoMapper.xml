@@ -69,7 +69,7 @@
             </if>
 
             <if test="params.relStartTime!=null and params.relEndTime!=null">
-                and mri.rel_start_time &gt;= #{params.relStartTime} and mri.rel_end_time &lt;= #{params.relEndTime}
+                and mri.rel_start_time &gt;= DATE_SUB(#{params.relStartTime}, INTERVAL 8 HOUR) and mri.rel_end_time &lt;=  DATE_SUB(#{params.relEndTime}, INTERVAL 8 HOUR)
             </if>
 
             <if test="params.resourceSize!=null and params.resourceSize!=''">
@@ -89,7 +89,7 @@
             </if>
 
             <if test="params.showStartTime!=null and params.showEndTime!=null">
-                and mri.show_start_time between #{params.showStartTime} and #{params.showEndTime}
+                and mri.show_start_time between  DATE_SUB(#{params.showStartTime}, INTERVAL 8 HOUR) and DATE_SUB(#{params.showEndTime}, INTERVAL 8 HOUR)
             </if>
         </where>
         order by mri.create_time desc
