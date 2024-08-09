@@ -273,7 +273,7 @@ class RpcMeetingRoomServiceImplTest {
     void getMeetingResourceTypeList() {
 
         System.out.println(
-            rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff", 2, "CN", 1));
+            rpcMeetingRoomService.getMeetingResourceTypeList("caf3db70e08b496abf51e857f4211fff",  1));
 
     }
 
