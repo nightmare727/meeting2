@@ -75,18 +75,4 @@ public class MemberProfitCacheServiceImpl implements MemberProfitCacheService {
         return StrUtil.isNotBlank(result) && "1".equals(result);
     }
 
-    /**
-     * 查询会员权益
-     *
-     * @param memberType
-     * @return
-     */
-    @Override
-    public MeetingMemeberProfitConfigVO getMemberProfitConfig(Integer memberType) {
-        RMap<Integer, MeetingMemeberProfitConfigVO> map =
-            redissonClient.getMap(CacheKeyUtil.getMemberProfitConfigKey());
-        MeetingMemeberProfitConfigVO meetingMemeberProfitConfigVO = map.get(memberType);
-
-        return meetingMemeberProfitConfigVO;
-    }
 }

@@ -1652,7 +1652,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
         //获取会员权益缓存
         RMap<Integer, MeetingMemeberProfitConfigPO> map =
-            redissonClient.getMap(CacheKeyUtil.getMemberProfitConfigKey());
+            redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey("rese"));
         MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = map.get(memberType);
         //多种会议资源规格字符串拼接
 
