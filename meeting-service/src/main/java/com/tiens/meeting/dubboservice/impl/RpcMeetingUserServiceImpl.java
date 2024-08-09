@@ -508,13 +508,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         RMap<String, String> map = redissonClient.getMap(CacheKeyUtil.getProfitCommonConfigKey());
         String result = map.get(CommonProfitConfigConstants.CMS_SHOW_FLAG);
         if (StringUtils.isNotBlank(result) && "1".equals(result)) {
-            /*LaugeVO laugeVO = la.get(0);
-            LaugeVO laugeVO1 = la.get(1);
-            //如果集合为空设置默认值
-            if (la.size() == 0){
-                la.add(new LaugeVO("en-US", "US", laugeVO.getValue()));
-                la.add(new LaugeVO("en-ZN", "ZN", laugeVO1.getValue()));
-            }*/
             redissonClient.getBucket(CacheKeyUtil.getPopupWindowListKeys("countlange")).set(la);
             return CommonResult.success(null);
         }
@@ -545,11 +538,6 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
                     meetingMemeberProfitConfigDaoService.update(meetingMemeberProfitConfigPO,
                         new LambdaQueryWrapper<MeetingMemeberProfitConfigPO>().eq(
                             MeetingMemeberProfitConfigPO::getMemberType, meetingMemeberProfitConfigVO.getMemberType()));
-                   /* //先将之前的缓存删除
-                    redissonClient.getBucket(CacheKeyUtil.getFreeReservationLimitKey("rese")).delete();
-                    //将数据存到redis中
-                    redissonClient.getBucket(CacheKeyUtil.getFreeReservationLimitKey("rese")).set
-                    (meetingMemeberProfitConfigVO);*/
                 });
 
                 List<MeetingMemeberProfitConfigPO> list = meetingMemeberProfitConfigDaoService.list();
