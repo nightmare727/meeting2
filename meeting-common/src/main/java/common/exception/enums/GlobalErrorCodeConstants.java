@@ -102,6 +102,10 @@ public interface GlobalErrorCodeConstants {
     //todo:词条key待修改
     ErrorCode ALLOCATION__TIME_EARLY = new ErrorCode("2000051", "分配资源的过期时间不能早于当前时间", "moment_meeting_back_050");
 
+    ErrorCode ALLOCATION__TIME_LATE = new ErrorCode("2000052", "您最近{0}场会议未按规则正常开启，预约会议/快速会议受限，解禁时间:{0}", "moment_newmeeting_091");
+    ErrorCode ALLOCATION__TIME_LATE_2 = new ErrorCode("2000053", "用户受限，不用使用会议功能", "moment_newmeeting_092");
+    ErrorCode ALLOCATION__TIME_LATE_3 = new ErrorCode("2000054", "用户受限，角解禁时间:{0}", "moment_newmeeting_093");
+
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段
      *
