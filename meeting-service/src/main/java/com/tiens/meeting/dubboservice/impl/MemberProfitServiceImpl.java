@@ -652,7 +652,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     public CommonResult<MeetingUserProfitVO> getUserProfit(String finalUserId, Integer memberType) {
         MeetingUserProfitVO meetingUserProfitVO = new MeetingUserProfitVO();
         RMap<Integer, MeetingMemeberProfitConfigPO> map =
-            redissonClient.getMap(CacheKeyUtil.getMemberProfitConfigKey());
+            redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey("rese"));
 
         MeetingMemeberProfitConfigPO meetingMemeberProfitConfigPO = map.get(memberType);
 
