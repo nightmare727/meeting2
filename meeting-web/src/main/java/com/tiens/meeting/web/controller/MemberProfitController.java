@@ -1,6 +1,5 @@
 package com.tiens.meeting.web.controller;
 
-import com.tiens.api.dto.BuyMeetingProfitDTO;
 import com.tiens.api.dto.CmsShowGetDTO;
 import com.tiens.api.dto.MeetingProfitPurchaseDetailGetDTO;
 import com.tiens.api.dto.ProfitPaidCheckOutGetDTO;
@@ -118,17 +117,17 @@ public class MemberProfitController {
      * @param
      * @return
      */
-    @ResponseBody
-    @PostMapping("/buyMeetingProfit")
-    public CommonResult buyMeetingProfit(@RequestHeader("finalUserId") String finalUserId,
-        @RequestHeader("joyoCode") String joyoCode, @RequestHeader("nation_id") String nationId,
-        @RequestBody BuyMeetingProfitDTO buyMeetingProfitDTO) {
-        buyMeetingProfitDTO.setFinalUserId(finalUserId);
-        buyMeetingProfitDTO.setJoyoCode(joyoCode);
-        buyMeetingProfitDTO.setNationId(nationId);
-
-        return memberProfitService.buyMeetingProfit(buyMeetingProfitDTO);
-    }
+//    @ResponseBody
+//    @PostMapping("/buyMeetingProfit")
+//    public CommonResult buyMeetingProfit(@RequestHeader("finalUserId") String finalUserId,
+//        @RequestHeader("joyoCode") String joyoCode, @RequestHeader("nation_id") String nationId,
+//        @RequestBody BuyMeetingProfitDTO buyMeetingProfitDTO) {
+//        buyMeetingProfitDTO.setFinalUserId(finalUserId);
+//        buyMeetingProfitDTO.setJoyoCode(joyoCode);
+//        buyMeetingProfitDTO.setNationId(nationId);
+//
+//        return memberProfitService.buyMeetingProfit(buyMeetingProfitDTO);
+//    }
 
     /**
      * 查询权益购买详情
