@@ -100,7 +100,7 @@ public interface GlobalErrorCodeConstants {
 
     ErrorCode USER_IN_BLACK_LIST = new ErrorCode("2000050", "您当前无法预约会议", "moment_meeting_back_050");
     //todo:词条key待修改
-    ErrorCode ALLOCATION_TIME_EARLY = new ErrorCode("2000051", "分配资源的过期时间不能早于当前时间", "moment_meeting_back_xxx");
+    ErrorCode ALLOCATION_TIME_EARLY = new ErrorCode("2000051", "分配资源的过期时间不能早于当前时间", "moment_newmeeting_095");
 
     ErrorCode THREE_TIME_BREACH_LIMIT = new ErrorCode("2000052", "您最近{0}场会议未按规则正常开启，预约会议/快速会议受限，解禁时间:{0}", "moment_newmeeting_091");
     ErrorCode PERMANENT_BAN_IN_THE_BACKGROUND = new ErrorCode("2000053", "用户受限，不用使用会议功能", "moment_newmeeting_092");

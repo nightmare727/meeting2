@@ -135,7 +135,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 DateUtil.convertTimeZone(resourceAllocateDTO.getOwnerExpireDate(), DateUtils.TIME_ZONE_GMT).isBefore(DateUtil.convertTimeZone(DateUtil.date(), DateUtils.TIME_ZONE_GMT))) {
             //分配资源的过期时间早于了当前时间
             log.error("【分配资源】分配资源的过期时间早于了当前时间:{}", resourceAllocateDTO);
-            return CommonResult.error(GlobalErrorCodeConstants.ALLOCATION_TIME_EARLY);
+            return CommonResult.error(GlobalErrorCodeConstants.ALLOCATION_TIME_EARLY.getCode(),GlobalErrorCodeConstants.ALLOCATION_TIME_EARLY.getChinesMsg());
         }
         CommonResult<VMUserVO> vmUserVOCommonResult =
             rpcMeetingUserService.queryVMUser(resourceAllocateDTO.getJoyoCode(), "");
