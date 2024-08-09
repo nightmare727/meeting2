@@ -642,12 +642,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 
     private CommonResult checkCreateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
 
-        // 判断是否在黑名单
-        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getImUserId()));
-        if (bucket.isExists()) {
-            return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
-        }
-
         Integer resourceId = meetingRoomContextDTO.getResourceId();
         Integer leadTime = meetingRoomContextDTO.getLeadTime();
 
@@ -780,10 +774,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
     }
 
     private CommonResult checkUpdateMeetingRoom(MeetingRoomContextDTO meetingRoomContextDTO) {
-        RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(meetingRoomContextDTO.getImUserId()));
-        if (bucket.isExists()) {
-            return CommonResult.error(GlobalErrorCodeConstants.USER_IN_BLACK_LIST);
-        }
+
         Integer resourceId = meetingRoomContextDTO.getResourceId();
 
         Integer leadTime = meetingRoomContextDTO.getLeadTime();
