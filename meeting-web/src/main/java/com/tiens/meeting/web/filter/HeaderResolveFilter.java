@@ -109,13 +109,15 @@ public class HeaderResolveFilter implements Filter {
         String mobile = vmUserVO.getMobile();
         String email = vmUserVO.getEmail();
         Integer memberType = vmUserVO.getMemberType();
-
-        wrapperRequest.addHeader("levelCode", String.valueOf(levelCode));
+        if (memberType == null || levelCode == null) {
+            log.info("[VM等级或会员类型为空，accid:{}vmUserVO:{}]",finalUserId,vmUserVO);
+        }
+        wrapperRequest.addHeader("levelCode",levelCode!=null?String.valueOf(levelCode):null);
         wrapperRequest.addHeader("joyoCode", joyoCode);
         wrapperRequest.addHeader("userName", nickName);
         wrapperRequest.addHeader("phone", mobile);
         wrapperRequest.addHeader("email", email);
-        wrapperRequest.addHeader("memberType", String.valueOf(memberType));
+        wrapperRequest.addHeader("memberType", memberType!=null?String.valueOf(memberType):"1");
 
         //异步同步华为用户-必定成功
         ThreadUtil.execute(() -> {
