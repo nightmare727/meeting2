@@ -63,6 +63,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static common.enums.MeetingResourceHandleEnum.HOLD_UP;
+
 /**
  * @Author: 蔚文杰
  * @Date: 2023/11/11
@@ -377,11 +379,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     private List<MeetingResourceVO> getPublicResourceList(FreeResourceListDTO freeResourceListDTO) {
-
+        List<Integer> meetingRoomTypeList = new ArrayList<>(2);
+//        if(freeResourceListDTO.getPurchaseStatus()==null  || freeResourceListDTO.getPurchaseStatus()<3){
+//            //只剩下花钱的时候就不查公池资源
+//            meetingRoomTypeList.add(MeetingNewRoomTypeEnum.PUBLIC.getState());
+//        }
+//        meetingRoomTypeList.add(MeetingNewRoomTypeEnum.PAID.getState());
         // 根据资源类型查询所有空闲资源
         List<MeetingResourcePO> levelFreeResourceList = meetingResourceDaoService.lambdaQuery()
-            .in(MeetingResourcePO::getMeetingRoomType, Lists.newArrayList(MeetingNewRoomTypeEnum.PUBLIC.getState(),
-                MeetingNewRoomTypeEnum.PAID.getState()))
+            .in(MeetingResourcePO::getMeetingRoomType, meetingRoomTypeList)
             .eq(MeetingResourcePO::getPreAllocation, MeetingNewResourceStateEnum.FREE.getState())
             .eq(MeetingResourcePO::getResourceType, Integer.parseInt(freeResourceListDTO.getResourceType())).list();
         //公共资源
@@ -537,7 +543,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             }
 
             // 3、锁定资源，更改资源状态为共有预约
-            publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), MeetingResourceHandleEnum.HOLD_UP);
+            publicResourceHoldHandle(meetingRoomInfoPO.getResourceId(), HOLD_UP);
 
             //4、设置权益记录
             memberProfitService.saveUserProfitRecord(meetingRoomContextDTO, meetingRoomId);
@@ -1222,11 +1228,12 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             Integer type = meetingResourcePO.getMeetingRoomType();
             Integer status = meetingResourcePO.getResourceStatus();
             if (MeetingNewRoomTypeEnum.PRIVATE.getState().equals(type)) {
-                log.info("【资源挂起释放】当前资源：{} 为私有资源，无需进行挂起释放操作(已设置为有预约)", resourceId);
+                log.info("【资源挂起释放】当前资源：{} 为私有资源，无需进行挂起释放操作(已设置为有预约/空闲)", resourceId);
                 // 当前状态为公有空闲，可以置为有预约
+                boolean isHoldUp = meetingResourceHandleEnum == HOLD_UP;
                 meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
-                        .eq(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.FREE.getState())
-                        .set(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.SUBSCRIBE.getState())
+                        .eq(MeetingResourcePO::getResourceStatus, isHoldUp ? MeetingNewResourceStateEnum.FREE.getState() : MeetingNewResourceStateEnum.SUBSCRIBE.getState())
+                        .set(MeetingResourcePO::getResourceStatus, isHoldUp ? MeetingNewResourceStateEnum.SUBSCRIBE.getState() : MeetingNewResourceStateEnum.FREE.getState())
                         .update();
                 return Boolean.FALSE;
             }
