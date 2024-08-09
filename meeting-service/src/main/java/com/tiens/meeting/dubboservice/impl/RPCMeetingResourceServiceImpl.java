@@ -319,7 +319,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 .in(MeetingResourcePO::getId, changeMeetingRoomType.getResourceIds())
                 .ne(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
                 .set(MeetingResourcePO::getMeetingRoomType,changeMeetingRoomType.getTargetRoomType())
-                .eq(MeetingResourcePO::getResourceStatus,MeetingNewResourceStateEnum.FREE.getState())
+//                .eq(MeetingResourcePO::getResourceStatus,MeetingNewResourceStateEnum.FREE.getState())
                 .update();
         return CommonResult.success(null);
     }
