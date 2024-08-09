@@ -379,7 +379,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     private List<MeetingResourceVO> getPublicResourceList(FreeResourceListDTO freeResourceListDTO) {
-        List<Integer> meetingRoomTypeList = new ArrayList<>(2);
 //        if(freeResourceListDTO.getPurchaseStatus()==null  || freeResourceListDTO.getPurchaseStatus()<3){
 //            //只剩下花钱的时候就不查公池资源
 //            meetingRoomTypeList.add(MeetingNewRoomTypeEnum.PUBLIC.getState());
@@ -387,7 +386,8 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 //        meetingRoomTypeList.add(MeetingNewRoomTypeEnum.PAID.getState());
         // 根据资源类型查询所有空闲资源
         List<MeetingResourcePO> levelFreeResourceList = meetingResourceDaoService.lambdaQuery()
-            .in(MeetingResourcePO::getMeetingRoomType, meetingRoomTypeList)
+            .in(MeetingResourcePO::getMeetingRoomType, Lists.newArrayList(MeetingNewRoomTypeEnum.PUBLIC.getState(),
+                    MeetingNewRoomTypeEnum.PAID.getState()))
             .eq(MeetingResourcePO::getPreAllocation, MeetingNewResourceStateEnum.FREE.getState())
             .eq(MeetingResourcePO::getResourceType, Integer.parseInt(freeResourceListDTO.getResourceType())).list();
         //公共资源
