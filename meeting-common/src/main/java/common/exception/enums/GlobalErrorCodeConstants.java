@@ -98,6 +98,9 @@ public interface GlobalErrorCodeConstants {
 
     ErrorCode ERROR_BUY_PROFIT = new ErrorCode("2000049", "购买权益失败", "moment_meeting_back_049");
 
+    ErrorCode USER_IN_BLACK_LIST = new ErrorCode("2000050", "您当前无法预约会议", "moment_meeting_back_050");
+    //todo:词条key待修改
+    ErrorCode ALLOCATION__TIME_EARLY = new ErrorCode("2000051", "分配资源的过期时间不能早于当前时间", "moment_meeting_back_050");
 
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段
