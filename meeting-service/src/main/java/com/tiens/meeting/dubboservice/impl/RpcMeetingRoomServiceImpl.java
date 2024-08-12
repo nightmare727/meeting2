@@ -400,7 +400,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 Collectors.toList());
             //判断普通用户是否存在免费次数
         List<MeetingResourcePO> finalResourceList = levelFreeResourceList;
-        if (freeResourceListDTO.getMemberType() == 1) {
+        if (freeResourceListDTO.getMemberType() != null && freeResourceListDTO.getMemberType() == 1) {
             CommonResult<MeetingUserProfitVO> userProfit = memberProfitService.getUserProfit(freeResourceListDTO.getImUserId(), freeResourceListDTO.getMemberType());
             finalResourceList = new ArrayList<>();
             if (userProfit.isSuccess()) {
