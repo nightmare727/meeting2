@@ -210,12 +210,13 @@ public class InvalidMeetingCleanTask {
             //用户成为黑名单一员
             MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
             meetingBlackUserPO.setUserId(meetingRoomInfoPO.getOwnerImUserId());
-//            meetingBlackUserPO.setJoyoCode();
+            meetingBlackUserPO.setJoyoCode(meetingRoomInfoPO.getOwnerJoyoCode());
 //            meetingBlackUserPO.setOperator();不能设置操作人用于区分与管理端设置区别
             meetingBlackUserPO.setLastMeetingCode(meetingRoomInfoPO.getConferenceId());
             meetingBlackUserPO.setStartTime(startTime);
             meetingBlackUserPO.setEndTime(endTime);
             meetingBlackUserPO.setNickName(meetingRoomInfoPO.getOwnerUserName());
+
 
             meetingBlackUserDaoService.save(meetingBlackUserPO);
         } else {
