@@ -977,6 +977,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         freeResourceListDTO.setLength(buyMeetingProfitDTO.getLength());
         freeResourceListDTO.setResourceType(buyMeetingProfitDTO.getResourceType());
         freeResourceListDTO.setTimeZoneOffset(buyMeetingProfitDTO.getTimeZoneOffset());
+        freeResourceListDTO.setMemberType(buyMeetingProfitDTO.getMemberType());
         //2、校验资源是否可用
         CommonResult<List<MeetingResourceVO>> freeResourceList =
             rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO);

@@ -52,4 +52,6 @@ public class BuyMeetingProfitDTO implements Serializable {
      * 前置时间
      */
     private Integer leadTime;
+
+    private Integer memberType;
 }

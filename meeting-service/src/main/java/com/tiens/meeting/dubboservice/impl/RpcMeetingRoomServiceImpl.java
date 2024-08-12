@@ -495,6 +495,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 buyMeetingProfitDTO.setTimeZoneOffset(meetingRoomContextDTO.getTimeZoneOffset());
                 buyMeetingProfitDTO.setLength(meetingRoomContextDTO.getLength());
                 buyMeetingProfitDTO.setLeadTime(meetingRoomContextDTO.getLeadTime());
+                buyMeetingProfitDTO.setMemberType(meetingRoomContextDTO.getMemberType());
 
                 CommonResult buyResult = memberProfitService.buyMeetingProfit(buyMeetingProfitDTO);
                 if (buyResult.isError()) {
@@ -781,6 +782,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         freeResourceListDTO.setLength(meetingRoomContextDTO.getLength());
         freeResourceListDTO.setResourceType(meetingRoomContextDTO.getResourceType());
         freeResourceListDTO.setTimeZoneOffset(meetingRoomContextDTO.getTimeZoneOffset());
+        freeResourceListDTO.setMemberType(meetingRoomContextDTO.getMemberType());
         return freeResourceListDTO;
     }
 
