@@ -238,7 +238,7 @@ public class RPCMeetingResourceServiceImpl implements RPCMeetingResourceService 
                 if (privateFlag && !emptyRoomFlag) {
                     //存在会议，无法取消分配，需要先处理会议
                     log.error("【取消分配资源】私有资源存在进行中或者预约中的会议，无法取消分配");
-                    return CommonResult.error(GlobalErrorCodeConstants.CAN_NOT_CANCEL_ALLOCATE_RESOURCE);
+                    return CommonResult.error(GlobalErrorCodeConstants.DURING_THE_MEETING);
                 }
             }
             //可以取消分配
