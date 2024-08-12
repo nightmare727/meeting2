@@ -497,7 +497,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                 if (buyResult.isError()) {
                     return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
                 }
-
             } else {
                 meetingRoomContextDTO.setPaidType(PaidTypeEnum.MEMBER_FREE.getState());
             }
@@ -1258,7 +1257,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     }
                     // 当前状态为公有空闲，可以置为公有预约
                     boolean update = meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
-                        .eq(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PUBLIC.getState())
+                        .in(MeetingResourcePO::getMeetingRoomType,Arrays.asList(MeetingNewRoomTypeEnum.PUBLIC.getState(),MeetingNewRoomTypeEnum.PAID.getState()))
                         .eq(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.FREE.getState())
                         .set(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.SUBSCRIBE.getState())
                         .update();
