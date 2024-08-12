@@ -38,7 +38,6 @@ import common.pojo.CommonResult;
 import common.pojo.PageParam;
 import common.pojo.PageResult;
 import common.util.cache.CacheKeyUtil;
-import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -53,7 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -446,16 +444,12 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
         Date startTime = DateUtil.date();
         log.info("userRequestDto.getEndTime:{}", endTime);
         if (endTime != null) {
-            ZoneId userZoneId = ZoneId.of("Asia/Shanghai");
             // 用户当前时间
-            endTime = DateUtils.convertTimeZone(endTime, userZoneId, DateUtils.TIME_ZONE_GMT);
             if (endTime.before(startTime)) {
                 return CommonResult.errorMsg("结束时间不可以小于当前~");
             }
         }
-        Date expire = endTime;
         List<Boolean> result = new ArrayList<>();
-        log.info("endTime:{}，startTime：{}，expire：{}", endTime, startTime, expire);
         meetingBlackUserDaoService.remove(
             new LambdaQueryWrapper<MeetingBlackUserPO>().in(MeetingBlackUserPO::getUserId, userIdList));
 
@@ -481,14 +475,14 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             meetingBlackUserVo.setNickName(vmUserVo.getNickName());
             meetingBlackUserVo.setCountryCode(vmUserVo.getCountry());
             meetingBlackUserVo.setStartTime(startTime);
-            meetingBlackUserVo.setEndTime(expire);
+            meetingBlackUserVo.setEndTime(endTime);
             meetingBlackUserVo.setOperator(account);
             // 缓存设置
             RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(vmUserVo.getAccid()));
             bucket.set(meetingBlackUserVo);
-            if (expire != null) {
+            if (endTime != null) {
                 // 设置过期时间
-                long differenceInMilliSeconds = expire.getTime() - startTime.getTime();
+                long differenceInMilliSeconds = endTime.getTime() - startTime.getTime();
                 // 将毫秒转换为秒
                 bucket.expire(differenceInMilliSeconds / 1000, TimeUnit.SECONDS);
             }
