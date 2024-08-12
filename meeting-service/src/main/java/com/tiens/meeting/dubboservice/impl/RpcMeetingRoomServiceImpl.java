@@ -379,11 +379,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
      * @return
      */
     private List<MeetingResourceVO> getPublicResourceList(FreeResourceListDTO freeResourceListDTO) {
-//        if(freeResourceListDTO.getPurchaseStatus()==null  || freeResourceListDTO.getPurchaseStatus()<3){
-//            //只剩下花钱的时候就不查公池资源
-//            meetingRoomTypeList.add(MeetingNewRoomTypeEnum.PUBLIC.getState());
-//        }
-//        meetingRoomTypeList.add(MeetingNewRoomTypeEnum.PAID.getState());
         // 根据资源类型查询所有空闲资源
         List<MeetingResourcePO> levelFreeResourceList = meetingResourceDaoService.lambdaQuery()
             .in(MeetingResourcePO::getMeetingRoomType, Lists.newArrayList(MeetingNewRoomTypeEnum.PUBLIC.getState(),
@@ -402,6 +397,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<MeetingResourcePO> finalResourceList = levelFreeResourceList;
         if (freeResourceListDTO.getMemberType() != null && freeResourceListDTO.getMemberType() == 1) {
             CommonResult<MeetingUserProfitVO> userProfit = memberProfitService.getUserProfit(freeResourceListDTO.getImUserId(), freeResourceListDTO.getMemberType());
+            log.info("【获取公池资源列表】userProfit:{} publicResourceList:{} paidResourceList:{}",userProfit.getData(),publicResourceList,paidResourceList);
             finalResourceList = new ArrayList<>();
             if (userProfit.isSuccess()) {
                 finalResourceList = Optional.ofNullable(userProfit.getData()).map(MeetingUserProfitVO::getUserMemberProfit).map(UserMemberProfitEntity::getSurPlusCount).orElse(0) > 0 ?

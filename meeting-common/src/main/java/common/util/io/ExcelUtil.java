@@ -6,6 +6,7 @@ import com.alibaba.excel.write.metadata.style.WriteCellStyle;
 import com.alibaba.excel.write.metadata.style.WriteFont;
 import com.alibaba.excel.write.style.HorizontalCellStyleStrategy;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import common.util.servlet.ServletUtils;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
@@ -55,7 +56,13 @@ public class ExcelUtil {
         for (JsonNode item : items) {
             List<Object> son = new ArrayList<>();
             keys.forEach(key -> {
-                son.add(item.get(key).asText());
+                JsonNode jsonNode = item.get(key);
+                JsonNodeType nodeType = jsonNode.getNodeType();
+                if (nodeType == JsonNodeType.NULL) {
+                    son.add("");
+                } else {
+                    son.add(jsonNode.asText());
+                }
             });
             dataList.add(son);
         }
