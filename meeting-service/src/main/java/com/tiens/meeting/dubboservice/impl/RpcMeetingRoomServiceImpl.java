@@ -1276,16 +1276,18 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                                 Lists.newArrayList(MeetingRoomStateEnum.Schedule.getState(),
                                     MeetingRoomStateEnum.Created.getState())).count();
                     if (count == 0) {
+                        boolean preAllocation = MeetingNewResourceStateEnum.SUBSCRIBE.getState()
+                                .equals(meetingResourcePO.getPreAllocation());
                         // 当前无占用会议室
                         boolean update1 =
                             meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
                                 // 当前状态为共有预约。释放资源后，如果
                                 .set(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.FREE.getState())
+                                .set(preAllocation,MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
                                 .set(!subscribeFlag, MeetingResourcePO::getCurrentUseImUserId,
                                     meetingResourcePO.getOwnerImUserId()).update();
-                        // 如果私有，则分配资源
-                        if (MeetingNewResourceStateEnum.SUBSCRIBE.getState()
-                            .equals(meetingResourcePO.getPreAllocation())) {
+                        // 如果存在yu分配私有，则分配资源
+                        if (preAllocation) {
                             log.info("【资源挂起释放】将预分配资源分配给私人，resourceId:{},ownerId：{}",
                                 meetingResourcePO.getId(), meetingResourcePO.getOwnerImUserId());
                             hwMeetingCommonService.associateVmr(meetingResourcePO.getOwnerImUserId(),
