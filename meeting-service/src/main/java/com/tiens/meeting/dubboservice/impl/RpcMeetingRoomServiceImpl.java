@@ -368,7 +368,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .eq(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
             .eq(MeetingResourcePO::getResourceType, relType)
             .and(condition -> condition.isNull(MeetingResourcePO::getOwnerExpireDate).or()
-                .ge(MeetingResourcePO::getOwnerExpireDate, showStartTime)
+                    .gt(MeetingResourcePO::getOwnerExpireDate, DateUtil.offsetMinute(showStartTime, 29))
             ).list();
         return BeanUtil.copyToList(list, MeetingResourceVO.class);
     }
@@ -391,18 +391,18 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .filter(t -> MeetingNewRoomTypeEnum.PUBLIC.getState().equals(t.getMeetingRoomType())).collect(
                 Collectors.toList());
         //付费资源
-        List<MeetingResourcePO> paidResourceList = levelFreeResourceList.stream()
-            .filter(t -> MeetingNewRoomTypeEnum.PAID.getState().equals(t.getMeetingRoomType())).collect(
-                Collectors.toList());
+//        List<MeetingResourcePO> paidResourceList = levelFreeResourceList.stream()
+//            .filter(t -> MeetingNewRoomTypeEnum.PAID.getState().equals(t.getMeetingRoomType())).collect(
+//                Collectors.toList());
             //判断普通用户是否存在免费次数
         List<MeetingResourcePO> finalResourceList = levelFreeResourceList;
         if (freeResourceListDTO.getMemberType() != null && freeResourceListDTO.getMemberType() == 1) {
             CommonResult<MeetingUserProfitVO> userProfit = memberProfitService.getUserProfit(freeResourceListDTO.getImUserId(), freeResourceListDTO.getMemberType());
-            log.info("【获取公池资源列表】userProfit:{} publicResourceList:{} paidResourceList:{}",userProfit.getData(),publicResourceList,paidResourceList);
+            log.info("【获取公池资源列表】userProfit:{} publicResourceList:{}",userProfit.getData(),publicResourceList);
             finalResourceList = new ArrayList<>();
             if (userProfit.isSuccess()) {
                 finalResourceList = Optional.ofNullable(userProfit.getData()).map(MeetingUserProfitVO::getUserMemberProfit).map(UserMemberProfitEntity::getSurPlusCount).orElse(0) > 0 ?
-                        publicResourceList : paidResourceList;
+                        publicResourceList : levelFreeResourceList;
             }
         }
         return BeanUtil.copyToList(finalResourceList, MeetingResourceVO.class);
