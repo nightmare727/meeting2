@@ -481,7 +481,6 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             }
             //判断是否需要购买
             Boolean needPay = meetingRoomContextDTO.getNeedPay();
-
             if (needPay) {
                 meetingRoomContextDTO.setPaidType(PaidTypeEnum.PAID.getState());
                 BuyMeetingProfitDTO buyMeetingProfitDTO = new BuyMeetingProfitDTO();
@@ -499,6 +498,13 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
                 }
             } else {
+                CommonResult<MeetingUserProfitVO> userProfit = memberProfitService.getUserProfit(meetingRoomContextDTO.getImUserId(), meetingRoomContextDTO.getMemberType());
+                if (userProfit.isSuccess()) {
+                    if (Optional.ofNullable(userProfit.getData()).map(MeetingUserProfitVO::getUserMemberProfit).map(UserMemberProfitEntity::getSurPlusCount).orElse(0) < 1) {
+                        log.error("【创建、预约会议】当前用户需要购买 但参数提示未需要付费，资源id:{},userProfit:{}", resourceId, userProfit.getData());
+                        return CommonResult.error(GlobalErrorCodeConstants.NEED_BUY_PROFIT);
+                    }
+                }
                 meetingRoomContextDTO.setPaidType(PaidTypeEnum.MEMBER_FREE.getState());
             }
 
