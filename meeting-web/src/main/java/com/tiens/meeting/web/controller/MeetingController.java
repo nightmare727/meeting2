@@ -90,9 +90,10 @@ public class MeetingController {
     @ResponseBody
     @PostMapping("/getFreeResourceList")
     CommonResult<List<MeetingResourceVO>> getFreeResourceList(@RequestHeader("levelCode") Integer levelCode,
-        @RequestHeader("finalUserId") String finalUserId, @RequestBody FreeResourceListDTO freeResourceListDTO) {
+        @RequestHeader("finalUserId") String finalUserId, @RequestHeader("memberType") Integer memberType, @RequestBody FreeResourceListDTO freeResourceListDTO) {
         freeResourceListDTO.setLevelCode(levelCode);
         freeResourceListDTO.setImUserId(finalUserId);
+        freeResourceListDTO.setMemberType(memberType);
         return rpcMeetingRoomService.getFreeResourceList(freeResourceListDTO);
     }
 

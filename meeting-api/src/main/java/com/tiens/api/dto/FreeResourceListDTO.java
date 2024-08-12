@@ -35,6 +35,10 @@ public class FreeResourceListDTO implements Serializable {
      */
     private Integer length;
     /**
+     * (需要)会员等级
+     */
+    private Integer memberType;
+    /**
      * (需要)资源类型
      */
     private String resourceType;

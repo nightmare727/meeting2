@@ -398,11 +398,17 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         List<MeetingResourcePO> paidResourceList = levelFreeResourceList.stream()
             .filter(t -> MeetingNewRoomTypeEnum.PAID.getState().equals(t.getMeetingRoomType())).collect(
                 Collectors.toList());
-
-        List<MeetingResourcePO> finalResourceList = ObjectUtil.isEmpty(publicResourceList) ? paidResourceList :
-            publicResourceList;
-
-        return BeanUtil.copyToList(levelFreeResourceList, MeetingResourceVO.class);
+            //判断普通用户是否存在免费次数
+        List<MeetingResourcePO> finalResourceList = levelFreeResourceList;
+        if (freeResourceListDTO.getMemberType() == 1) {
+            CommonResult<MeetingUserProfitVO> userProfit = memberProfitService.getUserProfit(freeResourceListDTO.getImUserId(), freeResourceListDTO.getMemberType());
+            finalResourceList = new ArrayList<>();
+            if (userProfit.isSuccess()) {
+                finalResourceList = Optional.ofNullable(userProfit.getData()).map(MeetingUserProfitVO::getUserMemberProfit).map(UserMemberProfitEntity::getSurPlusCount).orElse(0) > 0 ?
+                        publicResourceList : paidResourceList;
+            }
+        }
+        return BeanUtil.copyToList(finalResourceList, MeetingResourceVO.class);
     }
 
     /**
