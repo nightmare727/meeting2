@@ -44,6 +44,7 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.dubbo.config.annotation.Service;
 import org.redisson.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -396,13 +397,15 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
 //                Collectors.toList());
             //判断普通用户是否存在免费次数
         List<MeetingResourcePO> finalResourceList = levelFreeResourceList;
-        if (freeResourceListDTO.getMemberType() != null && freeResourceListDTO.getMemberType() == 1) {
-            CommonResult<MeetingUserProfitVO> userProfit = memberProfitService.getUserProfit(freeResourceListDTO.getImUserId(), freeResourceListDTO.getMemberType());
-            log.info("【获取公池资源列表】userProfit:{} publicResourceList:{}",userProfit.getData(),publicResourceList);
-            finalResourceList = new ArrayList<>();
-            if (userProfit.isSuccess()) {
-                finalResourceList = Optional.ofNullable(userProfit.getData()).map(MeetingUserProfitVO::getUserMemberProfit).map(UserMemberProfitEntity::getSurPlusCount).orElse(0) > 0 ?
-                        publicResourceList : levelFreeResourceList;
+        if (CollectionUtils.isNotEmpty(publicResourceList)) {
+            if (freeResourceListDTO.getMemberType() != null && freeResourceListDTO.getMemberType() == 1) {
+                CommonResult<MeetingUserProfitVO> userProfit = memberProfitService.getUserProfit(freeResourceListDTO.getImUserId(), freeResourceListDTO.getMemberType());
+                log.info("【获取公池资源列表】userProfit:{} publicResourceList:{}", userProfit.getData(), publicResourceList);
+                finalResourceList = new ArrayList<>();
+                if (userProfit.isSuccess()) {
+                    finalResourceList = Optional.ofNullable(userProfit.getData()).map(MeetingUserProfitVO::getUserMemberProfit).map(UserMemberProfitEntity::getSurPlusCount).orElse(0) > 0 ?
+                            publicResourceList : levelFreeResourceList;
+                }
             }
         }
         return BeanUtil.copyToList(finalResourceList, MeetingResourceVO.class);
