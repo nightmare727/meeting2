@@ -489,6 +489,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         freeResourceListDto.setTimeZoneOffset(meetingProfitPurchaseDetailGetDto.getTimeZoneOffset());
         freeResourceListDto.setLength(meetingProfitPurchaseDetailGetDto.getLength() == null ? 60 : meetingProfitPurchaseDetailGetDto.getLength());
         freeResourceListDto.setResourceType(meetingProfitPurchaseDetailGetDto.getResourceType());
+        freeResourceListDto.setMemberType(meetingProfitPurchaseDetailGetDto.getMemberType());
 
         // 如果前端没传，那么取最小的那个
         if (meetingProfitPurchaseDetailGetDto.getLeadTime() == null) {
