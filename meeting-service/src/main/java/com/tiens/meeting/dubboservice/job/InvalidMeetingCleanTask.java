@@ -11,6 +11,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tiens.api.dto.CancelMeetingRoomDTO;
 import com.tiens.api.service.RPCMeetingResourceService;
 import com.tiens.api.service.RpcMeetingRoomService;
+import com.tiens.api.vo.VMUserVO;
 import com.tiens.meeting.dubboservice.config.MeetingConfig;
 import com.tiens.meeting.dubboservice.core.HwMeetingCommonService;
 import com.tiens.meeting.repository.po.*;
@@ -25,6 +26,7 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -207,16 +209,21 @@ public class InvalidMeetingCleanTask {
 
             DateTime endTime = DateUtil.offsetDay(startTime, 3);
 
+            // 从缓存中获取被加入黑名单人的信息
+            RBucket<VMUserVO> vorBucket = redissonClient.getBucket(CacheKeyUtil.getUserInfoKey(meetingRoomInfoPO.getOwnerImUserId()));
+            VMUserVO vmUserVo = vorBucket.get();
+
             //用户成为黑名单一员
             MeetingBlackUserPO meetingBlackUserPO = new MeetingBlackUserPO();
             meetingBlackUserPO.setUserId(meetingRoomInfoPO.getOwnerImUserId());
-            meetingBlackUserPO.setJoyoCode(meetingRoomInfoPO.getOwnerJoyoCode());
 //            meetingBlackUserPO.setOperator();不能设置操作人用于区分与管理端设置区别
             meetingBlackUserPO.setLastMeetingCode(meetingRoomInfoPO.getConferenceId());
             meetingBlackUserPO.setStartTime(startTime);
             meetingBlackUserPO.setEndTime(endTime);
             meetingBlackUserPO.setNickName(meetingRoomInfoPO.getOwnerUserName());
-
+            meetingBlackUserPO.setJoyoCode(vmUserVo.getJoyoCode());
+            meetingBlackUserPO.setMobile(vmUserVo.getMobile());
+            meetingBlackUserPO.setCountryCode(vmUserVo.getCountry());
 
             meetingBlackUserDaoService.save(meetingBlackUserPO);
         } else {
