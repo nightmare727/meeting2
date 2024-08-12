@@ -380,8 +380,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             .like(StrUtil.isNotBlank(condition.getUserId()), MeetingBlackUserPO::getUserId, condition.getUserId())
             .like(StrUtil.isNotBlank(condition.getNickName()), MeetingBlackUserPO::getNickName, condition.getNickName())
             .like(StrUtil.isNotBlank(condition.getMobile()), MeetingBlackUserPO::getMobile, condition.getMobile())
-            .like(StrUtil.isNotBlank(condition.getCountryCode()), MeetingBlackUserPO::getCountryCode,
-                condition.getUserId());
+            .like(StrUtil.isNotBlank(condition.getCountryCode()), MeetingBlackUserPO::getCountryCode, condition.getCountryCode());
 
         //查询全部
         Page<MeetingBlackUserPO> page = meetingBlackUserDaoService.page(meetingApprovePOPage, wrapper);
