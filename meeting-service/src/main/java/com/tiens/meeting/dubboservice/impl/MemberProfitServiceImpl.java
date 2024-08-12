@@ -277,14 +277,14 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         List<LaugeVO> data = listCommonResult1.getData();
         data.stream().forEach(b -> {
             if (b.getLocale().equals(cmsShowGetDTO.getLanguageId())) {
-                cmsShowVO.setDeviceSuggestion("<meta name=\"viewport\" content='width=device-width,initial-scale=1.0'/>"+b.getValue()+"style='margin:0;padding:0;list-style-position: inside;'");
+                cmsShowVO.setDeviceSuggestion("<meta name=\"viewport\" content='width=device-width,initial-scale=1.0'/>"+b.getValue());
             }else if(!cmsShowGetDTO.getLanguageId().equals("en-US") && !cmsShowGetDTO.getLanguageId().equals("zh-CN")){
                 //默认取英文的值
                 log.info("当前语言包不存在，默认取英文的值");
                 cmsShowGetDTO.setLanguageId("en-US");
                 //获取英文的值
                if (cmsShowGetDTO.getLanguageId().equals("en-US")){
-                       cmsShowVO.setDeviceSuggestion("<meta name=\"viewport\" content='width=device-width,initial-scale=1.0'/>"+b.getValue()+"style='margin:0;padding:0;list-style-position: inside;'");
+                       cmsShowVO.setDeviceSuggestion("<meta name=\"viewport\" content='width=device-width,initial-scale=1.0'/>"+b.getValue());
                 }
             }
         });
