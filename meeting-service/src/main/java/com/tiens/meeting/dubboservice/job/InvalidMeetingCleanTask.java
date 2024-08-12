@@ -233,7 +233,7 @@ public class InvalidMeetingCleanTask {
         //获取已过期私人会议资源
         log.info("【清理过期私人会议资源】 开始");
         List<MeetingResourcePO> resourceList = meetingResourceDaoService.list(Wrappers.<MeetingResourcePO>lambdaQuery()
-                .eq(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE)
+                .eq(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
                 .le(MeetingResourcePO::getOwnerExpireDate, DateUtil.date()));
         if (CollectionUtils.isNotEmpty(resourceList)) {
             List<Integer> resourceIds = resourceList.stream().map(MeetingResourcePO::getId).collect(Collectors.toList());
