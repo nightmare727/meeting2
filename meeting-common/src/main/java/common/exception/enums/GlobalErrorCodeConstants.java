@@ -106,7 +106,7 @@ public interface GlobalErrorCodeConstants {
     ErrorCode PERMANENT_BAN_IN_THE_BACKGROUND = new ErrorCode("2000053", "用户受限，不用使用会议功能", "moment_newmeeting_092");
     ErrorCode BACKEND_TIME_LIMITED_BAN = new ErrorCode("2000054", "用户受限，角解禁时间:{0}", "moment_newmeeting_093");
     ErrorCode DURING_THE_MEETING =
-            new ErrorCode("2000055", "有即将召开或正在召开的会议，不能进行取消操作", "moment_meeting_back_014");
+            new ErrorCode("2000055", "有即将召开或正在召开的会议，不能进行取消操作", "moment_meeting_back_055");
 
     /**
      * 是否为服务端错误，参考 HTTP 5XX 错误码段

@@ -362,6 +362,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
         String userId = split[0];
         String size = split[1];
         String relType = split[2];
+        log.info("[查询私有专属会议]freeResourceListDTO：{}lockStartTime：{}",freeResourceListDTO,lockStartTime);
         List<MeetingResourcePO> list = meetingResourceDaoService.lambdaQuery()
             .eq(MeetingResourcePO::getOwnerImUserId, freeResourceListDTO.getImUserId())
             .eq(MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
