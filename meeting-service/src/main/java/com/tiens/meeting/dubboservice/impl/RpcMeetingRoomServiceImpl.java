@@ -44,9 +44,11 @@ import common.util.cache.CacheKeyUtil;
 import common.util.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.dubbo.config.annotation.Service;
-import org.redisson.api.*;
+import org.redisson.api.RLock;
+import org.redisson.api.RLongAdder;
+import org.redisson.api.RMap;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
@@ -324,6 +326,19 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .filter(t -> originResourceIds.contains(t.getId()) && !lockedResourceIdList.contains(t.getId()))
             .peek(t -> t.setResourceType(freeResourceListDTO.getResourceType())).collect(Collectors.toList());
         //        log.info("空闲资源列表结果：{}", result);
+        //非私池资源时 判断是否还有免费次数 如果有只返回公池数据 否则返回全部 公+付费
+        if (NumberUtil.isNumber(freeResourceListDTO.getResourceType()) && CollectionUtil.isNotEmpty(result)) {
+            List<MeetingResourceVO> publicResourceList = result.stream()
+                    .filter(t -> MeetingNewRoomTypeEnum.PUBLIC.getState().equals(t.getMeetingRoomType())).collect(
+                            Collectors.toList());
+            if (CollectionUtil.isNotEmpty(publicResourceList) && freeResourceListDTO.getMemberType() != null && freeResourceListDTO.getMemberType() == 1) {
+                CommonResult<MeetingUserProfitVO> userProfit = memberProfitService.getUserProfit(freeResourceListDTO.getImUserId(), freeResourceListDTO.getMemberType());
+                if (userProfit.isSuccess()) {
+                    result = Optional.ofNullable(userProfit.getData()).map(MeetingUserProfitVO::getUserMemberProfit).map(UserMemberProfitEntity::getSurPlusCount).orElse(0) > 0 ?
+                            publicResourceList : result;
+                }
+            }
+        }
         return CommonResult.success(result);
     }
 
@@ -386,29 +401,19 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             .in(MeetingResourcePO::getMeetingRoomType, Lists.newArrayList(MeetingNewRoomTypeEnum.PUBLIC.getState(),
                     MeetingNewRoomTypeEnum.PAID.getState()))
             .eq(MeetingResourcePO::getPreAllocation, MeetingNewResourceStateEnum.FREE.getState())
+            .eq(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.FREE.getState())
             .eq(MeetingResourcePO::getResourceType, Integer.parseInt(freeResourceListDTO.getResourceType())).list();
         //公共资源
-        List<MeetingResourcePO> publicResourceList = levelFreeResourceList.stream()
-            .filter(t -> MeetingNewRoomTypeEnum.PUBLIC.getState().equals(t.getMeetingRoomType())).collect(
-                Collectors.toList());
+//        List<MeetingResourcePO> publicResourceList = levelFreeResourceList.stream()
+//            .filter(t -> MeetingNewRoomTypeEnum.PUBLIC.getState().equals(t.getMeetingRoomType())).collect(
+//                Collectors.toList());
         //付费资源
 //        List<MeetingResourcePO> paidResourceList = levelFreeResourceList.stream()
 //            .filter(t -> MeetingNewRoomTypeEnum.PAID.getState().equals(t.getMeetingRoomType())).collect(
 //                Collectors.toList());
             //判断普通用户是否存在免费次数
-        List<MeetingResourcePO> finalResourceList = levelFreeResourceList;
-        if (CollectionUtils.isNotEmpty(publicResourceList)) {
-            if (freeResourceListDTO.getMemberType() != null && freeResourceListDTO.getMemberType() == 1) {
-                CommonResult<MeetingUserProfitVO> userProfit = memberProfitService.getUserProfit(freeResourceListDTO.getImUserId(), freeResourceListDTO.getMemberType());
-                log.info("【获取公池资源列表】userProfit:{} publicResourceList:{}", userProfit.getData(), publicResourceList);
-                finalResourceList = new ArrayList<>();
-                if (userProfit.isSuccess()) {
-                    finalResourceList = Optional.ofNullable(userProfit.getData()).map(MeetingUserProfitVO::getUserMemberProfit).map(UserMemberProfitEntity::getSurPlusCount).orElse(0) > 0 ?
-                            publicResourceList : levelFreeResourceList;
-                }
-            }
-        }
-        return BeanUtil.copyToList(finalResourceList, MeetingResourceVO.class);
+
+        return BeanUtil.copyToList(levelFreeResourceList, MeetingResourceVO.class);
     }
 
     /**
@@ -1294,6 +1299,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                     if (count == 0) {
                         boolean preAllocation = MeetingNewResourceStateEnum.SUBSCRIBE.getState()
                                 .equals(meetingResourcePO.getPreAllocation());
+                        log.info("【资源挂起释放】当前资源是否存在预分配：{}meetingResourcePO:{}",preAllocation,meetingResourcePO);
                         // 当前无占用会议室
                         boolean update1 =
                             meetingResourceDaoService.lambdaUpdate().eq(MeetingResourcePO::getId, resourceId)
