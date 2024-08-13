@@ -334,7 +334,14 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
             if (CollectionUtil.isNotEmpty(publicResourceList) && freeResourceListDTO.getMemberType() != null && freeResourceListDTO.getMemberType() == 1) {
                 CommonResult<MeetingUserProfitVO> userProfit = memberProfitService.getUserProfit(freeResourceListDTO.getImUserId(), freeResourceListDTO.getMemberType());
                 if (userProfit.isSuccess()) {
-                    result = Optional.ofNullable(userProfit.getData()).map(MeetingUserProfitVO::getUserMemberProfit).map(UserMemberProfitEntity::getSurPlusCount).orElse(0) > 0 ?
+                    log.info("[普通用户获取资源列表]请求资源类型{}权益返回{}",freeResourceListDTO.getResourceType(), userProfit.getData());
+                    UserMemberProfitEntity userMemberProfitEntity = Optional.ofNullable(userProfit.getData()).map(MeetingUserProfitVO::getUserMemberProfit).orElseGet(() -> {
+                        UserMemberProfitEntity temp = new UserMemberProfitEntity();
+                        temp.setResourceType("");
+                        temp.setSurPlusCount(0);
+                        return temp;
+                    });
+                    result = userMemberProfitEntity.getResourceType().contains(freeResourceListDTO.getResourceType()) && userMemberProfitEntity.getSurPlusCount() > 0 ?
                             publicResourceList : result;
                 }
             }
