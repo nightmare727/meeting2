@@ -477,6 +477,7 @@ public class RpcMeetingUserServiceImpl implements RpcMeetingUserService {
             meetingBlackUserVo.setStartTime(startTime);
             meetingBlackUserVo.setEndTime(endTime);
             meetingBlackUserVo.setOperator(account);
+            meetingBlackUserVo.setTest(String.valueOf(endTime));
             // 缓存设置
             RBucket<MeetingBlackUserVO> bucket = redissonClient.getBucket(CacheKeyUtil.getBlackUserInfoKey(vmUserVo.getAccid()));
             bucket.set(meetingBlackUserVo);

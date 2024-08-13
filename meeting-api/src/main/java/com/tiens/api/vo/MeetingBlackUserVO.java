@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -77,4 +79,13 @@ public class MeetingBlackUserVO implements Serializable {
      */
     private String operator;
 
+    private String test;
+
+    public String getTest() {
+        Date date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String strDate = formatter.format(date);
+        this.test = strDate;
+        return test;
+    }
 }
