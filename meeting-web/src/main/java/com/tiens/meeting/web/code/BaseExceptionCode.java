@@ -1,5 +1,8 @@
 package com.tiens.meeting.web.code;
 
+/**
+ * 异常编码接口
+ */
 public interface BaseExceptionCode {
     /**
      * 异常编码
