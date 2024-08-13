@@ -45,21 +45,21 @@ public class MeetingBlackUserPO implements Serializable {
      * 开始UTC时间
      */
     @TableField(value = "start_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(timezone="GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date startTime;
 
     /**
      * 结束UTC时间
      */
     @TableField(value = "end_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(timezone="GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date endTime;
 
     /**
      * 创建时间
      */
     @TableField(value = "create_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(timezone="GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
 
