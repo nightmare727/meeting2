@@ -1306,6 +1306,7 @@ public class RpcMeetingRoomServiceImpl implements RpcMeetingRoomService {
                                 // 当前状态为共有预约。释放资源后，如果
                                 .set(MeetingResourcePO::getResourceStatus, MeetingNewResourceStateEnum.FREE.getState())
                                 .set(preAllocation,MeetingResourcePO::getMeetingRoomType, MeetingNewRoomTypeEnum.PRIVATE.getState())
+                                .set(preAllocation,MeetingResourcePO::getPreAllocation, MeetingNewResourceStateEnum.FREE.getState())
                                 .set(!subscribeFlag, MeetingResourcePO::getCurrentUseImUserId,
                                     meetingResourcePO.getOwnerImUserId()).update();
                         // 如果存在yu分配私有，则分配资源
