@@ -90,7 +90,9 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     @Autowired
     RpcMeetingUserService rpcMeetingUserService;
 
-    private final MeetingBlackRecordDaoService meetingBlackRecordDaoService;
+    private static final List<Integer> DEFAULT_LEAD_TIME_LIST = Arrays.asList(30, 60);
+
+    private static final List<Integer> DEFAULT_DURATION_LIST = Arrays.asList(60, 90, 120, 150, 180);
 
     /**
      * 校验用户权益
@@ -462,8 +464,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             MeetingProfitPurchaseDetailVO meetingProfitPurchaseDetailVo = new MeetingProfitPurchaseDetailVO();
             meetingProfitPurchaseDetailVo.setPurchaseStatus(
                 MeetingProfitPurchaseDetailStatusEnum.NOT_ENABLE.getState());
-            meetingProfitPurchaseDetailVo.setLeadTimeList(Arrays.asList(30, 60));
-            meetingProfitPurchaseDetailVo.setDurationList(Arrays.asList(60, 90, 120, 150, 180));
+            meetingProfitPurchaseDetailVo.setLeadTimeList(DEFAULT_LEAD_TIME_LIST);
+            meetingProfitPurchaseDetailVo.setDurationList(DEFAULT_DURATION_LIST);
             return CommonResult.success(meetingProfitPurchaseDetailVo);
         }
 
@@ -572,28 +574,23 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         meetingProfitPurchaseDetailVo.setPurchaseStatus(purchaseStatus);
         meetingProfitPurchaseDetailVo.setLeadTimeList(userMemberProfit.getLeadTimeList());
 
-        switch (purchaseStatus) {
-            case 1:
-            case 5:
-                // 取会员权益，这里默认60份起步
-                meetingProfitPurchaseDetailVo.setDurationList(
-                    generateDurationList(60, userMemberProfit.getEveryLimitCount()));
-                break;
-            case 2:
-            case 3:
-            case 4:
-                // 取付费权益（单次上限输入规则为0.5小时的倍数）
-                // 付费权益
-                CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
-                    meetingCacheService.getMeetingPaidSettingByResourceType
-                        (Integer.parseInt(meetingProfitPurchaseDetailGetDto.getResourceType()));
-                MeetingPaidSettingVO meetingPaidSettingVo = meetingPaidSettingByResourceType.getData();
+        if (purchaseStatus.equals(MeetingProfitPurchaseDetailStatusEnum.FREE_USE.getState())
+                || purchaseStatus.equals(MeetingProfitPurchaseDetailStatusEnum.CAN_NOT_USE.getState())) {
 
-                double baseTime = meetingPaidSettingVo.getBaseLimitTime() * 60;
-                double limitTime = meetingPaidSettingVo.getOnceLimit() * 60;
-                meetingProfitPurchaseDetailVo.setDurationList(generateDurationList((int) baseTime, (int) limitTime));
+            // 取会员权益，这里默认60份起步
+            meetingProfitPurchaseDetailVo.setDurationList(generateDurationList(60, userMemberProfit.getEveryLimitCount()));
+        } else {
+
+            // 取付费权益（单次上限输入规则为0.5小时的倍数）
+            // 付费权益
+            CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType = meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(meetingProfitPurchaseDetailGetDto.getResourceType()));
+
+            MeetingPaidSettingVO meetingPaidSettingVo = meetingPaidSettingByResourceType.getData();
+
+            double baseTime = meetingPaidSettingVo.getBaseLimitTime() * 60;
+            double limitTime = meetingPaidSettingVo.getOnceLimit() * 60;
+            meetingProfitPurchaseDetailVo.setDurationList(generateDurationList((int) baseTime, (int) limitTime));
         }
-
         return CommonResult.success(meetingProfitPurchaseDetailVo);
     }
 
