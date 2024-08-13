@@ -226,7 +226,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
     @Override
     public CommonResult saveUserProfitRecord(MeetingRoomContextDTO meetingRoomContextDTO, Long meetingId) {
         if (memberProfitCacheService.getMemberProfitEnabled() && NumberUtil.isNumber(
-            meetingRoomContextDTO.getResourceType())) {
+            meetingRoomContextDTO.getResourceType()) && PaidTypeEnum.MEMBER_FREE.getState()
+            .equals(meetingRoomContextDTO.getPaidType())) {
             log.info("保存权益记录入参：meetingRoomContextDTO：{}，meetingId：{}", JSON.toJSONString(meetingRoomContextDTO),
                 meetingId);
             DateTime showStartTime = DateUtils.roundToHalfHour(
@@ -279,14 +280,17 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         List<LaugeVO> data = listCommonResult1.getData();
         data.stream().forEach(b -> {
             if (b.getLocale().equals(cmsShowGetDTO.getLanguageId())) {
-                cmsShowVO.setDeviceSuggestion("<meta name=\"viewport\" content='width=device-width,initial-scale=1.0'/>"+b.getValue());
-            }else if(!cmsShowGetDTO.getLanguageId().equals("en-US") && !cmsShowGetDTO.getLanguageId().equals("zh-CN")){
+                cmsShowVO.setDeviceSuggestion(
+                    "<meta name=\"viewport\" content='width=device-width,initial-scale=1.0'/>" + b.getValue());
+            } else if (!cmsShowGetDTO.getLanguageId().equals("en-US") && !cmsShowGetDTO.getLanguageId()
+                .equals("zh-CN")) {
                 //默认取英文的值
                 log.info("当前语言包不存在，默认取英文的值");
                 cmsShowGetDTO.setLanguageId("en-US");
                 //获取英文的值
-               if (cmsShowGetDTO.getLanguageId().equals("en-US")){
-                       cmsShowVO.setDeviceSuggestion("<meta name=\"viewport\" content='width=device-width,initial-scale=1.0'/>"+b.getValue());
+                if (cmsShowGetDTO.getLanguageId().equals("en-US")) {
+                    cmsShowVO.setDeviceSuggestion(
+                        "<meta name=\"viewport\" content='width=device-width,initial-scale=1.0'/>" + b.getValue());
                 }
             }
         });
@@ -372,33 +376,33 @@ public class MemberProfitServiceImpl implements MemberProfitService {
 
         //校验黑名单
         List<MeetingBlackUserPO> blackUserPOList =
-                meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, finalUserId)
-                        .le(MeetingBlackUserPO::getStartTime, now).list();
+            meetingBlackUserDaoService.lambdaQuery().eq(MeetingBlackUserPO::getUserId, finalUserId)
+                .le(MeetingBlackUserPO::getStartTime, now).list();
 
         if (ObjectUtil.isNotEmpty(blackUserPOList)) {
             MeetingBlackUserPO meetingBlackUserPO = blackUserPOList.get(0);
 
             // 永久封号或者还未到解禁时间
             if (meetingBlackUserPO.getEndTime() == null || meetingBlackUserPO.getEndTime().after(now)) {
-               // 调整返回值 message包含词条key  data赋值endTime
+                // 调整返回值 message包含词条key  data赋值endTime
 //                1、三次失约限制：简化一下
 //                您最近3场会议未按规则正常开启，预约会议/快速会议受限，解禁时间:2024/09/19 16:00
 //                2、后台永久封禁：
 //                用户受限，不用使用会议功能。
 //                3、后台限时封禁：
 //                用户受限，解禁时间:2024/09/19 16:00
-                String messageKey="";
-                if(StringUtils.isNotBlank(meetingBlackUserPO.getOperator())){
-                    if(meetingBlackUserPO.getEndTime() == null){
-                        messageKey=GlobalErrorCodeConstants.PERMANENT_BAN_IN_THE_BACKGROUND.getWordKey();
-                    }else {
-                        messageKey=GlobalErrorCodeConstants.BACKEND_TIME_LIMITED_BAN.getWordKey();
+                String messageKey = "";
+                if (StringUtils.isNotBlank(meetingBlackUserPO.getOperator())) {
+                    if (meetingBlackUserPO.getEndTime() == null) {
+                        messageKey = GlobalErrorCodeConstants.PERMANENT_BAN_IN_THE_BACKGROUND.getWordKey();
+                    } else {
+                        messageKey = GlobalErrorCodeConstants.BACKEND_TIME_LIMITED_BAN.getWordKey();
                     }
-                }else {
-                    messageKey=GlobalErrorCodeConstants.THREE_TIME_BREACH_LIMIT.getWordKey();
+                } else {
+                    messageKey = GlobalErrorCodeConstants.THREE_TIME_BREACH_LIMIT.getWordKey();
                 }
                 MeetingBlackUserVO meetingBlackUserVO =
-                        BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackUserVO.class);
+                    BeanUtil.copyProperties(meetingBlackUserPO, MeetingBlackUserVO.class);
                 MeetingConfig.BlackUserConfigInner blackUserConfig = meetingConfig.getBlackUserConfig();
 
                 meetingBlackUserVO.setMaxTime(blackUserConfig.getMaxTime());
@@ -408,7 +412,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
                 meetingBlackUserVO.setMobile(meetingBlackUserPO.getMobile());
                 meetingBlackUserVO.setCountryCode(meetingBlackUserPO.getCountryCode());
 
-                return CommonResult.success(GlobalErrorCodeConstants.SUCCESS.getCode(),meetingBlackUserVO,messageKey);
+                return CommonResult.success(GlobalErrorCodeConstants.SUCCESS.getCode(), meetingBlackUserVO, messageKey);
             }
         }
         return CommonResult.success(null);
@@ -420,6 +424,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
             new LambdaQueryWrapper<MeetingPaidSettingPO>().orderByAsc(MeetingPaidSettingPO::getResourceType));
         return CommonResult.success(BeanUtil.copyToList(list, MeetingPaidSettingVO.class));
     }
+
     @Override
     public CommonResult updMeetingPaidSetting(MeetingPaidSettingVO request) {
         MeetingPaidSettingPO settingPo = BeanUtil.copyProperties(request, MeetingPaidSettingPO.class);
@@ -432,6 +437,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         }
         return CommonResult.success(res);
     }
+
     /**
      * 查询全部权益配置
      *
@@ -489,7 +495,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         freeResourceListDto.setImUserId(meetingProfitPurchaseDetailGetDto.getFinalUserId());
         freeResourceListDto.setStartTime(meetingProfitPurchaseDetailGetDto.getStartTime());
         freeResourceListDto.setTimeZoneOffset(meetingProfitPurchaseDetailGetDto.getTimeZoneOffset());
-        freeResourceListDto.setLength(meetingProfitPurchaseDetailGetDto.getLength() == null ? 60 : meetingProfitPurchaseDetailGetDto.getLength());
+        freeResourceListDto.setLength(
+            meetingProfitPurchaseDetailGetDto.getLength() == null ? 60 : meetingProfitPurchaseDetailGetDto.getLength());
         freeResourceListDto.setResourceType(meetingProfitPurchaseDetailGetDto.getResourceType());
         freeResourceListDto.setMemberType(meetingProfitPurchaseDetailGetDto.getMemberType());
 
@@ -574,22 +581,25 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         meetingProfitPurchaseDetailVo.setPurchaseStatus(purchaseStatus);
         meetingProfitPurchaseDetailVo.setLeadTimeList(userMemberProfit.getLeadTimeList());
 
-        if (purchaseStatus.equals(MeetingProfitPurchaseDetailStatusEnum.FREE_USE.getState())
-                || purchaseStatus.equals(MeetingProfitPurchaseDetailStatusEnum.CAN_NOT_USE.getState())) {
+        if (purchaseStatus.equals(MeetingProfitPurchaseDetailStatusEnum.FREE_USE.getState()) || purchaseStatus.equals(
+            MeetingProfitPurchaseDetailStatusEnum.CAN_NOT_USE.getState())) {
 
             // 取会员权益，这里默认60份起步
-            meetingProfitPurchaseDetailVo.setDurationList(generateDurationList(60, userMemberProfit.getEveryLimitCount()));
+            meetingProfitPurchaseDetailVo.setDurationList(
+                generateDurationList(60, userMemberProfit.getEveryLimitCount()));
         } else {
 
             // 取付费权益（单次上限输入规则为0.5小时的倍数）
             // 付费权益
-            CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType = meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(meetingProfitPurchaseDetailGetDto.getResourceType()));
+            CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
+                meetingCacheService.getMeetingPaidSettingByResourceType(
+                    Integer.parseInt(meetingProfitPurchaseDetailGetDto.getResourceType()));
 
             MeetingPaidSettingVO meetingPaidSettingVo = meetingPaidSettingByResourceType.getData();
 
             double baseTime = meetingPaidSettingVo.getBaseLimitTime() * 60;
             double limitTime = meetingPaidSettingVo.getOnceLimit() * 60;
-            meetingProfitPurchaseDetailVo.setDurationList(generateDurationList((int) baseTime, (int) limitTime));
+            meetingProfitPurchaseDetailVo.setDurationList(generateDurationList((int)baseTime, (int)limitTime));
         }
         return CommonResult.success(meetingProfitPurchaseDetailVo);
     }
@@ -618,14 +628,14 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<ProfitPaidCheckOutGetVO> getProfitPaidCheckOut(
-            ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDto) {
+        ProfitPaidCheckOutGetDTO profitPaidCheckOutGetDto) {
         String resourceType = profitPaidCheckOutGetDto.getResourceType();
         if (!NumberUtil.isNumber(resourceType)) {
             return CommonResult.success(null);
         }
 
         CommonResult<MeetingPaidSettingVO> meetingPaidSettingByResourceType =
-                meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
+            meetingCacheService.getMeetingPaidSettingByResourceType(Integer.parseInt(resourceType));
         MeetingPaidSettingVO meetingPaidSettingVO = meetingPaidSettingByResourceType.getData();
 
         Integer duration = profitPaidCheckOutGetDto.getDuration();
@@ -634,8 +644,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         Double money = meetingPaidSettingVO.getMoney();
         ProfitPaidCheckOutGetVO profitPaidCheckOutGetVO = new ProfitPaidCheckOutGetVO();
 
-        profitPaidCheckOutGetVO.setNeedPayVMAmount(BigDecimal.valueOf((long) (duration / 30) * vmCoin));
-        profitPaidCheckOutGetVO.setNeedPayAmount(BigDecimal.valueOf((long) (duration / 30) * money));
+        profitPaidCheckOutGetVO.setNeedPayVMAmount(BigDecimal.valueOf((long)(duration / 30) * vmCoin));
+        profitPaidCheckOutGetVO.setNeedPayAmount(BigDecimal.valueOf((long)(duration / 30) * money));
 
         return CommonResult.success(profitPaidCheckOutGetVO);
     }
@@ -697,7 +707,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
      */
     @Override
     public CommonResult<List<UserMemberProfitEntity>> queryUserProfitConfig() {
-        RMap<Integer, MeetingMemeberProfitConfigPO> map = redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey("rese"));
+        RMap<Integer, MeetingMemeberProfitConfigPO> map =
+            redissonClient.getMap(CacheKeyUtil.getFreeReservationLimitKey("rese"));
         Collection<MeetingMemeberProfitConfigPO> values = map.values();
 
         List<UserMemberProfitEntity> collect = values.stream().map(t -> packMeetingMemberProfitConfigPO(t, null))
@@ -736,10 +747,8 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         userMemberProfitEntity.setFreeDayAppointCount(freeDayAppointCount);
 
         userMemberProfitEntity.setSurPlusCount(
-            ObjectUtil.isNotNull(useCount) ?
-                    (freeDayAppointCount - useCount.intValue())<0?0:(freeDayAppointCount - useCount.intValue())
-                    :
-                    freeDayAppointCount);
+            ObjectUtil.isNotNull(useCount) ? (freeDayAppointCount - useCount.intValue()) < 0 ? 0
+                : (freeDayAppointCount - useCount.intValue()) : freeDayAppointCount);
 
         userMemberProfitEntity.setEveryLimitCount(t.getLimitCount());
         userMemberProfitEntity.setGoTime(t.getGoTime());
@@ -752,7 +761,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         userMemberProfitEntity.setResourceSizeList(resourceSizeList);
 
         List<Integer> leadTimeList = Arrays.asList(t.getGoTime().split(",")).stream()
-            .map(f ->MeetingResoyrceDateEnum.getHandlerNameByVmrMode(Integer.parseInt(f))).sorted()
+            .map(f -> MeetingResoyrceDateEnum.getHandlerNameByVmrMode(Integer.parseInt(f))).sorted()
             .collect(Collectors.toList());
 
         userMemberProfitEntity.setLeadTimeList(leadTimeList);
@@ -985,8 +994,7 @@ public class MemberProfitServiceImpl implements MemberProfitService {
         }
 
         //3、扣减vm币
-        CommonResult result1 =
-            doCountDownMemberProfitCoins(joyoCode, nationId, amount);
+        CommonResult result1 = doCountDownMemberProfitCoins(joyoCode, nationId, amount);
         if (result1.isError()) {
             log.error("扣减VM币失败，错误信息：{}", result1.getMsg());
             return CommonResult.error(GlobalErrorCodeConstants.ERROR_BUY_PROFIT);
