@@ -224,7 +224,6 @@ public class InvalidMeetingCleanTask {
             meetingBlackUserPO.setJoyoCode(vmUserVo.getJoyoCode());
             meetingBlackUserPO.setMobile(vmUserVo.getMobile());
             meetingBlackUserPO.setCountryCode(vmUserVo.getCountry());
-            meetingBlackUserPO.setTest(String.valueOf(startTime));
 
             meetingBlackUserDaoService.save(meetingBlackUserPO);
         } else {
